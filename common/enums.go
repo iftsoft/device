@@ -12,98 +12,98 @@ type EnumDevWarning int16
 
 // Device types
 const (
-	DevType_Deault EnumDevType = 1 >> iota
-	DevType_CardReader
-	DevType_BarScanner
-	DevType_PINEntry
-	DevType_Printer
-	DevType_CashValidator
-	DevType_CoinValidator
-	DevType_CashDispenser
-	DevType_CoinDispenser
-	DevType_Vending
-	DevType_Custom
+	DevTypeDeault EnumDevType = iota
+	DevTypeCardReader
+	DevTypeBarScanner
+	DevTypePINEntry
+	DevTypePrinter
+	DevTypeCashValidator
+	DevTypeCoinValidator
+	DevTypeCashDispenser
+	DevTypeCoinDispenser
+	DevTypeVending
+	DevTypeCustom
 )
 
 // Device error codes
 const (
-	DevError_Success EnumDevError = iota
-	DevError_BadArgument
+	DevErrorSuccess EnumDevError = iota
+	DevErrorBadArgument
 )
 
 // Device status codes
 const (
-	DevState_Undefined EnumDevState = iota
-	DevState_Ready
-	DevState_Working
-	DevState_Waiting
-	DevState_Standby
-	DevState_BadState
-	DevState_Failure
-	DevState_HardError
-	DevState_SoftError
-	DevState_PrnTonerOut
-	DevState_PrnPaperOut
-	DevState_PrnPaperJam
-	DevState_PrnCoverOpen
-	DevState_PrnOutputBin
-	DevState_CardInFront
-	DevState_CardInside
-	DevState_CardInTrack
-	DevState_CardPowered
-	DevState_CashAccepting
-	DevState_CashEscrowed
-	DevState_CashStacking
-	DevState_CashStacked
-	DevState_CashReturning
-	DevState_CashReturned
-	DevState_CashRejecting
-	DevState_CashBillJammed
-	DevState_CashStackerFull
-	DevState_DispCapturing
-	DevState_DispDispensing
-	DevState_DispDispensed
-	DevState_DispEmptyStack
-	DevState_DoorBroken
-	DevState_
+	DevStateUndefined EnumDevState = iota
+	DevStateReady
+	DevStateWorking
+	DevStateWaiting
+	DevStateStandby
+	DevStateBadState
+	DevStateFailure
+	DevStateHardError
+	DevStateSoftError
+	DevStatePrnTonerOut
+	DevStatePrnPaperOut
+	DevStatePrnPaperJam
+	DevStatePrnCoverOpen
+	DevStatePrnOutputBin
+	DevStateCardInFront
+	DevStateCardInside
+	DevStateCardInTrack
+	DevStateCardPowered
+	DevStateCashAccepting
+	DevStateCashEscrowed
+	DevStateCashStacking
+	DevStateCashStacked
+	DevStateCashReturning
+	DevStateCashReturned
+	DevStateCashRejecting
+	DevStateCashBillJammed
+	DevStateCashStackerFull
+	DevStateDispCapturing
+	DevStateDispDispensing
+	DevStateDispDispensed
+	DevStateDispEmptyStack
+	DevStateDoorBroken
+	DevState
 )
 
 // Device prompt codes
 const (
-	DevPrompt_None EnumDevPrompt = iota
-	DevPrompt_UnitWait
-	DevPrompt_UnitDone
-	DevPrompt_UnitError
-	DevPrompt_CardSwipe
-	DevPrompt_CardInsert
-	DevPrompt_CardRemove
-	DevPrompt_CardCapture
-	DevPrompt_CardFailure
-	DevPrompt_ScanBarcode
-	DevPrompt_PrintText
-	DevPrompt_PpadEntryData
-	DevPrompt_PpadEntryPIN
-	DevPrompt_CashInsertBill
-	DevPrompt_CashAccepting
-	DevPrompt_CashEscrowed
-	DevPrompt_CashStacking
-	DevPrompt_CashReturning
-	DevPrompt_CashFailure
-	DevPrompt_CashBillJammed
-	DevPrompt_CashStackerFull
-	DevPrompt_DispTakeItem
-	DevPrompt_DispTakeCard
-	DevPrompt_DispTakeBill
-	DevPrompt_DispTakeCoin
-	DevPrompt_DispCapture
-	DevPrompt_DispFailure
-	DevPrompt_
+	DevPromptNone EnumDevPrompt = iota
+	DevPromptUnitWait
+	DevPromptUnitDone
+	DevPromptUnitError
+	DevPromptCardSwipe
+	DevPromptCardInsert
+	DevPromptCardRemove
+	DevPromptCardCapture
+	DevPromptCardFailure
+	DevPromptScanBarcode
+	DevPromptPrintText
+	DevPromptPpadEntryData
+	DevPromptPpadEntryPIN
+	DevPromptCashInsertBill
+	DevPromptCashAccepting
+	DevPromptCashEscrowed
+	DevPromptCashStacking
+	DevPromptCashReturning
+	DevPromptCashFailure
+	DevPromptCashBillJammed
+	DevPromptCashStackerFull
+	DevPromptDispTakeItem
+	DevPromptDispTakeCard
+	DevPromptDispTakeBill
+	DevPromptDispTakeCoin
+	DevPromptDispCapture
+	DevPromptDispFailure
+	DevPrompt
 )
 
 // Device action codes
 const (
-	DevAction_Nothing EnumDevAction = iota
-	DevAction_
+	DevActionNothing EnumDevAction = iota
+	DevAction
 )
 
 /*
