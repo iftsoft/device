@@ -1,0 +1,29 @@
+# Test config file
+logger:
+  logPath: logs
+  logFile: example
+  logLevel: 7
+  consLevel: 4
+  maxFiles: 2
+  maxSize: 256
+
+device:
+  common:
+    devName: emulator
+    model: screen
+    version: 0.1.0
+    timeout: 30
+    autoLoad: False
+  serial:
+    portNumber: 1
+    baudRate: 9600
+    dataBits: 8
+    stopBits: 1
+    parity: 0
+    sendTimeout: 50
+    recvTimeout: 250
+  printer:
+  reader:
+  validator:
+  dispenser:
+  vendor:

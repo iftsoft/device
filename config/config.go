@@ -30,7 +30,7 @@ type CommonConfig struct {
 }
 
 type SerialConfig struct {
-	PortNumber  int32 `yaml:"portNmber"`
+	PortNumber  int32 `yaml:"portNumber"`
 	BaudRate    int32 `yaml:"baudRate"`
 	DataBits    int32 `yaml:"dataBits"`
 	StopBits    int32 `yaml:"stopBits"`
