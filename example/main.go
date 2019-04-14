@@ -10,26 +10,23 @@ import (
 	"time"
 )
 
-type AppConfig struct {
-	Logger core.LogConfig      `yaml:"logger"`
-	Device config.DeviceConfig `yaml:"device"`
-}
-
 func main() {
 	fmt.Println("-------BEGIN------------")
 
-	config := &AppConfig{}
-	err := core.ReadYamlFile("config.yml", config)
+	appPar := config.GetAppParams()
+	err, appCfg := config.GetAppConfig(appPar)
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		core.StartFileLogger(&config.Logger)
+		core.StartFileLogger(&appCfg.Logger)
 	}
 	log := core.GetLogAgent(core.LogLevelTrace, "APP")
 	log.Info("Start application")
-	log.Info("Config logger: %+v", config.Logger)
-	log.Info("Config device: %+v", config.Device)
-
+	log.Info("App params: %+v", appPar)
+	if appCfg != nil {
+		log.Info("Config logger: %+v", appCfg.Logger)
+		log.Info("Config device: %+v", appCfg.Device)
+	}
 	WaitForSignal(log)
 
 	log.Info("Stop application")

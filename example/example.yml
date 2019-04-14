@@ -1,11 +1,11 @@
 # Test config file
-logger:
-  logPath: logs
-  logFile: example
-  logLevel: 7
-  consLevel: 4
-  maxFiles: 2
-  maxSize: 256
+#logger:
+#  logPath: logs
+#  logFile: example
+#  logLevel: 7
+#  consLevel: 4
+#  maxFiles: 2
+#  maxSize: 256
 
 device:
   common:
