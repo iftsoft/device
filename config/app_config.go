@@ -2,7 +2,7 @@ package config
 
 import (
 	"flag"
-	"github.com/iftsoft/core"
+	"github.com/iftsoft/device/core"
 	"os"
 	"path/filepath"
 	"strings"

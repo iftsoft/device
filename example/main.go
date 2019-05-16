@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/iftsoft/core"
 	"github.com/iftsoft/device/config"
+	"github.com/iftsoft/device/core"
 	"os"
 	"os/signal"
 	"syscall"

@@ -1,7 +1,7 @@
 package duplex
 
 import (
-	"github.com/iftsoft/core"
+	"github.com/iftsoft/device/core"
 	"net"
 	"sync"
 )
