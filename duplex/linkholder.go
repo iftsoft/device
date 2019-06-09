@@ -17,7 +17,7 @@ func (h *LinkHolder) GetConnect() *Connection {
 	return h.conn
 }
 
-func (h *LinkHolder) SetConnect(conn net.TCPConn, log *core.LogAgent) {
+func (h *LinkHolder) SetConnect(conn *net.TCPConn, log *core.LogAgent) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 	h.conn = &Connection{conn: conn, log: log}

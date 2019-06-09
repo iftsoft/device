@@ -17,7 +17,7 @@ const (
 )
 
 type Connection struct {
-	conn net.TCPConn
+	conn *net.TCPConn
 	log  *core.LogAgent
 	lock sync.Mutex
 }
@@ -31,6 +31,7 @@ func (c *Connection) WritePacket(pack *Packet) error {
 		return errors.New("packet pointer is nil")
 	}
 	dump := pack.Encode()
+	c.log.Trace("Write packet dump: %+v", dump)
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	err := c.WriteBinary(dump)
@@ -67,6 +68,7 @@ func (c *Connection) ReadPacket() (pack *Packet, err error) {
 	if err != nil {
 		return nil, err
 	}
+	c.log.Trace("Read packet dump: %+v", dump)
 	pack = &Packet{}
 	err = pack.Decode(dump)
 	return pack, err
