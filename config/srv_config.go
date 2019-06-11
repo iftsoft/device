@@ -9,14 +9,13 @@ import (
 	"strings"
 )
 
-type AppConfig struct {
+type SrvConfig struct {
 	Logger core.LogConfig            `yaml:"logger"`
-	Client duplex.DuplexClientConfig `yaml:"client"`
-	Device DeviceConfig              `yaml:"device"`
+	Server duplex.DuplexServerConfig `yaml:"server"`
 }
 
-func GetDefaultAppConfig() *AppConfig {
-	appCfg := &AppConfig{
+func GetDefaultSrvConfig() *SrvConfig {
+	appCfg := &SrvConfig{
 		Logger: core.LogConfig{
 			LogPath:   "",
 			LogFile:   "",
@@ -25,23 +24,14 @@ func GetDefaultAppConfig() *AppConfig {
 			MaxFiles:  8,
 			MaxSize:   1024,
 		},
-		Client: duplex.DuplexClientConfig{
+		Server: duplex.DuplexServerConfig{
 			Port: duplex.DuplexPort,
-		},
-		Device: DeviceConfig{
-			Common:    CommonConfig{},
-			Serial:    SerialConfig{},
-			Printer:   PrinterConfig{},
-			Reader:    ReaderConfig{},
-			Validator: ValidatorConfig{},
-			Dispenser: DispenserConfig{},
-			Vendor:    VendorConfig{},
 		},
 	}
 	return appCfg
 }
 
-type AppParams struct {
+type SrvParams struct {
 	Home   string   // Working folder for application
 	Name   string   // Name of application
 	Config string   // Application config file
@@ -49,10 +39,10 @@ type AppParams struct {
 	Args   []string // Rest of application params
 }
 
-func GetAppParams() *AppParams {
+func GetSrvParams() *SrvParams {
 	path, name := filepath.Split(os.Args[0])
 	name = strings.TrimSuffix(name, filepath.Ext(name))
-	appPar := AppParams{}
+	appPar := SrvParams{}
 	flag.StringVar(&appPar.Home, "home", path, "Working folder for application")
 	flag.StringVar(&appPar.Name, "name", name, "Name of application")
 	flag.StringVar(&appPar.Config, "cfg", name+".yml", "Application config file")
@@ -64,18 +54,18 @@ func GetAppParams() *AppParams {
 	return &appPar
 }
 
-func GetAppConfig(appPar *AppParams) (error, *AppConfig) {
-	appCfg := GetDefaultAppConfig()
+func GetSrvConfig(appPar *SrvParams) (error, *SrvConfig) {
+	appCfg := GetDefaultSrvConfig()
 	err := core.ReadYamlFile(appPar.Config, appCfg)
 	if err != nil {
 		return err, nil
 	} else {
-		UpdateAppConfig(appCfg, appPar)
+		UpdateSrvConfig(appCfg, appPar)
 	}
 	return nil, appCfg
 }
 
-func UpdateAppConfig(appCfg *AppConfig, appPar *AppParams) {
+func UpdateSrvConfig(appCfg *SrvConfig, appPar *SrvParams) {
 	if appCfg.Logger.LogFile == "" {
 		appCfg.Logger.LogFile = appPar.Name
 	}

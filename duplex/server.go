@@ -15,14 +15,19 @@ type HandleSet struct {
 	store map[string]*DuplexHandler
 	count uint32
 	mutex sync.RWMutex
+	wg    sync.WaitGroup
 }
 
-func NewHandleSet() HandleSet {
+func NewHandleSet() *HandleSet {
 	hs := HandleSet{store: make(map[string]*DuplexHandler), count: 0}
-	return hs
+	return &hs
 }
 
 func (hs *HandleSet) AddHandler(handle *DuplexHandler) string {
+	if handle == nil {
+		return ""
+	}
+	hs.wg.Add(1)
 	hs.mutex.Lock()
 	defer hs.mutex.Unlock()
 	hs.count++
@@ -42,32 +47,64 @@ func (hs *HandleSet) GetHandler(name string) *DuplexHandler {
 }
 
 func (hs *HandleSet) DelHandler(name string) {
+	hs.wg.Done()
 	hs.mutex.Lock()
 	defer hs.mutex.Unlock()
 	delete(hs.store, name)
 }
 
+func (hs *HandleSet) StopAllHandlers() {
+	hs.mutex.RLock()
+	defer hs.mutex.RUnlock()
+	for _, hnd := range hs.store {
+		if hnd != nil {
+			hnd.Stop()
+		}
+	}
+}
+
+func (hs *HandleSet) WaitAllHandlers() {
+	hs.wg.Wait()
+}
+
 type DuplexServer struct {
 	Config   *DuplexServerConfig
-	listener net.Listener
-	scopeMap ScopeSet
-	handles  HandleSet
+	listener *net.TCPListener
+	scopeMap *ScopeSet
+	handles  *HandleSet
 	log      *core.LogAgent
 }
 
+func NewDuplexServer() *DuplexServer {
+	ds := DuplexServer{
+		Config:   nil,
+		listener: nil,
+		scopeMap: NewScoreSet(),
+		handles:  NewHandleSet(),
+		log:      core.GetLogAgent(core.LogLevelTrace, "Listener"),
+	}
+	return &ds
+}
+
 func (ds *DuplexServer) Listen(addr *net.TCPAddr) bool {
-	listener, err := net.ListenTCP("tcp", addr)
+	var err error
+	ds.listener, err = net.ListenTCP("tcp", addr)
 	if err != nil {
 		ds.log.Error("Unable to listen on port %s\n", addr.String())
 		return false
 	}
-	ds.log.Info("Listen on %s", listener.Addr().String())
+	ds.log.Info("Listen on %s", ds.listener.Addr().String())
 	for {
 		ds.log.Trace("Accept a connection request.")
-		conn, err := listener.AcceptTCP()
+		conn, err := ds.listener.AcceptTCP()
 		if err != nil {
 			ds.log.Error("Failed accepting a connection request:", err)
-			continue
+			_, err = ds.listener.SyscallConn()
+			if err != nil {
+				break
+			} else {
+				continue
+			}
 		}
 		ds.log.Trace("Handle incoming messages.")
 		go ds.handleMessages(conn)
@@ -75,9 +112,19 @@ func (ds *DuplexServer) Listen(addr *net.TCPAddr) bool {
 	return true
 }
 
+func (ds *DuplexServer) StopListen() {
+	ds.log.Info("Stop listening on server.")
+	_ = ds.listener.Close()
+	ds.log.Trace("Closing all connections...")
+	ds.handles.StopAllHandlers()
+	ds.log.Trace("Waiting for running handlers.")
+	ds.handles.WaitAllHandlers()
+	ds.log.Info("All connections are closed.")
+}
+
 func (ds *DuplexServer) handleMessages(conn *net.TCPConn) {
 	hand := GetDuplexHandler()
 	name := ds.handles.AddHandler(hand)
 	hand.Init(conn, name, ds.Config)
-	//	hand.HandlerLoop()
+	hand.HandlerLoop(ds.handles)
 }

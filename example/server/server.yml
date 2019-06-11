@@ -1,0 +1,9 @@
+# Test config file
+logger:
+  logPath: ../logs
+  logFile: server
+#  logLevel: 7
+#  consLevel: 4
+#  maxFiles: 2
+#  maxSize: 256
+

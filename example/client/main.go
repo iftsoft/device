@@ -25,6 +25,7 @@ func main() {
 	log.Info("App params: %+v", appPar)
 	if appCfg != nil {
 		log.Info("Config logger: %+v", appCfg.Logger)
+		log.Info("Config client: %+v", appCfg.Client)
 		log.Info("Config device: %+v", appCfg.Device)
 	}
 	WaitForSignal(log)

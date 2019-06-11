@@ -3,12 +3,12 @@ package duplex
 import (
 	"github.com/iftsoft/device/core"
 	"net"
-	"sync"
 	"time"
 )
 
 type DuplexHandler struct {
 	Duplex
+	HndName  string
 	Config   *DuplexServerConfig
 	scopeMap *ScopeSet
 }
@@ -20,6 +20,7 @@ func GetDuplexHandler() *DuplexHandler {
 			done: make(chan struct{}),
 			log:  nil,
 		},
+		HndName:  "",
 		Config:   nil,
 		scopeMap: nil,
 	}
@@ -34,7 +35,13 @@ func (dh *DuplexHandler) Stop() {
 func (dh *DuplexHandler) Init(conn *net.TCPConn, name string, cfg *DuplexServerConfig) {
 	dh.log = core.GetLogAgent(core.LogLevelTrace, name)
 	dh.link.SetConnect(conn, dh.log)
+	dh.HndName = name
 	dh.Config = cfg
+}
+
+func (dh *DuplexHandler) HandlerLoop(hs *HandleSet) {
+	defer hs.DelHandler(dh.HndName)
+	dh.readingLoop()
 }
 
 func (dh *DuplexHandler) NewPacket(pack *Packet) bool {
@@ -58,9 +65,4 @@ func (dh *DuplexHandler) OnReadError(err error) error {
 
 func (dh *DuplexHandler) OnTimerTick(tm time.Time) {
 	dh.log.Trace("DuplexHandler OnTimerTick: %s", tm.Format(time.StampMilli))
-}
-
-func (dh *DuplexHandler) HandlerLoop(wg *sync.WaitGroup) {
-	defer wg.Done()
-	dh.readingLoop()
 }

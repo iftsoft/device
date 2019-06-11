@@ -14,7 +14,7 @@ type DuplexClientConfig struct {
 type DuplexClient struct {
 	Duplex
 	Config   *DuplexClientConfig
-	scopeMap ScopeSet
+	scopeMap *ScopeSet
 }
 
 func GetDuplexClient() *DuplexClient {

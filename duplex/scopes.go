@@ -11,9 +11,9 @@ type ScopeItem struct {
 	mutex   sync.RWMutex
 }
 
-func NewScoreItem() ScopeItem {
+func NewScoreItem() *ScopeItem {
 	si := ScopeItem{handler: make(map[string]ScopeFunc)}
-	return si
+	return &si
 }
 
 func (si *ScopeItem) SetScoreFunc(name string, proc ScopeFunc) {
@@ -37,9 +37,9 @@ type ScopeSet struct {
 	mutex sync.RWMutex
 }
 
-func NewScoreSet() ScopeSet {
+func NewScoreSet() *ScopeSet {
 	ss := ScopeSet{store: make(map[PacketScope]*ScopeItem)}
-	return ss
+	return &ss
 }
 
 func (ss *ScopeSet) SetScore(id PacketScope, score *ScopeItem) {
