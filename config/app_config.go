@@ -20,8 +20,8 @@ func GetDefaultAppConfig() *AppConfig {
 		Logger: core.LogConfig{
 			LogPath:   "",
 			LogFile:   "",
-			LogLevel:  core.LogLevelInfo,
-			ConsLevel: core.LogLevelInfo,
+			LogLevel:  core.LogLevelTrace,
+			ConsLevel: core.LogLevelTrace,
 			MaxFiles:  8,
 			MaxSize:   1024,
 		},

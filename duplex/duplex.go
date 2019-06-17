@@ -24,6 +24,7 @@ type Duplex struct {
 }
 
 func (d *Duplex) WritePacket(pack *Packet) error {
+	//	d.log.Info("Duplex WritePacket %+v", pack)
 	if d.mngr == nil {
 		return errors.New("duplex manager is not set")
 	}
@@ -34,7 +35,7 @@ func (d *Duplex) WritePacket(pack *Packet) error {
 	if conn == nil {
 		return errors.New("connection is closed")
 	}
-	d.log.Trace("Write packet: %+v", pack)
+	pack.Print(d.log, "Write")
 	err := conn.WritePacket(pack)
 	if err != nil {
 		err = d.mngr.OnWriteError(err)
@@ -47,36 +48,55 @@ func (d *Duplex) ReadPacket() error {
 		return errors.New("duplex manager is not set")
 	}
 	conn := d.link.GetConnect()
-	if conn == nil {
-		return errors.New("connection is closed")
-	}
-	pack, err := conn.ReadPacket()
-	d.log.Trace("Read packet: %+v", pack)
-	if err != nil {
-		err = d.mngr.OnReadError(err)
+	if conn != nil {
+		pack, err := conn.ReadPacket()
+		if err != nil {
+			return d.mngr.OnReadError(err)
+		} else if pack != nil {
+			pack.Print(d.log, "Read ")
+			d.mngr.NewPacket(pack)
+		}
 	} else {
-		d.mngr.NewPacket(pack)
+		return errors.New("duplex DialTCP conn is nil")
 	}
-	return err
+	return nil
 }
 
 func (d *Duplex) readingLoop() {
-	tick := time.NewTicker(10 * time.Millisecond)
+	for {
+		err := d.ReadPacket()
+		if err != nil {
+			d.log.Error("Duplex ReadPacket error: %s", err)
+			return
+		}
+	}
+}
+
+func (d *Duplex) waitingLoop() {
+	d.log.Info("Duplex loop is started")
+	defer d.log.Info("Duplex loop is stopped")
+
+	tick := time.NewTicker(1000 * time.Millisecond)
 	defer tick.Stop()
+
 	for {
 		select {
 		case <-d.done:
+			defer d.log.Info("Duplex loop stopping")
 			return
 		case tm := <-tick.C:
+			d.log.Info("Duplex loop timer tick")
 			d.mngr.OnTimerTick(tm)
-		default:
-			err := d.ReadPacket()
-			if err != nil {
-				//} else if err == io.EOF {
-				//	break
-				//} else {
-				return
-			}
+			//default:
+			//	err := d.ReadPacket()
+			//	if err != nil {
+			//		d.log.Error("Duplex ReadPacket error: %s", err)
+			//		//} else if err == io.EOF {
+			//		//	break
+			//		//} else {
+			//		return
+			//	}
+			//			time.Sleep(100*time.Microsecond)
 		}
 	}
 }

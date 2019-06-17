@@ -6,13 +6,19 @@ import (
 
 type ScopeFunc func(dump []byte)
 
+type Transporter interface {
+	SendPacket(pack *Packet, link string) error
+	AddScopeItem(item *ScopeItem)
+}
+
 type ScopeItem struct {
+	scopeId PacketScope
 	handler map[string]ScopeFunc
 	mutex   sync.RWMutex
 }
 
-func NewScoreItem() *ScopeItem {
-	si := ScopeItem{handler: make(map[string]ScopeFunc)}
+func NewScoreItem(id PacketScope) *ScopeItem {
+	si := ScopeItem{scopeId: id, handler: make(map[string]ScopeFunc)}
 	return &si
 }
 
@@ -42,10 +48,13 @@ func NewScoreSet() *ScopeSet {
 	return &ss
 }
 
-func (ss *ScopeSet) SetScore(id PacketScope, score *ScopeItem) {
+func (ss *ScopeSet) AddScore(scope *ScopeItem) {
+	if scope == nil {
+		return
+	}
 	ss.mutex.Lock()
 	defer ss.mutex.Unlock()
-	ss.store[id] = score
+	ss.store[scope.scopeId] = scope
 }
 
 func (ss *ScopeSet) GetScore(id PacketScope) *ScopeItem {

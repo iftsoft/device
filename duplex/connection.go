@@ -5,7 +5,6 @@ import (
 	"github.com/iftsoft/device/core"
 	"net"
 	"sync"
-	"time"
 )
 
 const (
@@ -31,7 +30,7 @@ func (c *Connection) WritePacket(pack *Packet) error {
 		return errors.New("packet pointer is nil")
 	}
 	dump := pack.Encode()
-	c.log.Trace("Write packet dump: %+v", dump)
+	//	c.log.Trace("Write packet dump: %+v", dump)
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	err := c.WriteBinary(dump)
@@ -64,33 +63,47 @@ func (c *Connection) WriteBinary(dump []byte) error {
 
 func (c *Connection) ReadPacket() (pack *Packet, err error) {
 	var dump []byte
+	//	c.log.Trace("Read packet conn: %+v", c)
 	dump, err = c.ReadBinary()
 	if err != nil {
+		//		c.log.Error("Read packet error: %s", err)
 		return nil, err
 	}
-	c.log.Trace("Read packet dump: %+v", dump)
+	if dump == nil {
+		return nil, nil
+	}
+	//	c.log.Trace("Read packet dump: %+v", dump)
 	pack = &Packet{}
 	err = pack.Decode(dump)
 	return pack, err
 }
 
 func (c *Connection) ReadBinary() (dump []byte, err error) {
-	now := time.Now()
-	now.Add(time.Millisecond)
-	err = c.conn.SetReadDeadline(now)
+	head := make([]byte, aHeaderSize)
+	n := 0
+	n, err = c.conn.Read(head)
 	if err != nil {
+		//netErr, ok := err.(net.Error)
+		//if ok == true && netErr.Timeout() == true{
+		//	return nil, nil
+		//}
+		c.log.Error("Connection Read header error: %s", err)
 		return nil, err
 	}
-	head := make([]byte, aHeaderSize)
-	_, err = c.conn.Read(head)
-	if err != nil {
-		return nil, err
+	if n != aHeaderSize {
+		c.log.Warn("Connection Read header size: %d of %d bytes", n, aHeaderSize)
+		return nil, errors.New("Wrong header size")
 	}
 	size := BytesToUint(head[4], head[5], head[6], head[7])
 	dump = make([]byte, size)
-	_, err = c.conn.Read(dump)
+	n, err = c.conn.Read(dump)
 	if err != nil {
+		c.log.Error("Connection Read binary error: %s", err)
 		return nil, err
+	}
+	if n != int(size) {
+		c.log.Warn("Connection Read bibary size: %d of %d bytes", n, aHeaderSize)
+		return nil, errors.New("Wrong binary size")
 	}
 	return dump, nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/duplex"
 	"os"
 	"os/signal"
 	"syscall"
@@ -28,8 +29,12 @@ func main() {
 		log.Info("Config client: %+v", appCfg.Client)
 		log.Info("Config device: %+v", appCfg.Device)
 	}
+	cln := duplex.NewDuplexClient(&appCfg.Client)
+	cln.Start()
+
 	WaitForSignal(log)
 
+	cln.Stop()
 	log.Info("Stop application")
 	time.Sleep(time.Second)
 	core.StopFileLogger()

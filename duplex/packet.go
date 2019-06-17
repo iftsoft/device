@@ -1,18 +1,26 @@
 package duplex
 
-import "errors"
+import (
+	"errors"
+	"github.com/iftsoft/device/core"
+)
 
-const packetHeaderSize int = 16
+const (
+	packetVersion    PacketVersion = 0
+	packetHeaderSize int           = 16
+)
 
 type PacketType byte
 type PacketScope byte
+type PacketVersion byte
 
 const (
 	PacketNotify PacketType = iota
 	PackerRequest
 	PacketResponse
-	PacketCallback
-	PacketBackword
+
+//	PacketCallback
+//	PacketBackword
 )
 
 const (
@@ -22,12 +30,43 @@ const (
 )
 
 type Packet struct {
+	Version PacketVersion
 	Type    PacketType
 	Scope   PacketScope
 	Counter uint32
 	Options uint32
 	Command string
 	Content []byte
+}
+
+func NewRequest(scope PacketScope) *Packet {
+	p := Packet{
+		Version: packetVersion,
+		Type:    PackerRequest,
+		Scope:   scope,
+		Counter: 0,
+		Options: 0,
+	}
+	return &p
+}
+
+func NewResponse(query *Packet) *Packet {
+	p := Packet{
+		Version: packetVersion,
+		Type:    PacketResponse,
+		Scope:   query.Scope,
+		Counter: query.Counter,
+		Options: 0,
+		Command: query.Command,
+	}
+	return &p
+}
+
+func (p *Packet) Print(log *core.LogAgent, text string) {
+	if p != nil && log != nil {
+		log.Trace("%s packet Type:%d, Scope:%d, Command:%s, Counter:%d, Data len:%d",
+			text, p.Type, p.Scope, p.Command, p.Counter, len(p.Content))
+	}
 }
 
 func (p *Packet) Encode() []byte {
@@ -39,8 +78,9 @@ func (p *Packet) Encode() []byte {
 		len1 = len(task)
 	}
 	size := len(p.Content)
-	head[0] = byte(p.Type)
-	head[1] = byte(p.Scope)
+	head[0] = byte(p.Version)
+	head[1] = byte(p.Type)
+	head[2] = byte(p.Scope)
 	head[3] = byte(len1)
 	head[4], head[5], head[6], head[7] = UintToBytes(p.Options)
 	head[8], head[9], head[10], head[11] = UintToBytes(p.Counter)
@@ -62,8 +102,9 @@ func (p *Packet) Decode(dump []byte) error {
 		return err
 	}
 	task := dump[packetHeaderSize : packetHeaderSize+len1]
-	p.Type = PacketType(head[0])
-	p.Scope = PacketScope(head[1])
+	p.Version = PacketVersion(head[0])
+	p.Type = PacketType(head[1])
+	p.Scope = PacketScope(head[2])
 	p.Options = BytesToUint(head[4], head[5], head[6], head[7])
 	p.Counter = BytesToUint(head[8], head[9], head[10], head[11])
 	p.Command = string(task)

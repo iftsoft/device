@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/duplex"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,15 +22,21 @@ func main() {
 		core.StartFileLogger(&appCfg.Logger)
 	}
 	log := core.GetLogAgent(core.LogLevelTrace, "APP")
-	log.Info("Start application")
-	log.Info("App params: %+v", appPar)
+	log.Info("Start server application")
+	log.Info("Server app params: %+v", appPar)
 	if appCfg != nil {
 		log.Info("Config logger: %+v", appCfg.Logger)
 		log.Info("Config server: %+v", appCfg.Server)
 	}
-	WaitForSignal(log)
+	srv := duplex.NewDuplexServer(&appCfg.Server, log)
+	err = srv.StartListen()
+	if err == nil {
 
-	log.Info("Stop application")
+		WaitForSignal(log)
+
+		srv.StopListen()
+	}
+	log.Info("Stop server application")
 	time.Sleep(time.Second)
 	core.StopFileLogger()
 	fmt.Println("-------END------------")
