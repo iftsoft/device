@@ -1,20 +1,24 @@
 package common
 
+type SystemQuery struct {
+	DevName string
+}
+
 type SystemReply struct {
 	DevName string
 	Command string
 	DevType EnumDevType
-	Reply   interface{}
+	//	Reply   interface{}
 }
 
 type SystemCallback interface {
-	CommandReply(reply *SystemReply)
+	CommandReply(reply *SystemReply) error
 }
 
 type SystemManager interface {
-	Config(scb SystemCallback) error
-	Inform(scb SystemCallback) error
-	Start(scb SystemCallback) error
-	Stop(scb SystemCallback) error
-	Restart(scb SystemCallback) error
+	Config(query *SystemQuery) error
+	Inform(query *SystemQuery) error
+	Start(query *SystemQuery) error
+	Stop(query *SystemQuery) error
+	Restart(query *SystemQuery) error
 }

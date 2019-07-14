@@ -17,18 +17,18 @@ type ScopeItem struct {
 	mutex   sync.RWMutex
 }
 
-func NewScoreItem(id PacketScope) *ScopeItem {
+func NewScopeItem(id PacketScope) *ScopeItem {
 	si := ScopeItem{scopeId: id, handler: make(map[string]ScopeFunc)}
 	return &si
 }
 
-func (si *ScopeItem) SetScoreFunc(name string, proc ScopeFunc) {
+func (si *ScopeItem) SetScopeFunc(name string, proc ScopeFunc) {
 	si.mutex.Lock()
 	defer si.mutex.Unlock()
 	si.handler[name] = proc
 }
 
-func (si *ScopeItem) GetScoreFunc(name string) ScopeFunc {
+func (si *ScopeItem) GetScopeFunc(name string) ScopeFunc {
 	si.mutex.RLock()
 	defer si.mutex.RUnlock()
 	proc, ok := si.handler[name]
@@ -43,7 +43,7 @@ type ScopeSet struct {
 	mutex sync.RWMutex
 }
 
-func NewScoreSet() *ScopeSet {
+func NewScopeSet() *ScopeSet {
 	ss := ScopeSet{store: make(map[PacketScope]*ScopeItem)}
 	return &ss
 }
@@ -70,7 +70,7 @@ func (ss *ScopeSet) GetScore(id PacketScope) *ScopeItem {
 func (ss *ScopeSet) GetScoreFunc(id PacketScope, name string) ScopeFunc {
 	scope := ss.GetScore(id)
 	if scope != nil {
-		return scope.GetScoreFunc(name)
+		return scope.GetScopeFunc(name)
 	}
 	return nil
 }
