@@ -10,6 +10,14 @@ type SystemStub struct {
 	log      *core.LogAgent
 }
 
+func NewSystemStub() *SystemStub {
+	ss := SystemStub{
+		callback: nil,
+		log:      nil,
+	}
+	return &ss
+}
+
 func (ss *SystemStub) Init(callback common.SystemCallback, log *core.LogAgent) {
 	ss.log = log
 	ss.callback = callback

@@ -12,8 +12,18 @@ type SystemServer struct {
 	scopeItem *duplex.ScopeItem
 	transport duplex.Transporter
 	callback  common.SystemCallback
-	//	commands     common.SystemManager
-	log *core.LogAgent
+	log       *core.LogAgent
+}
+
+func NewSystemServer() *SystemServer {
+	ss := SystemServer{
+		scopeId:   duplex.ScopeSystem,
+		scopeItem: duplex.NewScopeItem(duplex.ScopeSystem),
+		transport: nil,
+		callback:  nil,
+		log:       nil,
+	}
+	return &ss
 }
 
 func (ss *SystemServer) Init(trans duplex.Transporter,
@@ -21,18 +31,18 @@ func (ss *SystemServer) Init(trans duplex.Transporter,
 	ss.log = log
 	ss.transport = trans
 	ss.callback = callback
-	ss.scopeId = duplex.ScopeSystem
-	ss.scopeItem = duplex.NewScopeItem(ss.scopeId)
-	ss.scopeItem.SetScopeFunc("CommandReply", func(dump []byte) {
-		if ss.log != nil {
-			ss.log.Trace("SystemServer get cmd:CommandReply, pack:%s", string(dump))
-		}
-		reply := &common.SystemReply{}
-		err := json.Unmarshal(dump, reply)
-		if err == nil && ss.callback != nil {
-			err = ss.callback.CommandReply(reply)
-		}
-	})
+	if ss.scopeItem != nil {
+		ss.scopeItem.SetScopeFunc("CommandReply", func(dump []byte) {
+			if ss.log != nil {
+				ss.log.Trace("SystemServer get cmd:CommandReply, pack:%s", string(dump))
+			}
+			reply := &common.SystemReply{}
+			err := json.Unmarshal(dump, reply)
+			if err == nil && ss.callback != nil {
+				err = ss.callback.CommandReply(reply)
+			}
+		})
+	}
 }
 
 // Implemetation of common.SystemManager

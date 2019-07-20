@@ -1,6 +1,8 @@
 package duplex
 
 import (
+	"encoding/json"
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"net"
 	"time"
@@ -53,15 +55,11 @@ func (dh *DuplexHandler) HandlerLoop(hs *HandleSet) {
 
 func (dh *DuplexHandler) NewPacket(pack *Packet) bool {
 	//	dh.log.Trace("DuplexHandler NewPacket: %+v", pack)
-	//proc := dh.scopeMap.GetScoreFunc(pack.Scope, pack.Command)
-	//if proc == nil {
-	//	return false
-	//}
-	//proc(pack.Content)
-	//back := NewResponse(pack)
-	//back.Command = "ServerResponse"
-	//back.Content = []byte ("Server Response")
-	//dh.WritePacket(back)
+	dh.log.Trace("DuplexHandler NewPacket cmd:%s, dump:%s", pack.Command, string(pack.Content))
+	proc := dh.scopeMap.GetScopeFunc(pack.Scope, pack.Command)
+	if proc == nil {
+		return false
+	}
 	return true
 }
 
@@ -83,9 +81,11 @@ func (dh *DuplexHandler) OnTimerTick(tm time.Time) {
 }
 
 func (dh *DuplexHandler) SendRequest() {
+	query := &common.SystemQuery{}
+	query.DevName = "default"
 	pack := NewRequest(ScopeSystem)
-	pack.Command = "SeverRequest"
-	pack.Content = []byte("Server Request")
+	pack.Command = "Inform"
+	pack.Content, _ = json.Marshal(query)
 	err := dh.WritePacket(pack)
 	if err != nil {
 		dh.log.Error("DuplexServer WritePacket error: %s", err)

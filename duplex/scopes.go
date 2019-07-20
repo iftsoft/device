@@ -48,7 +48,7 @@ func NewScopeSet() *ScopeSet {
 	return &ss
 }
 
-func (ss *ScopeSet) AddScore(scope *ScopeItem) {
+func (ss *ScopeSet) AddScope(scope *ScopeItem) {
 	if scope == nil {
 		return
 	}
@@ -57,7 +57,7 @@ func (ss *ScopeSet) AddScore(scope *ScopeItem) {
 	ss.store[scope.scopeId] = scope
 }
 
-func (ss *ScopeSet) GetScore(id PacketScope) *ScopeItem {
+func (ss *ScopeSet) GetScope(id PacketScope) *ScopeItem {
 	ss.mutex.RLock()
 	defer ss.mutex.RUnlock()
 	scope, ok := ss.store[id]
@@ -67,8 +67,8 @@ func (ss *ScopeSet) GetScore(id PacketScope) *ScopeItem {
 	return nil
 }
 
-func (ss *ScopeSet) GetScoreFunc(id PacketScope, name string) ScopeFunc {
-	scope := ss.GetScore(id)
+func (ss *ScopeSet) GetScopeFunc(id PacketScope, name string) ScopeFunc {
+	scope := ss.GetScope(id)
 	if scope != nil {
 		return scope.GetScopeFunc(name)
 	}

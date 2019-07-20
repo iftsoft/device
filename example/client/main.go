@@ -5,6 +5,7 @@ import (
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
+	"github.com/iftsoft/device/proxy/system"
 	"os"
 	"os/signal"
 	"syscall"
@@ -30,6 +31,14 @@ func main() {
 		log.Info("Config device: %+v", appCfg.Device)
 	}
 	cln := duplex.NewDuplexClient(&appCfg.Client)
+
+	logger := core.GetLogAgent(core.LogLevelTrace, "System")
+	sysClnt := system.NewSystemClient()
+	sysStub := system.NewSystemStub()
+	sysClnt.Init(cln, sysStub, logger)
+	sysStub.Init(sysClnt, logger)
+	cln.AddScopeItem(sysClnt.GetScopeItem())
+
 	cln.Start()
 
 	WaitForSignal(log)

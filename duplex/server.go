@@ -24,7 +24,7 @@ func NewDuplexServer(config *DuplexServerConfig, log *core.LogAgent) *DuplexServ
 	ds := DuplexServer{
 		config:   config,
 		listener: nil,
-		scopeMap: NewScoreSet(),
+		scopeMap: NewScopeSet(),
 		handles:  NewHandleSet(),
 		log:      log,
 		exit:     false,
@@ -43,7 +43,7 @@ func (ds *DuplexServer) SendPacket(pack *Packet, link string) error {
 
 func (ds *DuplexServer) AddScopeItem(item *ScopeItem) {
 	if item != nil {
-		ds.scopeMap.AddScore(item)
+		ds.scopeMap.AddScope(item)
 	}
 }
 

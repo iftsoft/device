@@ -25,7 +25,7 @@ func NewDuplexClient(cfg *DuplexClientConfig) *DuplexClient {
 			log:  core.GetLogAgent(core.LogLevelTrace, "Duplex"),
 		},
 		config:   cfg,
-		scopeMap: NewScoreSet(),
+		scopeMap: NewScopeSet(),
 	}
 	dc.mngr = dc
 	return dc
@@ -48,14 +48,15 @@ func (dc *DuplexClient) SendPacket(pack *Packet, link string) error {
 
 func (dc *DuplexClient) AddScopeItem(item *ScopeItem) {
 	if item != nil {
-		dc.scopeMap.AddScore(item)
+		dc.scopeMap.AddScope(item)
 	}
 }
 
 // Implementation of DuplexManager interface
 func (dc *DuplexClient) NewPacket(pack *Packet) bool {
-	proc := dc.scopeMap.GetScoreFunc(pack.Scope, pack.Command)
+	proc := dc.scopeMap.GetScopeFunc(pack.Scope, pack.Command)
 	if proc == nil {
+		dc.log.Trace("DuplexClient NewPacket: Unknown command - %s", pack.Command)
 		return false
 	}
 	proc(pack.Content)
@@ -85,7 +86,7 @@ func (dc *DuplexClient) OnTimerTick(tm time.Time) {
 		}
 	} else {
 		//		dc.log.Info("Dialling connect %+v", conn)
-		dc.SendRequest()
+		//		dc.SendRequest()
 	}
 }
 
