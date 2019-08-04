@@ -12,7 +12,7 @@ type EnumDevWarning int16
 
 // Device types
 const (
-	DevTypeDeault EnumDevType = iota
+	DevTypeDefault EnumDevType = iota
 	DevTypeCardReader
 	DevTypeBarScanner
 	DevTypePINEntry

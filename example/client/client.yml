@@ -1,4 +1,8 @@
 # Test config file
+client:
+  port: 9380
+  devName: TestDevice
+
 logger:
   logPath: ../logs
   logFile: client

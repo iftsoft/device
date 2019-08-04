@@ -1,6 +1,7 @@
 package duplex
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/iftsoft/device/core"
 	"net"
@@ -8,7 +9,8 @@ import (
 )
 
 type DuplexClientConfig struct {
-	Port int32 `yaml:"port"`
+	Port    int32  `yaml:"port"`
+	DevName string `yaml:"devName"`
 }
 
 type DuplexClient struct {
@@ -41,15 +43,15 @@ func (dc *DuplexClient) Stop() {
 	close(dc.done)
 }
 
-// Implementation of Transporter interface
-func (dc *DuplexClient) SendPacket(pack *Packet, link string) error {
-	return dc.WritePacket(pack)
-}
-
 func (dc *DuplexClient) AddScopeItem(item *ScopeItem) {
 	if item != nil {
 		dc.scopeMap.AddScope(item)
 	}
+}
+
+// Implementation of Transporter interface
+func (dc *DuplexClient) SendPacket(pack *Packet) error {
+	return dc.WritePacket(pack)
 }
 
 // Implementation of DuplexManager interface
@@ -80,7 +82,7 @@ func (dc *DuplexClient) OnTimerTick(tm time.Time) {
 	conn := dc.link.GetConnect()
 	if conn == nil {
 		dc.log.Error("DuplexClient DialTCP conn is nil")
-		err := dc.dialToAddress(dc.config.Port)
+		err := dc.connectToServer(dc.config.Port)
 		if err != nil {
 			dc.log.Error("DuplexClient Dial error: %s", err)
 		}
@@ -88,6 +90,26 @@ func (dc *DuplexClient) OnTimerTick(tm time.Time) {
 		//		dc.log.Info("Dialling connect %+v", conn)
 		//		dc.SendRequest()
 	}
+}
+
+func (dc *DuplexClient) clientLoop(port int32) {
+	_ = dc.connectToServer(port)
+	defer dc.link.CloseConnect()
+	dc.waitingLoop()
+}
+
+func (dc *DuplexClient) connectToServer(port int32) error {
+	err := dc.dialToAddress(port)
+	if err != nil {
+		return err
+	}
+	err = dc.sendGreeting()
+	if err != nil {
+		dc.link.CloseConnect()
+		return err
+	}
+	go dc.readingLoop()
+	return nil
 }
 
 func (dc *DuplexClient) dialToAddress(port int32) error {
@@ -112,22 +134,26 @@ func (dc *DuplexClient) dialToAddress(port int32) error {
 	err = conn.SetKeepAlive(true)
 	err = conn.SetKeepAlivePeriod(5 * time.Second)
 	dc.link.SetConnect(conn, dc.log)
-	go dc.readingLoop()
 	return nil
 }
 
-func (dc *DuplexClient) clientLoop(port int32) {
-	_ = dc.dialToAddress(port)
-	defer dc.link.CloseConnect()
-	dc.waitingLoop()
-}
-
-func (dc *DuplexClient) SendRequest() {
+func (dc *DuplexClient) sendGreeting() error {
+	hello := Greeting{}
+	if dc.config != nil {
+		hello.DevName = dc.config.DevName
+		dc.log.Trace("DuplexClient SendGreeting for device: %s", hello.DevName)
+	}
+	dump, err := json.Marshal(&hello)
+	if err != nil {
+		dc.log.Error("DuplexClient SendGreeting error: %s", err)
+		return err
+	}
 	pack := NewRequest(ScopeSystem)
-	pack.Command = "ClientRequest"
-	pack.Content = []byte("Client Request")
-	err := dc.WritePacket(pack)
+	pack.Command = commandGreeting
+	pack.Content = dump
+	err = dc.WritePacket(pack)
 	if err != nil {
 		dc.log.Error("DuplexClient WritePacket error: %s", err)
 	}
+	return err
 }

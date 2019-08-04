@@ -26,7 +26,8 @@ func GetDefaultAppConfig() *AppConfig {
 			MaxSize:   1024,
 		},
 		Client: duplex.DuplexClientConfig{
-			Port: duplex.DuplexPort,
+			Port:    duplex.DuplexPort,
+			DevName: "TestDevice",
 		},
 		Device: DeviceConfig{
 			Common:    CommonConfig{},

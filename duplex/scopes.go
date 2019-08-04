@@ -7,8 +7,8 @@ import (
 type ScopeFunc func(dump []byte)
 
 type Transporter interface {
-	SendPacket(pack *Packet, link string) error
-	AddScopeItem(item *ScopeItem)
+	SendPacket(pack *Packet) error // , link string
+	//	AddScopeItem(item *ScopeItem)
 }
 
 type ScopeItem struct {

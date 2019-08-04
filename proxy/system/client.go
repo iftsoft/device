@@ -103,6 +103,6 @@ func (sc *SystemClient) CommandReply(reply *common.SystemReply) error {
 	pack := duplex.NewRequest(sc.scopeId)
 	pack.Command = "CommandReply"
 	pack.Content = dump
-	err = sc.transport.SendPacket(pack, "")
+	err = sc.transport.SendPacket(pack)
 	return err
 }

@@ -58,7 +58,7 @@ func (ss *SystemServer) Config(query *common.SystemQuery) error {
 	pack := duplex.NewRequest(ss.scopeId)
 	pack.Command = "Config"
 	pack.Content = dump
-	err = ss.transport.SendPacket(pack, "")
+	err = ss.transport.SendPacket(pack)
 	return err
 }
 
@@ -73,7 +73,7 @@ func (ss *SystemServer) Inform(query *common.SystemQuery) error {
 	pack := duplex.NewRequest(ss.scopeId)
 	pack.Command = "Inform"
 	pack.Content = dump
-	err = ss.transport.SendPacket(pack, "")
+	err = ss.transport.SendPacket(pack)
 	return err
 }
 
@@ -88,7 +88,7 @@ func (ss *SystemServer) Start(query *common.SystemQuery) error {
 	pack := duplex.NewRequest(ss.scopeId)
 	pack.Command = "Start"
 	pack.Content = dump
-	err = ss.transport.SendPacket(pack, "")
+	err = ss.transport.SendPacket(pack)
 	return err
 }
 
@@ -103,7 +103,7 @@ func (ss *SystemServer) Stop(query *common.SystemQuery) error {
 	pack := duplex.NewRequest(ss.scopeId)
 	pack.Command = "Stop"
 	pack.Content = dump
-	err = ss.transport.SendPacket(pack, "")
+	err = ss.transport.SendPacket(pack)
 	return err
 }
 
@@ -118,6 +118,6 @@ func (ss *SystemServer) Restart(query *common.SystemQuery) error {
 	pack := duplex.NewRequest(ss.scopeId)
 	pack.Command = "Restart"
 	pack.Content = dump
-	err = ss.transport.SendPacket(pack, "")
+	err = ss.transport.SendPacket(pack)
 	return err
 }
