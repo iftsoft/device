@@ -1,11 +1,15 @@
 package duplex
 
 import (
-	"errors"
 	"fmt"
 	"github.com/iftsoft/device/core"
 	"net"
 )
+
+type ServerManager interface {
+	AddScopeItem(item *ScopeItem)
+	GetTransporter(name string) Transporter
+}
 
 type DuplexServerConfig struct {
 	Port int32 `yaml:"port"`
@@ -32,13 +36,10 @@ func NewDuplexServer(config *DuplexServerConfig, log *core.LogAgent) *DuplexServ
 	return &ds
 }
 
-// Implementation of Transporter interface
-func (ds *DuplexServer) SendPacket(pack *Packet, link string) error {
-	hnd := ds.handles.GetHandler(link)
-	if hnd != nil {
-		return hnd.WritePacket(pack)
-	}
-	return errors.New("no such link")
+// Implementation of ServerManager interface
+func (ds *DuplexServer) GetTransporter(name string) Transporter {
+	hnd := ds.handles.GetHandler(name)
+	return hnd
 }
 
 func (ds *DuplexServer) AddScopeItem(item *ScopeItem) {
@@ -97,8 +98,9 @@ func (ds *DuplexServer) listenLoop() {
 }
 
 func (ds *DuplexServer) handleMessages(conn *net.TCPConn) {
-	hand := GetDuplexHandler()
-	name := ds.handles.AddHandler(hand)
-	hand.Init(conn, name, ds.config, ds.scopeMap)
-	hand.HandlerLoop(ds.handles)
+	hand := ds.handles.AddHandler()
+	if hand != nil {
+		hand.Init(conn, ds.config, ds.scopeMap)
+		hand.HandlerLoop(ds.handles)
+	}
 }

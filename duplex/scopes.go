@@ -4,11 +4,12 @@ import (
 	"sync"
 )
 
-type ScopeFunc func(dump []byte)
+const commandGreeting = "Greeting"
+
+type ScopeFunc func(name string, dump []byte)
 
 type Transporter interface {
 	SendPacket(pack *Packet) error // , link string
-	//	AddScopeItem(item *ScopeItem)
 }
 
 type ScopeItem struct {

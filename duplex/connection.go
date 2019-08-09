@@ -69,12 +69,11 @@ func (c *Connection) ReadPacket() (pack *Packet, err error) {
 		//		c.log.Error("Read packet error: %s", err)
 		return nil, err
 	}
-	if dump == nil {
-		return nil, nil
-	}
-	//	c.log.Trace("Read packet dump: %+v", dump)
 	pack = &Packet{}
-	err = pack.Decode(dump)
+	if dump != nil {
+		//	c.log.Trace("Read packet dump: %+v", dump)
+		err = pack.Decode(dump)
+	}
 	return pack, err
 }
 
@@ -83,10 +82,6 @@ func (c *Connection) ReadBinary() (dump []byte, err error) {
 	n := 0
 	n, err = c.conn.Read(head)
 	if err != nil {
-		//netErr, ok := err.(net.Error)
-		//if ok == true && netErr.Timeout() == true{
-		//	return nil, nil
-		//}
 		c.log.Error("Connection Read header error: %s", err)
 		return nil, err
 	}

@@ -1,7 +1,6 @@
 package duplex
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/iftsoft/device/core"
 	"net"
@@ -56,12 +55,13 @@ func (dc *DuplexClient) SendPacket(pack *Packet) error {
 
 // Implementation of DuplexManager interface
 func (dc *DuplexClient) NewPacket(pack *Packet) bool {
+	dc.log.Trace("DuplexClient NewPacket dev:%s, cmd:%s, dump:%s", pack.DevName, pack.Command, string(pack.Content))
 	proc := dc.scopeMap.GetScopeFunc(pack.Scope, pack.Command)
 	if proc == nil {
 		dc.log.Trace("DuplexClient NewPacket: Unknown command - %s", pack.Command)
 		return false
 	}
-	proc(pack.Content)
+	proc(pack.DevName, pack.Content)
 	return true
 }
 
@@ -138,20 +138,13 @@ func (dc *DuplexClient) dialToAddress(port int32) error {
 }
 
 func (dc *DuplexClient) sendGreeting() error {
-	hello := Greeting{}
+	name := ""
 	if dc.config != nil {
-		hello.DevName = dc.config.DevName
-		dc.log.Trace("DuplexClient SendGreeting for device: %s", hello.DevName)
+		name = dc.config.DevName
 	}
-	dump, err := json.Marshal(&hello)
-	if err != nil {
-		dc.log.Error("DuplexClient SendGreeting error: %s", err)
-		return err
-	}
-	pack := NewRequest(ScopeSystem)
-	pack.Command = commandGreeting
-	pack.Content = dump
-	err = dc.WritePacket(pack)
+	dc.log.Trace("DuplexClient SendGreeting for device: %s", name)
+	pack := NewPacket(ScopeSystem, name, commandGreeting, nil)
+	err := dc.WritePacket(pack)
 	if err != nil {
 		dc.log.Error("DuplexClient WritePacket error: %s", err)
 	}

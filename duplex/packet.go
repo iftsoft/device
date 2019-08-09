@@ -27,7 +27,22 @@ const (
 	ScopeSystem PacketScope = iota
 	ScopeConfig
 	ScopeDevice
+	ScopeMax
 )
+
+var listScopeName = []string{
+	"System",
+	"Config",
+	"Device",
+	"",
+}
+
+func GetScopeName(scope PacketScope) string {
+	if scope < ScopeMax {
+		return listScopeName[scope]
+	}
+	return "Unknown"
+}
 
 type Packet struct {
 	Version PacketVersion
@@ -35,57 +50,50 @@ type Packet struct {
 	Scope   PacketScope
 	Counter uint32
 	Options uint32
+	DevName string
 	Command string
 	Content []byte
 }
 
-func NewRequest(scope PacketScope) *Packet {
+func NewPacket(scope PacketScope, name string, cmd string, data []byte) *Packet {
 	p := Packet{
 		Version: packetVersion,
 		Type:    PackerRequest,
 		Scope:   scope,
+		DevName: name,
+		Command: cmd,
 		Counter: 0,
 		Options: 0,
-	}
-	return &p
-}
-
-func NewResponse(query *Packet) *Packet {
-	p := Packet{
-		Version: packetVersion,
-		Type:    PacketResponse,
-		Scope:   query.Scope,
-		Counter: query.Counter,
-		Options: 0,
-		Command: query.Command,
+		Content: data,
 	}
 	return &p
 }
 
 func (p *Packet) Print(log *core.LogAgent, text string) {
 	if p != nil && log != nil {
-		log.Trace("%s packet Type:%d, Scope:%d, Command:%s, Counter:%d, Data len:%d",
-			text, p.Type, p.Scope, p.Command, p.Counter, len(p.Content))
+		log.Trace("%s packet Scope:%s, Device:%s, Command:%s, Data len:%d",
+			text, GetScopeName(p.Scope), p.DevName, p.Command, len(p.Content))
 	}
 }
 
 func (p *Packet) Encode() []byte {
 	head := make([]byte, packetHeaderSize)
+	name := []byte(p.DevName)
 	task := []byte(p.Command)
-	len1 := len(task)
-	if len1 > 250 {
-		task = append(task[:250], byte(0))
-		len1 = len(task)
-	}
+	len1 := len(name)
+	len2 := len(task)
 	size := len(p.Content)
-	head[0] = byte(p.Version)
-	head[1] = byte(p.Type)
-	head[2] = byte(p.Scope)
-	head[3] = byte(len1)
+
+	//	head[0] = byte(p.Version)
+	head[0] = byte(p.Type)
+	head[1] = byte(p.Scope)
+	head[2] = byte(len1)
+	head[3] = byte(len2)
 	head[4], head[5], head[6], head[7] = UintToBytes(p.Options)
 	head[8], head[9], head[10], head[11] = UintToBytes(p.Counter)
 	head[12], head[13], head[14], head[15] = UintToBytes(uint32(size))
-	dump := append(head, task...)
+	dump := append(head, name...)
+	dump = append(head, task...)
 	dump = append(dump, p.Content...)
 	return dump
 }
@@ -97,23 +105,26 @@ func (p *Packet) Decode(dump []byte) error {
 		return err
 	}
 	head := dump[:packetHeaderSize]
-	len1 := int(head[3])
-	if full < packetHeaderSize+len1 {
+	len1 := int(head[2])
+	len2 := int(head[3])
+	if full < packetHeaderSize+len1+len2 {
 		return err
 	}
-	task := dump[packetHeaderSize : packetHeaderSize+len1]
-	p.Version = PacketVersion(head[0])
-	p.Type = PacketType(head[1])
-	p.Scope = PacketScope(head[2])
+	name := dump[packetHeaderSize : packetHeaderSize+len1]
+	task := dump[packetHeaderSize+len1 : packetHeaderSize+len1+len2]
+	//	p.Version = PacketVersion(head[0])
+	p.Type = PacketType(head[0])
+	p.Scope = PacketScope(head[1])
 	p.Options = BytesToUint(head[4], head[5], head[6], head[7])
 	p.Counter = BytesToUint(head[8], head[9], head[10], head[11])
+	p.DevName = string(name)
 	p.Command = string(task)
 	size := int(BytesToUint(head[12], head[13], head[14], head[15]))
-	if full < packetHeaderSize+len1+size {
+	if full < packetHeaderSize+len1+len2+size {
 		return err
 	}
 	if size > 0 {
-		p.Content = dump[packetHeaderSize+len1:]
+		p.Content = dump[packetHeaderSize+len1+len2:]
 	}
 	return nil
 }

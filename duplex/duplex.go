@@ -79,10 +79,10 @@ func (d *Duplex) waitingLoop() {
 	tick := time.NewTicker(1000 * time.Millisecond)
 	defer tick.Stop()
 
+	defer d.log.Info("Duplex loop stopping")
 	for {
 		select {
 		case <-d.done:
-			defer d.log.Info("Duplex loop stopping")
 			return
 		case tm := <-tick.C:
 			d.log.Info("Duplex loop timer tick")

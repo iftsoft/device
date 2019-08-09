@@ -23,74 +23,38 @@ func (ss *SystemStub) Init(callback common.SystemCallback, log *core.LogAgent) {
 	ss.callback = callback
 }
 
+func (ss *SystemStub) dummyCommandReply(name string, cmd string, query *common.SystemQuery) error {
+	if ss.log != nil {
+		ss.log.Trace("SystemStub dev:%s run cmd:%s, data:%s", query.DevName)
+	}
+	reply := &common.SystemReply{}
+	reply.DevName = query.DevName
+	reply.Command = cmd
+	var err error
+	if ss.callback != nil {
+		err = ss.callback.CommandReply(name, reply)
+	}
+	return err
+}
+
 // Implemetation of common.SystemManager
-
-func (ss *SystemStub) Config(query *common.SystemQuery) error {
-	if ss.log != nil {
-		ss.log.Trace("SystemStub run cmd:Config, pack:%s", query.DevName)
-	}
-	reply := &common.SystemReply{}
-	reply.DevName = query.DevName
-	reply.Command = "Config"
-	var err error
-	if ss.callback != nil {
-		err = ss.callback.CommandReply(reply)
-	}
-	return err
+//
+func (ss *SystemStub) Config(name string, query *common.SystemQuery) error {
+	return ss.dummyCommandReply(name, common.CmdSystemConfig, query)
 }
 
-func (ss *SystemStub) Inform(query *common.SystemQuery) error {
-	if ss.log != nil {
-		ss.log.Trace("SystemStub run cmd:Inform, pack:%s", query.DevName)
-	}
-	reply := &common.SystemReply{}
-	reply.DevName = query.DevName
-	reply.Command = "Inform"
-	var err error
-	if ss.callback != nil {
-		err = ss.callback.CommandReply(reply)
-	}
-	return err
+func (ss *SystemStub) Inform(name string, query *common.SystemQuery) error {
+	return ss.dummyCommandReply(name, common.CmdSystemInform, query)
 }
 
-func (ss *SystemStub) Start(query *common.SystemQuery) error {
-	if ss.log != nil {
-		ss.log.Trace("SystemStub run cmd:Start, pack:%s", query.DevName)
-	}
-	reply := &common.SystemReply{}
-	reply.DevName = query.DevName
-	reply.Command = "Start"
-	var err error
-	if ss.callback != nil {
-		err = ss.callback.CommandReply(reply)
-	}
-	return err
+func (ss *SystemStub) Start(name string, query *common.SystemQuery) error {
+	return ss.dummyCommandReply(name, common.CmdSystemStart, query)
 }
 
-func (ss *SystemStub) Stop(query *common.SystemQuery) error {
-	if ss.log != nil {
-		ss.log.Trace("SystemStub run cmd:Stop, pack:%s", query.DevName)
-	}
-	reply := &common.SystemReply{}
-	reply.DevName = query.DevName
-	reply.Command = "Stop"
-	var err error
-	if ss.callback != nil {
-		err = ss.callback.CommandReply(reply)
-	}
-	return err
+func (ss *SystemStub) Stop(name string, query *common.SystemQuery) error {
+	return ss.dummyCommandReply(name, common.CmdSystemStop, query)
 }
 
-func (ss *SystemStub) Restart(query *common.SystemQuery) error {
-	if ss.log != nil {
-		ss.log.Trace("SystemStub run cmd:Restart, pack:%s", query.DevName)
-	}
-	reply := &common.SystemReply{}
-	reply.DevName = query.DevName
-	reply.Command = "Restart"
-	var err error
-	if ss.callback != nil {
-		err = ss.callback.CommandReply(reply)
-	}
-	return err
+func (ss *SystemStub) Restart(name string, query *common.SystemQuery) error {
+	return ss.dummyCommandReply(name, common.CmdSystemRestart, query)
 }

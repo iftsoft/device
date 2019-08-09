@@ -8,7 +8,6 @@ import (
 )
 
 type SystemClient struct {
-	scopeId   duplex.PacketScope
 	scopeItem *duplex.ScopeItem
 	transport duplex.Transporter
 	commands  common.SystemManager
@@ -17,7 +16,6 @@ type SystemClient struct {
 
 func NewSystemClient() *SystemClient {
 	sc := SystemClient{
-		scopeId:   duplex.ScopeSystem,
 		scopeItem: duplex.NewScopeItem(duplex.ScopeSystem),
 		transport: nil,
 		commands:  nil,
@@ -33,57 +31,47 @@ func (sc *SystemClient) Init(trans duplex.Transporter,
 	sc.commands = command
 	// init scope functions
 	if sc.scopeItem != nil {
-		sc.scopeItem.SetScopeFunc("Config", func(dump []byte) {
-			if sc.log != nil {
-				sc.log.Trace("SystemClient get cmd:Config, pack:%s", string(dump))
-			}
-			query := &common.SystemQuery{}
-			err := json.Unmarshal(dump, query)
+		sc.scopeItem.SetScopeFunc(common.CmdSystemConfig, func(name string, dump []byte) {
+			query, err := sc.decodeQuery(name, common.CmdSystemRestart, dump)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Config(query)
+				err = sc.commands.Config(name, query)
 			}
 		})
-		sc.scopeItem.SetScopeFunc("Inform", func(dump []byte) {
-			if sc.log != nil {
-				sc.log.Trace("SystemClient get cmd:Inform, pack:%s", string(dump))
-			}
-			query := &common.SystemQuery{}
-			err := json.Unmarshal(dump, query)
+		sc.scopeItem.SetScopeFunc(common.CmdSystemInform, func(name string, dump []byte) {
+			query, err := sc.decodeQuery(name, common.CmdSystemInform, dump)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Inform(query)
+				err = sc.commands.Inform(name, query)
 			}
 		})
-		sc.scopeItem.SetScopeFunc("Start", func(dump []byte) {
-			if sc.log != nil {
-				sc.log.Trace("SystemClient get cmd:Start, pack:%s", string(dump))
-			}
-			query := &common.SystemQuery{}
-			err := json.Unmarshal(dump, query)
+		sc.scopeItem.SetScopeFunc(common.CmdSystemStart, func(name string, dump []byte) {
+			query, err := sc.decodeQuery(name, common.CmdSystemStart, dump)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Start(query)
+				err = sc.commands.Start(name, query)
 			}
 		})
-		sc.scopeItem.SetScopeFunc("Stop", func(dump []byte) {
-			if sc.log != nil {
-				sc.log.Trace("SystemClient get cmd:Stop, pack:%s", string(dump))
-			}
-			query := &common.SystemQuery{}
-			err := json.Unmarshal(dump, query)
+		sc.scopeItem.SetScopeFunc(common.CmdSystemStop, func(name string, dump []byte) {
+			query, err := sc.decodeQuery(name, common.CmdSystemStop, dump)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Stop(query)
+				err = sc.commands.Stop(name, query)
 			}
 		})
-		sc.scopeItem.SetScopeFunc("Restart", func(dump []byte) {
-			if sc.log != nil {
-				sc.log.Trace("SystemClient get cmd:Restart, pack:%s", string(dump))
-			}
-			query := &common.SystemQuery{}
-			err := json.Unmarshal(dump, query)
+		sc.scopeItem.SetScopeFunc(common.CmdSystemRestart, func(name string, dump []byte) {
+			query, err := sc.decodeQuery(name, common.CmdSystemRestart, dump)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Restart(query)
+				err = sc.commands.Restart(name, query)
 			}
 		})
 	}
+}
+
+func (sc *SystemClient) decodeQuery(name string, cmd string, dump []byte) (
+	query *common.SystemQuery, err error) {
+	if sc.log != nil {
+		sc.log.Trace("SystemClient for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
+	}
+	query = &common.SystemQuery{}
+	err = json.Unmarshal(dump, query)
+	return query, err
 }
 
 func (sc *SystemClient) GetScopeItem() *duplex.ScopeItem {
@@ -91,18 +79,18 @@ func (sc *SystemClient) GetScopeItem() *duplex.ScopeItem {
 }
 
 // Implemetation of common.SystemCallback
-
-func (sc *SystemClient) CommandReply(reply *common.SystemReply) error {
+func (sc *SystemClient) CommandReply(name string, reply *common.SystemReply) error {
 	dump, err := json.Marshal(reply)
 	if err != nil {
 		return err
 	}
 	if sc.log != nil {
-		sc.log.Trace("SystemClient put cmd:CommandReply pack:%s", string(dump))
+		sc.log.Trace("SystemClient dev:%s put cmd:%s pack:%s",
+			name, common.CmdSystemCommandReply, string(dump))
 	}
-	pack := duplex.NewRequest(sc.scopeId)
-	pack.Command = "CommandReply"
-	pack.Content = dump
-	err = sc.transport.SendPacket(pack)
+	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemCommandReply, dump)
+	if sc.transport != nil {
+		err = sc.transport.SendPacket(pack)
+	}
 	return err
 }

@@ -12,7 +12,7 @@ import (
 type DuplexHandler struct {
 	Duplex
 	HndName  string
-	Greeting *Greeting
+	DevName  string
 	Config   *DuplexServerConfig
 	scopeMap *ScopeSet
 }
@@ -25,7 +25,7 @@ func GetDuplexHandler() *DuplexHandler {
 			log:  nil,
 		},
 		HndName:  "",
-		Greeting: &Greeting{},
+		DevName:  "",
 		Config:   nil,
 		scopeMap: nil,
 	}
@@ -38,19 +38,18 @@ func (dh *DuplexHandler) Stop() {
 	close(dh.done)
 }
 
-func (dh *DuplexHandler) Init(conn *net.TCPConn, name string, cfg *DuplexServerConfig, scopes *ScopeSet) {
+func (dh *DuplexHandler) Init(conn *net.TCPConn, cfg *DuplexServerConfig, scopes *ScopeSet) {
 	_ = conn.SetNoDelay(true)
 	_ = conn.SetKeepAlive(true)
 	_ = conn.SetKeepAlivePeriod(5 * time.Second)
-	dh.log = core.GetLogAgent(core.LogLevelTrace, name)
+	dh.log = core.GetLogAgent(core.LogLevelTrace, dh.HndName)
 	dh.link.SetConnect(conn, dh.log)
-	dh.HndName = name
 	dh.Config = cfg
 	dh.scopeMap = scopes
 }
 
 func (dh *DuplexHandler) HandlerLoop(hs *HandleSet) {
-	defer hs.DelHandler(dh.HndName)
+	defer hs.DelHandler(dh.HndName, dh.DevName)
 	defer dh.link.CloseConnect()
 	// Get client greeting info
 	err := dh.ReadGreeting()
@@ -58,6 +57,10 @@ func (dh *DuplexHandler) HandlerLoop(hs *HandleSet) {
 		dh.log.Error("DuplexHandler ReadGreeting error: %s", err)
 		return
 	}
+	hs.SetHandlerDevice(dh.HndName, dh.DevName)
+	dh.log.Info("DuplexHandler %s started for device %s", dh.HndName, dh.DevName)
+	defer dh.log.Info("DuplexHandler %s stopped for device %s", dh.HndName, dh.DevName)
+
 	go dh.readingLoop()
 	dh.waitingLoop()
 }
@@ -65,11 +68,13 @@ func (dh *DuplexHandler) HandlerLoop(hs *HandleSet) {
 // Implementation of DuplexManager interface
 func (dh *DuplexHandler) NewPacket(pack *Packet) bool {
 	//	dh.log.Trace("DuplexHandler NewPacket: %+v", pack)
-	dh.log.Trace("DuplexHandler NewPacket cmd:%s, dump:%s", pack.Command, string(pack.Content))
+	dh.log.Trace("DuplexHandler NewPacket dev:%s, cmd:%s, dump:%s", pack.DevName, pack.Command, string(pack.Content))
 	proc := dh.scopeMap.GetScopeFunc(pack.Scope, pack.Command)
 	if proc == nil {
+		dh.log.Trace("DuplexHandler NewPacket: Unknown command - %s", pack.Command)
 		return false
 	}
+	proc(pack.DevName, pack.Content)
 	return true
 }
 
@@ -87,7 +92,7 @@ func (dh *DuplexHandler) OnReadError(err error) error {
 
 func (dh *DuplexHandler) OnTimerTick(tm time.Time) {
 	dh.log.Trace("DuplexHandler OnTimerTick: %s", tm.Format(time.StampMilli))
-	dh.SendRequest()
+	//	dh.SendRequest()
 }
 
 // Implementation of Transporter interface
@@ -98,9 +103,8 @@ func (dh *DuplexHandler) SendPacket(pack *Packet) error {
 func (dh *DuplexHandler) SendRequest() {
 	query := &common.SystemQuery{}
 	query.DevName = "default"
-	pack := NewRequest(ScopeSystem)
-	pack.Command = "Inform"
-	pack.Content, _ = json.Marshal(query)
+	data, _ := json.Marshal(query)
+	pack := NewPacket(ScopeSystem, "default", "Inform", data)
 	err := dh.WritePacket(pack)
 	if err != nil {
 		dh.log.Error("DuplexServer WritePacket error: %s", err)
@@ -109,21 +113,16 @@ func (dh *DuplexHandler) SendRequest() {
 
 func (dh *DuplexHandler) ReadGreeting() error {
 	conn := dh.link.GetConnect()
-	if conn != nil {
-		pack, err := conn.ReadPacket()
-		if err != nil {
-			return err
-		} else if pack != nil {
-			if pack.Command != commandGreeting {
-				return errors.New("packet is not Greeting")
-			}
-			err = json.Unmarshal(pack.Content, dh.Greeting)
-			if err != nil {
-				return err
-			}
-		}
-	} else {
+	if conn == nil {
 		return errors.New("duplex DialTCP conn is nil")
 	}
+	pack, err := conn.ReadPacket()
+	if err != nil {
+		return err
+	}
+	if pack.Command != commandGreeting {
+		return errors.New("packet is not Greeting")
+	}
+	dh.DevName = pack.DevName
 	return nil
 }

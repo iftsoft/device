@@ -1,5 +1,14 @@
 package common
 
+const (
+	CmdSystemCommandReply = "CommandReply"
+	CmdSystemConfig       = "Config"
+	CmdSystemInform       = "Inform"
+	CmdSystemStart        = "Start"
+	CmdSystemStop         = "Stop"
+	CmdSystemRestart      = "Restart"
+)
+
 type SystemQuery struct {
 	DevName string
 }
@@ -12,13 +21,13 @@ type SystemReply struct {
 }
 
 type SystemCallback interface {
-	CommandReply(reply *SystemReply) error
+	CommandReply(name string, reply *SystemReply) error
 }
 
 type SystemManager interface {
-	Config(query *SystemQuery) error
-	Inform(query *SystemQuery) error
-	Start(query *SystemQuery) error
-	Stop(query *SystemQuery) error
-	Restart(query *SystemQuery) error
+	Config(name string, query *SystemQuery) error
+	Inform(name string, query *SystemQuery) error
+	Start(name string, query *SystemQuery) error
+	Stop(name string, query *SystemQuery) error
+	Restart(name string, query *SystemQuery) error
 }
