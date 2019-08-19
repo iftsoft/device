@@ -85,7 +85,7 @@ func (ss *SystemServer) Config(name string, query *common.SystemQuery) error {
 		ss.log.Trace("SystemServer dev:%s run cmd:%s, pack:%s",
 			name, common.CmdSystemConfig, string(dump))
 	}
-	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemConfig, dump)
+	pack := duplex.OnNewPacket(duplex.ScopeSystem, name, common.CmdSystemConfig, dump)
 	if ss.transport != nil {
 		err = ss.transport.SendPacket(pack)
 	}
@@ -99,7 +99,7 @@ func (ss *SystemServer) Inform(name string, query *common.SystemQuery) error {
 		ss.log.Trace("SystemServer dev:%s run cmd:%s, pack:%s",
 			name, common.CmdSystemInform, string(dump))
 	}
-	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemInform, dump)
+	pack := duplex.OnNewPacket(duplex.ScopeSystem, name, common.CmdSystemInform, dump)
 	if ss.transport != nil {
 		err = ss.transport.SendPacket(pack)
 	}
@@ -113,7 +113,7 @@ func (ss *SystemServer) Start(name string, query *common.SystemQuery) error {
 		ss.log.Trace("SystemServer dev:%s run cmd:%s, pack:%s",
 			name, common.CmdSystemStart, string(dump))
 	}
-	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemStart, dump)
+	pack := duplex.OnNewPacket(duplex.ScopeSystem, name, common.CmdSystemStart, dump)
 	if ss.transport != nil {
 		err = ss.transport.SendPacket(pack)
 	}
@@ -127,7 +127,7 @@ func (ss *SystemServer) Stop(name string, query *common.SystemQuery) error {
 		ss.log.Trace("SystemServer dev:%s run cmd:%s, pack:%s",
 			name, common.CmdSystemStop, string(dump))
 	}
-	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemStop, dump)
+	pack := duplex.OnNewPacket(duplex.ScopeSystem, name, common.CmdSystemStop, dump)
 	if ss.transport != nil {
 		err = ss.transport.SendPacket(pack)
 	}
@@ -141,7 +141,7 @@ func (ss *SystemServer) Restart(name string, query *common.SystemQuery) error {
 		ss.log.Trace("SystemServer dev:%s run cmd:%s, pack:%s",
 			name, common.CmdSystemRestart, string(dump))
 	}
-	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemRestart, dump)
+	pack := duplex.OnNewPacket(duplex.ScopeSystem, name, common.CmdSystemRestart, dump)
 	if ss.transport != nil {
 		err = ss.transport.SendPacket(pack)
 	}

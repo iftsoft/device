@@ -3,6 +3,7 @@ package duplex
 import (
 	"errors"
 	"github.com/iftsoft/device/core"
+	"io"
 	"net"
 	"sync"
 )
@@ -19,9 +20,11 @@ type Connection struct {
 	conn *net.TCPConn
 	log  *core.LogAgent
 	lock sync.Mutex
+	exit bool
 }
 
 func (c *Connection) Close() {
+	c.exit = true
 	_ = c.conn.Close()
 }
 
@@ -39,7 +42,7 @@ func (c *Connection) WritePacket(pack *Packet) error {
 
 func (c *Connection) WriteBinary(dump []byte) error {
 	size := len(dump)
-	if size == 0 {
+	if size == 0 || c.exit {
 		return nil
 	}
 
@@ -66,12 +69,14 @@ func (c *Connection) ReadPacket() (pack *Packet, err error) {
 	//	c.log.Trace("Read packet conn: %+v", c)
 	dump, err = c.ReadBinary()
 	if err != nil {
-		//		c.log.Error("Read packet error: %s", err)
+		if err != io.EOF && c.exit == false {
+			c.log.Error("Read packet error: %s", err)
+		}
 		return nil, err
 	}
 	pack = &Packet{}
 	if dump != nil {
-		//	c.log.Trace("Read packet dump: %+v", dump)
+		//		c.log.Dump("Read packet dump: %+v", dump)
 		err = pack.Decode(dump)
 	}
 	return pack, err
@@ -82,12 +87,14 @@ func (c *Connection) ReadBinary() (dump []byte, err error) {
 	n := 0
 	n, err = c.conn.Read(head)
 	if err != nil {
-		c.log.Error("Connection Read header error: %s", err)
+		if err != io.EOF && c.exit == false {
+			c.log.Error("Connection Read header error: %s", err)
+		}
 		return nil, err
 	}
 	if n != aHeaderSize {
 		c.log.Warn("Connection Read header size: %d of %d bytes", n, aHeaderSize)
-		return nil, errors.New("Wrong header size")
+		return nil, errors.New("wrong header size")
 	}
 	size := BytesToUint(head[4], head[5], head[6], head[7])
 	dump = make([]byte, size)
@@ -97,8 +104,8 @@ func (c *Connection) ReadBinary() (dump []byte, err error) {
 		return nil, err
 	}
 	if n != int(size) {
-		c.log.Warn("Connection Read bibary size: %d of %d bytes", n, aHeaderSize)
-		return nil, errors.New("Wrong binary size")
+		c.log.Warn("Connection Read binary size: %d of %d bytes", n, aHeaderSize)
+		return nil, errors.New("wrong binary size")
 	}
 	return dump, nil
 }

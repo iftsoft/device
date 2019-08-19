@@ -1,9 +1,7 @@
 package duplex
 
 import (
-	"encoding/json"
 	"errors"
-	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"net"
 	"time"
@@ -66,12 +64,12 @@ func (dh *DuplexHandler) HandlerLoop(hs *HandleSet) {
 }
 
 // Implementation of DuplexManager interface
-func (dh *DuplexHandler) NewPacket(pack *Packet) bool {
-	//	dh.log.Trace("DuplexHandler NewPacket: %+v", pack)
-	dh.log.Trace("DuplexHandler NewPacket dev:%s, cmd:%s, dump:%s", pack.DevName, pack.Command, string(pack.Content))
+func (dh *DuplexHandler) OnNewPacket(pack *Packet) bool {
+	//	dh.log.Trace("DuplexHandler OnNewPacket: %+v", pack)
+	dh.log.Trace("DuplexHandler OnNewPacket dev:%s, cmd:%s, dump:%s", pack.DevName, pack.Command, string(pack.Content))
 	proc := dh.scopeMap.GetScopeFunc(pack.Scope, pack.Command)
 	if proc == nil {
-		dh.log.Trace("DuplexHandler NewPacket: Unknown command - %s", pack.Command)
+		dh.log.Trace("DuplexHandler OnNewPacket: Unknown command - %s", pack.Command)
 		return false
 	}
 	proc(pack.DevName, pack.Content)
@@ -100,16 +98,16 @@ func (dh *DuplexHandler) SendPacket(pack *Packet) error {
 	return dh.WritePacket(pack)
 }
 
-func (dh *DuplexHandler) SendRequest() {
-	query := &common.SystemQuery{}
-	query.DevName = "default"
-	data, _ := json.Marshal(query)
-	pack := NewPacket(ScopeSystem, "default", "Inform", data)
-	err := dh.WritePacket(pack)
-	if err != nil {
-		dh.log.Error("DuplexServer WritePacket error: %s", err)
-	}
-}
+//func (dh *DuplexHandler) SendRequest() {
+//	query := &common.SystemQuery{}
+//	query.DevName = "default"
+//	data, _ := json.Marshal(query)
+//	pack := NewPacket(ScopeSystem, "default", "Inform", data)
+//	err := dh.WritePacket(pack)
+//	if err != nil {
+//		dh.log.Error("DuplexServer WritePacket error: %s", err)
+//	}
+//}
 
 func (dh *DuplexHandler) ReadGreeting() error {
 	conn := dh.link.GetConnect()

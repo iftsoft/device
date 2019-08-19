@@ -3,14 +3,14 @@ package duplex
 import (
 	"errors"
 	"github.com/iftsoft/device/core"
+	"io"
 	"time"
 )
 
 const DuplexPort int32 = 9380
 
 type DuplexManager interface {
-	NewPacket(pack *Packet) bool
-	//	OnNoConnect(err error) error
+	OnNewPacket(pack *Packet) bool
 	OnWriteError(err error) error
 	OnReadError(err error) error
 	OnTimerTick(tm time.Time)
@@ -54,7 +54,7 @@ func (d *Duplex) ReadPacket() error {
 			return d.mngr.OnReadError(err)
 		} else if pack != nil {
 			pack.Print(d.log, "Read ")
-			d.mngr.NewPacket(pack)
+			d.mngr.OnNewPacket(pack)
 		}
 	} else {
 		return errors.New("duplex DialTCP conn is nil")
@@ -66,7 +66,9 @@ func (d *Duplex) readingLoop() {
 	for {
 		err := d.ReadPacket()
 		if err != nil {
-			d.log.Error("Duplex ReadPacket error: %s", err)
+			if err != io.EOF {
+				d.log.Error("Duplex ReadPacket error: %s", err)
+			}
 			return
 		}
 	}
@@ -85,7 +87,7 @@ func (d *Duplex) waitingLoop() {
 		case <-d.done:
 			return
 		case tm := <-tick.C:
-			d.log.Info("Duplex loop timer tick")
+			//			d.log.Trace("Duplex loop timer tick %s", tm.Format(time.StampMilli))
 			d.mngr.OnTimerTick(tm)
 			//default:
 			//	err := d.ReadPacket()

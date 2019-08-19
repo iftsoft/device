@@ -3,6 +3,7 @@ package duplex
 import (
 	"fmt"
 	"github.com/iftsoft/device/core"
+	"io"
 	"net"
 	"time"
 )
@@ -54,11 +55,11 @@ func (dc *DuplexClient) SendPacket(pack *Packet) error {
 }
 
 // Implementation of DuplexManager interface
-func (dc *DuplexClient) NewPacket(pack *Packet) bool {
-	dc.log.Trace("DuplexClient NewPacket dev:%s, cmd:%s, dump:%s", pack.DevName, pack.Command, string(pack.Content))
+func (dc *DuplexClient) OnNewPacket(pack *Packet) bool {
+	dc.log.Trace("DuplexClient OnNewPacket dev:%s, cmd:%s, dump:%s", pack.DevName, pack.Command, string(pack.Content))
 	proc := dc.scopeMap.GetScopeFunc(pack.Scope, pack.Command)
 	if proc == nil {
-		dc.log.Trace("DuplexClient NewPacket: Unknown command - %s", pack.Command)
+		dc.log.Trace("DuplexClient OnNewPacket: Unknown command - %s", pack.Command)
 		return false
 	}
 	proc(pack.DevName, pack.Content)
@@ -74,14 +75,14 @@ func (dc *DuplexClient) OnWriteError(err error) error {
 func (dc *DuplexClient) OnReadError(err error) error {
 	dc.log.Trace("DuplexClient OnReadError: %s", err)
 	dc.link.CloseConnect()
-	return nil
+	return io.EOF
 }
 
 func (dc *DuplexClient) OnTimerTick(tm time.Time) {
 	dc.log.Trace("DuplexClient OnTimerTick: %s", tm.Format(time.StampMilli))
 	conn := dc.link.GetConnect()
 	if conn == nil {
-		dc.log.Error("DuplexClient DialTCP conn is nil")
+		dc.log.Warn("DuplexClient DialTCP connect is not open. Trying to dial...")
 		err := dc.connectToServer(dc.config.Port)
 		if err != nil {
 			dc.log.Error("DuplexClient Dial error: %s", err)
@@ -114,7 +115,7 @@ func (dc *DuplexClient) connectToServer(port int32) error {
 
 func (dc *DuplexClient) dialToAddress(port int32) error {
 	servAddr := fmt.Sprintf("localhost:%d", port)
-	dc.log.Info("Dialling to %s", servAddr)
+	dc.log.Trace("Dialling to %s", servAddr)
 	tcpAddr, err := net.ResolveTCPAddr("tcp", servAddr)
 	if err != nil {
 		dc.log.Error("DuplexClient ResolveTCPAddr: %s", err)
@@ -122,14 +123,14 @@ func (dc *DuplexClient) dialToAddress(port int32) error {
 	}
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	if err != nil {
-		dc.log.Error("DuplexClient DialTCP error: %s", err)
+		dc.log.Warn("DuplexClient DialTCP: %s", err)
 		return err
 	}
 	if conn == nil {
 		dc.log.Error("DuplexClient DialTCP conn is nil")
 		return err
 	}
-	dc.log.Info("Dialling connect %+v", conn)
+	//	dc.log.Info("Dialling connect %+v", conn)
 	err = conn.SetNoDelay(true)
 	err = conn.SetKeepAlive(true)
 	err = conn.SetKeepAlivePeriod(5 * time.Second)
@@ -142,7 +143,7 @@ func (dc *DuplexClient) sendGreeting() error {
 	if dc.config != nil {
 		name = dc.config.DevName
 	}
-	dc.log.Trace("DuplexClient SendGreeting for device: %s", name)
+	dc.log.Info("DuplexClient SendGreeting for device: %s", name)
 	pack := NewPacket(ScopeSystem, name, commandGreeting, nil)
 	err := dc.WritePacket(pack)
 	if err != nil {

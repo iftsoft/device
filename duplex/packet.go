@@ -71,7 +71,7 @@ func NewPacket(scope PacketScope, name string, cmd string, data []byte) *Packet 
 
 func (p *Packet) Print(log *core.LogAgent, text string) {
 	if p != nil && log != nil {
-		log.Trace("%s packet Scope:%s, Device:%s, Command:%s, Data len:%d",
+		log.Dump("%s packet Scope:%s, Device:%s, Command:%s, Data len:%d",
 			text, GetScopeName(p.Scope), p.DevName, p.Command, len(p.Content))
 	}
 }
@@ -93,7 +93,7 @@ func (p *Packet) Encode() []byte {
 	head[8], head[9], head[10], head[11] = UintToBytes(p.Counter)
 	head[12], head[13], head[14], head[15] = UintToBytes(uint32(size))
 	dump := append(head, name...)
-	dump = append(head, task...)
+	dump = append(dump, task...)
 	dump = append(dump, p.Content...)
 	return dump
 }
