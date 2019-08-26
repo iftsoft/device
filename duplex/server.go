@@ -36,6 +36,10 @@ func NewDuplexServer(config *DuplexServerConfig, log *core.LogAgent) *DuplexServ
 	return &ds
 }
 
+func (ds *DuplexServer) SetClientManager(manager ClientManager) {
+	ds.handles.manager = manager
+}
+
 // Implementation of ServerManager interface
 func (ds *DuplexServer) GetTransporter(name string) Transporter {
 	hnd := ds.handles.GetHandler(name)

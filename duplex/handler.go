@@ -47,15 +47,15 @@ func (dh *DuplexHandler) Init(conn *net.TCPConn, cfg *DuplexServerConfig, scopes
 }
 
 func (dh *DuplexHandler) HandlerLoop(hs *HandleSet) {
-	defer hs.DelHandler(dh.HndName, dh.DevName)
 	defer dh.link.CloseConnect()
 	// Get client greeting info
-	err := dh.ReadGreeting()
+	err := dh.readGreeting()
 	if err != nil {
 		dh.log.Error("DuplexHandler ReadGreeting error: %s", err)
 		return
 	}
 	hs.SetHandlerDevice(dh.HndName, dh.DevName)
+	defer hs.DelHandler(dh.HndName, dh.DevName)
 	dh.log.Info("DuplexHandler %s started for device %s", dh.HndName, dh.DevName)
 	defer dh.log.Info("DuplexHandler %s stopped for device %s", dh.HndName, dh.DevName)
 
@@ -98,18 +98,7 @@ func (dh *DuplexHandler) SendPacket(pack *Packet) error {
 	return dh.WritePacket(pack)
 }
 
-//func (dh *DuplexHandler) SendRequest() {
-//	query := &common.SystemQuery{}
-//	query.DevName = "default"
-//	data, _ := json.Marshal(query)
-//	pack := NewPacket(ScopeSystem, "default", "Inform", data)
-//	err := dh.WritePacket(pack)
-//	if err != nil {
-//		dh.log.Error("DuplexServer WritePacket error: %s", err)
-//	}
-//}
-
-func (dh *DuplexHandler) ReadGreeting() error {
+func (dh *DuplexHandler) readGreeting() error {
 	conn := dh.link.GetConnect()
 	if conn == nil {
 		return errors.New("duplex DialTCP conn is nil")
@@ -124,3 +113,14 @@ func (dh *DuplexHandler) ReadGreeting() error {
 	dh.DevName = pack.DevName
 	return nil
 }
+
+//func (dh *DuplexHandler) SendRequest() {
+//	query := &common.SystemQuery{}
+//	query.DevName = dh.DevName
+//	data, _ := json.Marshal(query)
+//	pack := NewPacket(ScopeSystem, dh.DevName, common.CmdSystemInform, data)
+//	err := dh.WritePacket(pack)
+//	if err != nil {
+//		dh.log.Error("DuplexServer WritePacket error: %s", err)
+//	}
+//}

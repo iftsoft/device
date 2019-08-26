@@ -5,19 +5,26 @@ import (
 	"sync"
 )
 
+type ClientManager interface {
+	OnClientStarted(name string)
+	OnClientStopped(name string)
+}
+
 type HandleSet struct {
-	store map[string]*DuplexHandler
-	names map[string]string
-	count uint32
-	mutex sync.RWMutex
-	wg    sync.WaitGroup
+	store   map[string]*DuplexHandler
+	names   map[string]string
+	manager ClientManager
+	count   uint32
+	mutex   sync.RWMutex
+	wg      sync.WaitGroup
 }
 
 func NewHandleSet() *HandleSet {
 	hs := HandleSet{
-		store: make(map[string]*DuplexHandler),
-		names: make(map[string]string),
-		count: 0,
+		store:   make(map[string]*DuplexHandler),
+		names:   make(map[string]string),
+		manager: nil,
+		count:   0,
 	}
 	return &hs
 }
@@ -41,8 +48,11 @@ func (hs *HandleSet) AddHandler() *DuplexHandler {
 
 func (hs *HandleSet) SetHandlerDevice(link, name string) {
 	hs.mutex.Lock()
-	defer hs.mutex.Unlock()
 	hs.names[name] = link
+	hs.mutex.Unlock()
+	if hs.manager != nil {
+		hs.manager.OnClientStarted(name)
+	}
 }
 
 func (hs *HandleSet) GetHandler(name string) *DuplexHandler {
@@ -59,6 +69,9 @@ func (hs *HandleSet) GetHandler(name string) *DuplexHandler {
 }
 
 func (hs *HandleSet) DelHandler(link, name string) {
+	if hs.manager != nil {
+		hs.manager.OnClientStopped(name)
+	}
 	hs.wg.Done()
 	hs.mutex.Lock()
 	defer hs.mutex.Unlock()

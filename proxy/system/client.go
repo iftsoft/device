@@ -78,7 +78,7 @@ func (sc *SystemClient) GetScopeItem() *duplex.ScopeItem {
 	return sc.scopeItem
 }
 
-// Implemetation of common.SystemCallback
+// Implementation of common.SystemCallback
 func (sc *SystemClient) CommandReply(name string, reply *common.SystemReply) error {
 	dump, err := json.Marshal(reply)
 	if err != nil {

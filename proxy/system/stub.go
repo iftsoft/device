@@ -25,7 +25,7 @@ func (ss *SystemStub) Init(callback common.SystemCallback, log *core.LogAgent) {
 
 func (ss *SystemStub) dummyCommandReply(name string, cmd string, query *common.SystemQuery) error {
 	if ss.log != nil {
-		ss.log.Trace("SystemStub dev:%s run cmd:%s, data:%s", query.DevName)
+		ss.log.Trace("SystemStub dev:%s run cmd:%s, data:%s", name, cmd, query.DevName)
 	}
 	reply := &common.SystemReply{}
 	reply.DevName = query.DevName
@@ -37,7 +37,7 @@ func (ss *SystemStub) dummyCommandReply(name string, cmd string, query *common.S
 	return err
 }
 
-// Implemetation of common.SystemManager
+// Implementation of common.SystemManager
 //
 func (ss *SystemStub) Config(name string, query *common.SystemQuery) error {
 	return ss.dummyCommandReply(name, common.CmdSystemConfig, query)
