@@ -1,55 +1,50 @@
 package common
 
-type DeviceReply struct {
-	DevName string
-	Command string
-	DevType EnumDevType
-	Reply   interface{}
+const (
+	CmdDeviceReply  = "DeviceReply"
+	CmdExecuteError = "ExecuteError"
+	CmdStateChanged = "StateChanged"
+	CmdActionPrompt = "ActionPrompt"
+	CmdDeviceCancel = "Cancel"
+	CmdDeviceReset  = "Reset"
+	CmdDeviceStatus = "Status"
+)
+
+type DeviceQuery struct {
+	Timeout int32
 }
+
+type DeviceReply struct {
+	Command  string
+	DevType  EnumDevType
+	DevState EnumDevState
+	ErrCode  EnumDevError
+	ErrText  string
+}
+
 type DeviceError struct {
-	DevName string
-	ErrCode EnumDevError
 	Action  EnumDevAction
+	ErrCode EnumDevError
+	ErrText string
 }
 type DeviceState struct {
-	DevName  string
 	NewState EnumDevState
 	OldState EnumDevState
 }
 type DevicePrompt struct {
-	DevName string
-	Prompt  EnumDevPrompt
-	Action  EnumDevAction
-}
-type DeviceAccept struct {
-	DevName  string
-	Amount   DevAmount
-	Currency DevCurrency
-	Count    DevCounter
-}
-type DeviceReader struct {
-	DevName string
-	Inform  string
-	Action  EnumDevAction
+	Prompt EnumDevPrompt
+	Action EnumDevAction
 }
 
 type DeviceCallback interface {
-	CommandReply(reply *DeviceReply)
-}
-
-type DeviceNotifier interface {
-	DeviceCallback
-	ExecuteError(value *DeviceError)
-	StateChanged(value *DeviceState)
-	ActionPrompt(value *DevicePrompt)
-	NoteAccepted(value *DeviceAccept)
-	CashIsStored(value *DeviceAccept)
-	ReaderReturn(value *DeviceReader)
+	CommandReply(name string, reply *DeviceReply) error
+	ExecuteError(name string, value *DeviceError) error
+	StateChanged(name string, value *DeviceState) error
+	ActionPrompt(name string, value *DevicePrompt) error
 }
 
 type DeviceManager interface {
-	Cancel(dcb DeviceCallback) error
-	Initialization(dcb DeviceCallback) error
-	Reset(dcb DeviceCallback) error
-	Status(dcb DeviceCallback) error
+	Cancel(name string, query *DeviceQuery) error
+	Reset(name string, query *DeviceQuery) error
+	Status(name string, query *DeviceQuery) error
 }

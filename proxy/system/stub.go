@@ -30,6 +30,7 @@ func (ss *SystemStub) dummyCommandReply(name string, cmd string, query *common.S
 	reply := &common.SystemReply{}
 	reply.DevName = query.DevName
 	reply.Command = cmd
+	reply.State = common.SysStateUndefined
 	var err error
 	if ss.callback != nil {
 		err = ss.callback.CommandReply(name, reply)

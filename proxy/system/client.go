@@ -86,9 +86,9 @@ func (sc *SystemClient) CommandReply(name string, reply *common.SystemReply) err
 	}
 	if sc.log != nil {
 		sc.log.Trace("SystemClient dev:%s put cmd:%s pack:%s",
-			name, common.CmdSystemCommandReply, string(dump))
+			name, common.CmdSystemReply, string(dump))
 	}
-	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemCommandReply, dump)
+	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemReply, dump)
 	if sc.transport != nil {
 		err = sc.transport.SendPacket(pack)
 	}

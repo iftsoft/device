@@ -34,8 +34,8 @@ func (ss *SystemServer) Init(server duplex.ServerManager, callback common.System
 	ss.server = server
 	ss.callback = callback
 	if ss.scopeItem != nil {
-		ss.scopeItem.SetScopeFunc(common.CmdSystemCommandReply, func(name string, dump []byte) {
-			reply, err := ss.decodeReply(name, common.CmdSystemCommandReply, dump)
+		ss.scopeItem.SetScopeFunc(common.CmdSystemReply, func(name string, dump []byte) {
+			reply, err := ss.decodeReply(name, common.CmdSystemReply, dump)
 			if err == nil && ss.callback != nil {
 				err = ss.callback.CommandReply(name, reply)
 			}
@@ -46,8 +46,7 @@ func (ss *SystemServer) Init(server duplex.ServerManager, callback common.System
 	}
 }
 
-func (ss *SystemServer) decodeReply(name string, cmd string, dump []byte) (
-	query *common.SystemReply, err error) {
+func (ss *SystemServer) decodeReply(name string, cmd string, dump []byte) (query *common.SystemReply, err error) {
 	if ss.log != nil {
 		ss.log.Trace("SystemServer for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
 	}

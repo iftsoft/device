@@ -9,6 +9,14 @@ type EnumDevState int16
 type EnumDevAction int16
 type EnumDevPrompt int16
 type EnumDevWarning int16
+type EnumSystemState int16
+
+// System state codes
+const (
+	SysStateUndefined EnumSystemState = iota
+	SysStateRunning
+	SysStateStopped
+)
 
 // Device types
 const (

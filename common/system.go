@@ -1,12 +1,12 @@
 package common
 
 const (
-	CmdSystemCommandReply = "CommandReply"
-	CmdSystemConfig       = "Config"
-	CmdSystemInform       = "Inform"
-	CmdSystemStart        = "Start"
-	CmdSystemStop         = "Stop"
-	CmdSystemRestart      = "Restart"
+	CmdSystemReply   = "SystemReply"
+	CmdSystemConfig  = "Config"
+	CmdSystemInform  = "Inform"
+	CmdSystemStart   = "Start"
+	CmdSystemStop    = "Stop"
+	CmdSystemRestart = "Restart"
 )
 
 type SystemQuery struct {
@@ -16,8 +16,7 @@ type SystemQuery struct {
 type SystemReply struct {
 	DevName string
 	Command string
-	DevType EnumDevType
-	//	Reply   interface{}
+	State   EnumSystemState
 }
 
 type SystemCallback interface {
