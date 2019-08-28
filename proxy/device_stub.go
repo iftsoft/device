@@ -1,4 +1,4 @@
-package general
+package proxy
 
 import (
 	"github.com/iftsoft/device/common"
@@ -23,16 +23,16 @@ func (ss *DeviceStub) Init(callback common.DeviceCallback, log *core.LogAgent) {
 	ss.callback = callback
 }
 
-func (ss *DeviceStub) dummyCommandReply(name string, cmd string, query *common.DeviceQuery) error {
+func (ss *DeviceStub) dummyCommandReply(name string, cmd string, query interface{}) error {
 	if ss.log != nil {
-		ss.log.Trace("SystemStub dev:%s run cmd:%s, timeout:%d", name, cmd, query.Timeout)
+		ss.log.Trace("SystemStub dev:%s run cmd:%s", name, cmd)
 	}
 	reply := &common.DeviceReply{}
 	reply.Command = cmd
 	reply.DevState = common.DevStateUndefined
 	var err error
 	if ss.callback != nil {
-		err = ss.callback.CommandReply(name, reply)
+		err = ss.callback.DeviceReply(name, reply)
 	}
 	return err
 }

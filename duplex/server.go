@@ -86,7 +86,7 @@ func (ds *DuplexServer) listenLoop() {
 	ds.log.Info("Start listen on %s", ds.listener.Addr().String())
 	for {
 		conn, err := ds.listener.AcceptTCP()
-		ds.log.Trace("Accept a connection request.")
+		ds.log.Debug("Accept a connection request.")
 		if err != nil {
 			if ds.exit == true {
 				break

@@ -20,7 +20,7 @@ type SystemReply struct {
 }
 
 type SystemCallback interface {
-	CommandReply(name string, reply *SystemReply) error
+	SystemReply(name string, reply *SystemReply) error
 }
 
 type SystemManager interface {

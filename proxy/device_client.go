@@ -1,4 +1,4 @@
-package general
+package proxy
 
 import (
 	"encoding/json"
@@ -53,7 +53,7 @@ func (dc *DeviceClient) Init(trans duplex.Transporter, command common.DeviceMana
 
 func (dc *DeviceClient) decodeQuery(name string, cmd string, dump []byte) (query *common.DeviceQuery, err error) {
 	if dc.log != nil {
-		dc.log.Trace("DeviceClient for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
+		dc.log.Dump("DeviceClient for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	query = &common.DeviceQuery{}
 	err = json.Unmarshal(dump, query)
@@ -65,7 +65,7 @@ func (dc *DeviceClient) GetScopeItem() *duplex.ScopeItem {
 }
 
 // Implementation of common.DeviceCallback
-func (dc *DeviceClient) CommandReply(name string, reply *common.DeviceReply) error {
+func (dc *DeviceClient) DeviceReply(name string, reply *common.DeviceReply) error {
 	return dc.encodeReply(name, common.CmdDeviceReply, reply)
 }
 func (dc *DeviceClient) ExecuteError(name string, reply *common.DeviceError) error {
@@ -84,7 +84,7 @@ func (dc *DeviceClient) encodeReply(name string, cmd string, reply interface{}) 
 		return err
 	}
 	if dc.log != nil {
-		dc.log.Trace("DeviceClient dev:%s put cmd:%s pack:%s", name, cmd, string(dump))
+		dc.log.Dump("DeviceClient dev:%s put cmd:%s pack:%s", name, cmd, string(dump))
 	}
 	pack := duplex.NewPacket(duplex.ScopeDevice, name, cmd, dump)
 	if dc.transport != nil {

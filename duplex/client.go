@@ -56,10 +56,10 @@ func (dc *DuplexClient) SendPacket(pack *Packet) error {
 
 // Implementation of DuplexManager interface
 func (dc *DuplexClient) OnNewPacket(pack *Packet) bool {
-	dc.log.Trace("DuplexClient OnNewPacket dev:%s, cmd:%s, dump:%s", pack.DevName, pack.Command, string(pack.Content))
+	dc.log.Trace("DuplexClient OnNewPacket dev:%s, cmd:%s", pack.DevName, pack.Command)
 	proc := dc.scopeMap.GetScopeFunc(pack.Scope, pack.Command)
 	if proc == nil {
-		dc.log.Trace("DuplexClient OnNewPacket: Unknown command - %s", pack.Command)
+		dc.log.Warn("DuplexClient OnNewPacket: Unknown command - %s", pack.Command)
 		return false
 	}
 	proc(pack.DevName, pack.Content)
@@ -67,13 +67,13 @@ func (dc *DuplexClient) OnNewPacket(pack *Packet) bool {
 }
 
 func (dc *DuplexClient) OnWriteError(err error) error {
-	dc.log.Trace("DuplexClient OnWriteError: %s", err)
+	dc.log.Debug("DuplexClient OnWriteError: %s", err)
 	dc.link.CloseConnect()
 	return nil
 }
 
 func (dc *DuplexClient) OnReadError(err error) error {
-	dc.log.Trace("DuplexClient OnReadError: %s", err)
+	dc.log.Debug("DuplexClient OnReadError: %s", err)
 	dc.link.CloseConnect()
 	return io.EOF
 }

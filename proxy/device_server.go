@@ -1,4 +1,4 @@
-package general
+package proxy
 
 import (
 	"encoding/json"
@@ -34,11 +34,11 @@ func (ss *DeviceServer) Init(server duplex.ServerManager, callback common.Device
 	ss.server = server
 	ss.callback = callback
 	if ss.scopeItem != nil {
-		ss.scopeItem.SetScopeFunc(common.CmdSystemReply, func(name string, dump []byte) {
+		ss.scopeItem.SetScopeFunc(common.CmdDeviceReply, func(name string, dump []byte) {
 			reply := &common.DeviceReply{}
-			err := ss.decodeReply(name, common.CmdSystemReply, dump, reply)
+			err := ss.decodeReply(name, common.CmdDeviceReply, dump, reply)
 			if err == nil && ss.callback != nil {
-				err = ss.callback.CommandReply(name, reply)
+				err = ss.callback.DeviceReply(name, reply)
 			}
 		})
 		ss.scopeItem.SetScopeFunc(common.CmdExecuteError, func(name string, dump []byte) {
@@ -70,7 +70,7 @@ func (ss *DeviceServer) Init(server duplex.ServerManager, callback common.Device
 
 func (ss *DeviceServer) decodeReply(name string, cmd string, dump []byte, reply interface{}) (err error) {
 	if ss.log != nil {
-		ss.log.Trace("DeviceServer for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
+		ss.log.Dump("DeviceServer for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	err = json.Unmarshal(dump, reply)
 	return err
@@ -89,7 +89,7 @@ func (ss *DeviceServer) SendDeviceCommand(name string, cmd string, query interfa
 		return err
 	}
 	if ss.log != nil {
-		ss.log.Trace("DeviceServer dev:%s run cmd:%s, pack:%s", name, cmd, string(dump))
+		ss.log.Dump("DeviceServer dev:%s run cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	pack := duplex.NewPacket(duplex.ScopeDevice, name, cmd, dump)
 	err = transport.SendPacket(pack)

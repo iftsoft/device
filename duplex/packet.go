@@ -71,8 +71,8 @@ func NewPacket(scope PacketScope, name string, cmd string, data []byte) *Packet 
 
 func (p *Packet) Print(log *core.LogAgent, text string) {
 	if p != nil && log != nil {
-		log.Dump("%s packet Scope:%s, Device:%s, Command:%s, Data len:%d",
-			text, GetScopeName(p.Scope), p.DevName, p.Command, len(p.Content))
+		log.Dump("%s packet Scope:%s, Device:%s, Command:%s, Data len:%d, Content:%s",
+			text, GetScopeName(p.Scope), p.DevName, p.Command, len(p.Content), string(p.Content))
 	}
 }
 

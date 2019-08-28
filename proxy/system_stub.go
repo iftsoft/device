@@ -1,4 +1,4 @@
-package system
+package proxy
 
 import (
 	"github.com/iftsoft/device/common"
@@ -23,17 +23,17 @@ func (ss *SystemStub) Init(callback common.SystemCallback, log *core.LogAgent) {
 	ss.callback = callback
 }
 
-func (ss *SystemStub) dummyCommandReply(name string, cmd string, query *common.SystemQuery) error {
+func (ss *SystemStub) dummyCommandReply(name string, cmd string, query interface{}) error {
 	if ss.log != nil {
-		ss.log.Trace("SystemStub dev:%s run cmd:%s, data:%s", name, cmd, query.DevName)
+		ss.log.Trace("SystemStub dev:%s run cmd:%s", name, cmd)
 	}
 	reply := &common.SystemReply{}
-	reply.DevName = query.DevName
+	reply.DevName = name
 	reply.Command = cmd
 	reply.State = common.SysStateUndefined
 	var err error
 	if ss.callback != nil {
-		err = ss.callback.CommandReply(name, reply)
+		err = ss.callback.SystemReply(name, reply)
 	}
 	return err
 }

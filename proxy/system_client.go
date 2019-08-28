@@ -1,4 +1,4 @@
-package system
+package proxy
 
 import (
 	"encoding/json"
@@ -67,7 +67,7 @@ func (sc *SystemClient) Init(trans duplex.Transporter,
 func (sc *SystemClient) decodeQuery(name string, cmd string, dump []byte) (
 	query *common.SystemQuery, err error) {
 	if sc.log != nil {
-		sc.log.Trace("SystemClient for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
+		sc.log.Dump("SystemClient for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	query = &common.SystemQuery{}
 	err = json.Unmarshal(dump, query)
@@ -79,13 +79,13 @@ func (sc *SystemClient) GetScopeItem() *duplex.ScopeItem {
 }
 
 // Implementation of common.SystemCallback
-func (sc *SystemClient) CommandReply(name string, reply *common.SystemReply) error {
+func (sc *SystemClient) SystemReply(name string, reply *common.SystemReply) error {
 	dump, err := json.Marshal(reply)
 	if err != nil {
 		return err
 	}
 	if sc.log != nil {
-		sc.log.Trace("SystemClient dev:%s put cmd:%s pack:%s",
+		sc.log.Dump("SystemClient dev:%s put cmd:%s pack:%s",
 			name, common.CmdSystemReply, string(dump))
 	}
 	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemReply, dump)

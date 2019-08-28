@@ -66,7 +66,7 @@ func (dh *DuplexHandler) HandlerLoop(hs *HandleSet) {
 // Implementation of DuplexManager interface
 func (dh *DuplexHandler) OnNewPacket(pack *Packet) bool {
 	//	dh.log.Trace("DuplexHandler OnNewPacket: %+v", pack)
-	dh.log.Trace("DuplexHandler OnNewPacket dev:%s, cmd:%s, dump:%s", pack.DevName, pack.Command, string(pack.Content))
+	dh.log.Trace("DuplexHandler OnNewPacket dev:%s, cmd:%s", pack.DevName, pack.Command)
 	proc := dh.scopeMap.GetScopeFunc(pack.Scope, pack.Command)
 	if proc == nil {
 		dh.log.Trace("DuplexHandler OnNewPacket: Unknown command - %s", pack.Command)
@@ -77,20 +77,19 @@ func (dh *DuplexHandler) OnNewPacket(pack *Packet) bool {
 }
 
 func (dh *DuplexHandler) OnWriteError(err error) error {
-	dh.log.Trace("DuplexHandler OnWriteError: %s", err)
+	dh.log.Debug("DuplexHandler OnWriteError: %s", err)
 	dh.Stop()
 	return err
 }
 
 func (dh *DuplexHandler) OnReadError(err error) error {
-	dh.log.Trace("DuplexHandler OnReadError: %s", err)
+	dh.log.Debug("DuplexHandler OnReadError: %s", err)
 	dh.Stop()
 	return err
 }
 
 func (dh *DuplexHandler) OnTimerTick(tm time.Time) {
 	dh.log.Trace("DuplexHandler OnTimerTick: %s", tm.Format(time.StampMilli))
-	//	dh.SendRequest()
 }
 
 // Implementation of Transporter interface
@@ -113,14 +112,3 @@ func (dh *DuplexHandler) readGreeting() error {
 	dh.DevName = pack.DevName
 	return nil
 }
-
-//func (dh *DuplexHandler) SendRequest() {
-//	query := &common.SystemQuery{}
-//	query.DevName = dh.DevName
-//	data, _ := json.Marshal(query)
-//	pack := NewPacket(ScopeSystem, dh.DevName, common.CmdSystemInform, data)
-//	err := dh.WritePacket(pack)
-//	if err != nil {
-//		dh.log.Error("DuplexServer WritePacket error: %s", err)
-//	}
-//}

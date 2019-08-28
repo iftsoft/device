@@ -5,7 +5,7 @@ import (
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
-	"github.com/iftsoft/device/proxy/system"
+	"github.com/iftsoft/device/proxy"
 	"os"
 	"os/signal"
 	"syscall"
@@ -33,12 +33,18 @@ func main() {
 	cln := duplex.NewDuplexClient(&appCfg.Client)
 
 	logger := core.GetLogAgent(core.LogLevelTrace, "System")
-	sysClnt := system.NewSystemClient()
-	sysStub := system.NewSystemStub()
+	sysClnt := proxy.NewSystemClient()
+	sysStub := proxy.NewSystemStub()
 	sysClnt.Init(cln, sysStub, logger)
 	sysStub.Init(sysClnt, logger)
-	cln.AddScopeItem(sysClnt.GetScopeItem())
 
+	devClnt := proxy.NewDeviceClient()
+	devStub := proxy.NewDeviceStub()
+	devClnt.Init(cln, devStub, logger)
+	devStub.Init(devClnt, logger)
+
+	cln.AddScopeItem(sysClnt.GetScopeItem())
+	cln.AddScopeItem(devClnt.GetScopeItem())
 	cln.Start()
 
 	WaitForSignal(log)

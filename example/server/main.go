@@ -5,7 +5,7 @@ import (
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
-	"github.com/iftsoft/device/proxy"
+	"github.com/iftsoft/device/handler"
 	"os"
 	"os/signal"
 	"syscall"
@@ -30,7 +30,7 @@ func main() {
 		log.Info("Config server: %+v", appCfg.Server)
 	}
 	srv := duplex.NewDuplexServer(&appCfg.Server, log)
-	obj := proxy.NewObjectProxy()
+	obj := handler.NewObjectProxy()
 	obj.Init(srv)
 	srv.SetClientManager(obj)
 	err = srv.StartListen()

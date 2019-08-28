@@ -89,16 +89,6 @@ func (d *Duplex) waitingLoop() {
 		case tm := <-tick.C:
 			//			d.log.Trace("Duplex loop timer tick %s", tm.Format(time.StampMilli))
 			d.mngr.OnTimerTick(tm)
-			//default:
-			//	err := d.ReadPacket()
-			//	if err != nil {
-			//		d.log.Error("Duplex ReadPacket error: %s", err)
-			//		//} else if err == io.EOF {
-			//		//	break
-			//		//} else {
-			//		return
-			//	}
-			//			time.Sleep(100*time.Microsecond)
 		}
 	}
 }

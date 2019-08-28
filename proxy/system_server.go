@@ -1,4 +1,4 @@
-package system
+package proxy
 
 import (
 	"encoding/json"
@@ -37,7 +37,7 @@ func (ss *SystemServer) Init(server duplex.ServerManager, callback common.System
 		ss.scopeItem.SetScopeFunc(common.CmdSystemReply, func(name string, dump []byte) {
 			reply, err := ss.decodeReply(name, common.CmdSystemReply, dump)
 			if err == nil && ss.callback != nil {
-				err = ss.callback.CommandReply(name, reply)
+				err = ss.callback.SystemReply(name, reply)
 			}
 		})
 		if ss.server != nil {
@@ -46,13 +46,13 @@ func (ss *SystemServer) Init(server duplex.ServerManager, callback common.System
 	}
 }
 
-func (ss *SystemServer) decodeReply(name string, cmd string, dump []byte) (query *common.SystemReply, err error) {
+func (ss *SystemServer) decodeReply(name string, cmd string, dump []byte) (reply *common.SystemReply, err error) {
 	if ss.log != nil {
-		ss.log.Trace("SystemServer for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
+		ss.log.Dump("SystemServer for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
 	}
-	query = &common.SystemReply{}
-	err = json.Unmarshal(dump, query)
-	return query, err
+	reply = &common.SystemReply{}
+	err = json.Unmarshal(dump, reply)
+	return reply, err
 }
 
 func (ss *SystemServer) SendSystemCommand(name string, cmd string, query interface{}) error {
@@ -68,7 +68,7 @@ func (ss *SystemServer) SendSystemCommand(name string, cmd string, query interfa
 		return err
 	}
 	if ss.log != nil {
-		ss.log.Trace("SystemServer dev:%s run cmd:%s, pack:%s", name, cmd, string(dump))
+		ss.log.Dump("SystemServer dev:%s run cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	pack := duplex.NewPacket(duplex.ScopeSystem, name, cmd, dump)
 	err = transport.SendPacket(pack)

@@ -37,7 +37,7 @@ type DevicePrompt struct {
 }
 
 type DeviceCallback interface {
-	CommandReply(name string, reply *DeviceReply) error
+	DeviceReply(name string, reply *DeviceReply) error
 	ExecuteError(name string, value *DeviceError) error
 	StateChanged(name string, value *DeviceState) error
 	ActionPrompt(name string, value *DevicePrompt) error
