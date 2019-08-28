@@ -67,7 +67,7 @@ func (sc *SystemClient) Init(trans duplex.Transporter,
 func (sc *SystemClient) decodeQuery(name string, cmd string, dump []byte) (
 	query *common.SystemQuery, err error) {
 	if sc.log != nil {
-		sc.log.Dump("SystemClient for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
+		sc.log.Dump("SystemClient dev:%s take cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	query = &common.SystemQuery{}
 	err = json.Unmarshal(dump, query)
@@ -85,7 +85,7 @@ func (sc *SystemClient) SystemReply(name string, reply *common.SystemReply) erro
 		return err
 	}
 	if sc.log != nil {
-		sc.log.Dump("SystemClient dev:%s put cmd:%s pack:%s",
+		sc.log.Dump("SystemClient dev:%s send cmd:%s pack:%s",
 			name, common.CmdSystemReply, string(dump))
 	}
 	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemReply, dump)

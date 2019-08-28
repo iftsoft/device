@@ -23,20 +23,6 @@ func (ss *DeviceStub) Init(callback common.DeviceCallback, log *core.LogAgent) {
 	ss.callback = callback
 }
 
-func (ss *DeviceStub) dummyCommandReply(name string, cmd string, query interface{}) error {
-	if ss.log != nil {
-		ss.log.Trace("SystemStub dev:%s run cmd:%s", name, cmd)
-	}
-	reply := &common.DeviceReply{}
-	reply.Command = cmd
-	reply.DevState = common.DevStateUndefined
-	var err error
-	if ss.callback != nil {
-		err = ss.callback.DeviceReply(name, reply)
-	}
-	return err
-}
-
 // Implementation of common.DeviceManager
 //
 func (ss *DeviceStub) Cancel(name string, query *common.DeviceQuery) error {
@@ -49,4 +35,18 @@ func (ss *DeviceStub) Reset(name string, query *common.DeviceQuery) error {
 
 func (ss *DeviceStub) Status(name string, query *common.DeviceQuery) error {
 	return ss.dummyCommandReply(name, common.CmdDeviceStatus, query)
+}
+
+func (ss *DeviceStub) dummyCommandReply(name string, cmd string, query interface{}) error {
+	if ss.log != nil {
+		ss.log.Debug("SystemStub dev:%s run cmd:%s", name, cmd)
+	}
+	reply := &common.DeviceReply{}
+	reply.Command = cmd
+	reply.DevState = common.DevStateUndefined
+	var err error
+	if ss.callback != nil {
+		err = ss.callback.DeviceReply(name, reply)
+	}
+	return err
 }

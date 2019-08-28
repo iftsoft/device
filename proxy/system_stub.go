@@ -23,21 +23,6 @@ func (ss *SystemStub) Init(callback common.SystemCallback, log *core.LogAgent) {
 	ss.callback = callback
 }
 
-func (ss *SystemStub) dummyCommandReply(name string, cmd string, query interface{}) error {
-	if ss.log != nil {
-		ss.log.Trace("SystemStub dev:%s run cmd:%s", name, cmd)
-	}
-	reply := &common.SystemReply{}
-	reply.DevName = name
-	reply.Command = cmd
-	reply.State = common.SysStateUndefined
-	var err error
-	if ss.callback != nil {
-		err = ss.callback.SystemReply(name, reply)
-	}
-	return err
-}
-
 // Implementation of common.SystemManager
 //
 func (ss *SystemStub) Config(name string, query *common.SystemQuery) error {
@@ -58,4 +43,19 @@ func (ss *SystemStub) Stop(name string, query *common.SystemQuery) error {
 
 func (ss *SystemStub) Restart(name string, query *common.SystemQuery) error {
 	return ss.dummyCommandReply(name, common.CmdSystemRestart, query)
+}
+
+func (ss *SystemStub) dummyCommandReply(name string, cmd string, query interface{}) error {
+	if ss.log != nil {
+		ss.log.Debug("SystemStub dev:%s run cmd:%s", name, cmd)
+	}
+	reply := &common.SystemReply{}
+	reply.DevName = name
+	reply.Command = cmd
+	reply.State = common.SysStateUndefined
+	var err error
+	if ss.callback != nil {
+		err = ss.callback.SystemReply(name, reply)
+	}
+	return err
 }

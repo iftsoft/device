@@ -34,17 +34,25 @@ func GetLogAgent(level int, title string) *LogAgent {
 	if level >= LogLevelMax {
 		level = LogLevelEmpty
 	}
-	return &LogAgent{level, title}
+	return &LogAgent{level, title, false}
+}
+func GetLogAgentEx(level int, title string, line bool) *LogAgent {
+	if level >= LogLevelMax {
+		level = LogLevelEmpty
+	}
+	return &LogAgent{level, title, line}
 }
 
 type LogAgent struct {
 	logLevel int
 	modTitle string
+	fileLine bool
 }
 
-func (log *LogAgent) Init(level int, title string) {
+func (log *LogAgent) Init(level int, title string, line bool) {
 	log.logLevel = level
 	log.modTitle = title
+	log.fileLine = line
 }
 
 func (log *LogAgent) SetLevel(level int) {
@@ -121,8 +129,7 @@ func (log *LogAgent) formatLine(level int, text string) {
 	}
 	gid := GetGID()
 	var mesg string
-	switch level {
-	case LogLevelDebug, LogLevelError, LogLevelPanic:
+	if log.fileLine {
 		pc, file, line, ok := runtime.Caller(2)
 		if ok {
 			mesg = fmt.Sprintf("%s [%s %s %s] %s:%d %s() %s\n",
@@ -130,7 +137,7 @@ func (log *LogAgent) formatLine(level int, text string) {
 		} else {
 			mesg = fmt.Sprintf("%s [%s %s %s] %s\n", moment, logLevelNames[level], gid, log.modTitle, text)
 		}
-	case LogLevelTrace, LogLevelDump, LogLevelInfo, LogLevelWarn:
+	} else {
 		mesg = fmt.Sprintf("%s [%s %s %s] %s\n", moment, logLevelNames[level], gid, log.modTitle, text)
 	}
 	LogToFile(level, mesg)

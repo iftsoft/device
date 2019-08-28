@@ -26,7 +26,7 @@ func (os *ObjectState) Init(name string, log *core.LogAgent) {
 // Implementation of common.SystemCallback
 func (os *ObjectState) SystemReply(name string, reply *common.SystemReply) error {
 	if os.log != nil {
-		os.log.Trace("ObjectState dev:%s get cmd:%s data:%s",
+		os.log.Debug("ObjectState dev:%s get cmd:%s data:%s",
 			name, reply.Command, reply.DevName)
 	}
 	return nil
@@ -35,7 +35,7 @@ func (os *ObjectState) SystemReply(name string, reply *common.SystemReply) error
 // Implementation of common.DeviceCallback
 func (os *ObjectState) DeviceReply(name string, reply *common.DeviceReply) error {
 	if os.log != nil {
-		os.log.Trace("ObjectState.DeviceReply dev:%s, cmd:%s, state:%d",
+		os.log.Debug("ObjectState.DeviceReply dev:%s, cmd:%s, state:%d",
 			name, reply.Command, reply.DevState)
 	}
 	return nil
@@ -43,7 +43,7 @@ func (os *ObjectState) DeviceReply(name string, reply *common.DeviceReply) error
 
 func (os *ObjectState) ExecuteError(name string, reply *common.DeviceError) error {
 	if os.log != nil {
-		os.log.Trace("ObjectState.ExecuteError dev:%s, action:%d, error:%d - %s",
+		os.log.Debug("ObjectState.ExecuteError dev:%s, action:%d, error:%d - %s",
 			name, reply.Action, reply.ErrCode, reply.ErrText)
 	}
 	return nil
@@ -51,7 +51,7 @@ func (os *ObjectState) ExecuteError(name string, reply *common.DeviceError) erro
 
 func (os *ObjectState) StateChanged(name string, reply *common.DeviceState) error {
 	if os.log != nil {
-		os.log.Trace("ObjectState.StateChanged dev:%s, old state:%d, new state:%d",
+		os.log.Debug("ObjectState.StateChanged dev:%s, old state:%d, new state:%d",
 			name, reply.OldState, reply.NewState)
 	}
 	return nil
@@ -59,7 +59,7 @@ func (os *ObjectState) StateChanged(name string, reply *common.DeviceState) erro
 
 func (os *ObjectState) ActionPrompt(name string, reply *common.DevicePrompt) error {
 	if os.log != nil {
-		os.log.Trace("ObjectState.ActionPrompt dev:%s, action:%d, prompt:%d",
+		os.log.Debug("ObjectState.ActionPrompt dev:%s, action:%d, prompt:%d",
 			name, reply.Action, reply.Prompt)
 	}
 	return nil

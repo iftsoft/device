@@ -48,7 +48,7 @@ func (ss *SystemServer) Init(server duplex.ServerManager, callback common.System
 
 func (ss *SystemServer) decodeReply(name string, cmd string, dump []byte) (reply *common.SystemReply, err error) {
 	if ss.log != nil {
-		ss.log.Dump("SystemServer for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
+		ss.log.Dump("SystemServer dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	reply = &common.SystemReply{}
 	err = json.Unmarshal(dump, reply)
@@ -68,7 +68,7 @@ func (ss *SystemServer) SendSystemCommand(name string, cmd string, query interfa
 		return err
 	}
 	if ss.log != nil {
-		ss.log.Dump("SystemServer dev:%s run cmd:%s, pack:%s", name, cmd, string(dump))
+		ss.log.Dump("SystemServer dev:%s send cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	pack := duplex.NewPacket(duplex.ScopeSystem, name, cmd, dump)
 	err = transport.SendPacket(pack)

@@ -53,7 +53,7 @@ func (dc *DeviceClient) Init(trans duplex.Transporter, command common.DeviceMana
 
 func (dc *DeviceClient) decodeQuery(name string, cmd string, dump []byte) (query *common.DeviceQuery, err error) {
 	if dc.log != nil {
-		dc.log.Dump("DeviceClient for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
+		dc.log.Dump("DeviceClient dev:%s take cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	query = &common.DeviceQuery{}
 	err = json.Unmarshal(dump, query)
@@ -84,7 +84,7 @@ func (dc *DeviceClient) encodeReply(name string, cmd string, reply interface{}) 
 		return err
 	}
 	if dc.log != nil {
-		dc.log.Dump("DeviceClient dev:%s put cmd:%s pack:%s", name, cmd, string(dump))
+		dc.log.Dump("DeviceClient dev:%s send cmd:%s pack:%s", name, cmd, string(dump))
 	}
 	pack := duplex.NewPacket(duplex.ScopeDevice, name, cmd, dump)
 	if dc.transport != nil {

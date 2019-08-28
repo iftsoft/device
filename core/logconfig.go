@@ -12,6 +12,7 @@ type LogConfig struct {
 	ConsLevel int    `yaml:"consLevel"`
 	MaxFiles  int    `yaml:"maxFiles"` // limit the number of log files under `logPath`
 	MaxSize   int64  `yaml:"maxSize"`  // limit size of a log file (KByte)
+	FileLine  bool   `yaml:"fileLine"`
 }
 
 func (cfg *LogConfig) PrintData() {
@@ -21,11 +22,12 @@ func (cfg *LogConfig) PrintData() {
 	fmt.Println("ConsLevel", GetLogLevelText(cfg.ConsLevel))
 	fmt.Println("MaxFiles ", cfg.MaxFiles)
 	fmt.Println("MaxSize  ", cfg.MaxSize)
+	fmt.Println("FileLine ", cfg.FileLine)
 }
 func (cfg *LogConfig) String() string {
 	str := fmt.Sprintf("Logging config: "+
-		"LogPath = %s, LogFile = %s, LogLevel = %s, ConsLevel = %s, MaxFiles = %d, MaxSize = %d.",
-		cfg.LogPath, cfg.LogFile, GetLogLevelText(cfg.LogLevel), GetLogLevelText(cfg.ConsLevel), cfg.MaxFiles, cfg.MaxSize)
+		"LogPath = %s, LogFile = %s, LogLevel = %s, ConsLevel = %s, MaxFiles = %d, MaxSize = %d, FileLine = %v.",
+		cfg.LogPath, cfg.LogFile, GetLogLevelText(cfg.LogLevel), GetLogLevelText(cfg.ConsLevel), cfg.MaxFiles, cfg.MaxSize, cfg.FileLine)
 	return str
 }
 
@@ -37,6 +39,7 @@ func GetDefaultConfig(name string) *LogConfig {
 		ConsLevel: LogLevelError,
 		MaxFiles:  8,
 		MaxSize:   1024,
+		FileLine:  false,
 	}
 	return &cfg
 }

@@ -70,7 +70,7 @@ func (ss *DeviceServer) Init(server duplex.ServerManager, callback common.Device
 
 func (ss *DeviceServer) decodeReply(name string, cmd string, dump []byte, reply interface{}) (err error) {
 	if ss.log != nil {
-		ss.log.Dump("DeviceServer for dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
+		ss.log.Dump("DeviceServer dev:%s take cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	err = json.Unmarshal(dump, reply)
 	return err
@@ -89,7 +89,7 @@ func (ss *DeviceServer) SendDeviceCommand(name string, cmd string, query interfa
 		return err
 	}
 	if ss.log != nil {
-		ss.log.Dump("DeviceServer dev:%s run cmd:%s, pack:%s", name, cmd, string(dump))
+		ss.log.Dump("DeviceServer dev:%s send cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	pack := duplex.NewPacket(duplex.ScopeDevice, name, cmd, dump)
 	err = transport.SendPacket(pack)
