@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/iftsoft/device/core"
 	"io"
+	"sync"
 	"time"
 )
 
@@ -62,7 +63,12 @@ func (d *Duplex) ReadPacket() error {
 	return nil
 }
 
-func (d *Duplex) readingLoop() {
+func (d *Duplex) readingLoop(wg *sync.WaitGroup) {
+	wg.Add(1)
+	defer wg.Done()
+	d.log.Debug("Duplex reading loop is started")
+	defer d.log.Debug("Duplex reading loop is stopped")
+
 	for {
 		err := d.ReadPacket()
 		if err != nil {
@@ -74,14 +80,15 @@ func (d *Duplex) readingLoop() {
 	}
 }
 
-func (d *Duplex) waitingLoop() {
-	d.log.Info("Duplex loop is started")
-	defer d.log.Info("Duplex loop is stopped")
+func (d *Duplex) waitingLoop(wg *sync.WaitGroup) {
+	wg.Add(1)
+	defer wg.Done()
+	d.log.Debug("Duplex waiting loop is started")
+	defer d.log.Debug("Duplex waiting loop is stopped")
 
 	tick := time.NewTicker(1000 * time.Millisecond)
 	defer tick.Stop()
 
-	defer d.log.Info("Duplex loop stopping")
 	for {
 		select {
 		case <-d.done:

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/iftsoft/device/core"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -31,11 +32,6 @@ func GetDuplexHandler() *DuplexHandler {
 	return dh
 }
 
-func (dh *DuplexHandler) Stop() {
-	dh.link.CloseConnect()
-	close(dh.done)
-}
-
 func (dh *DuplexHandler) Init(conn *net.TCPConn, cfg *DuplexServerConfig, scopes *ScopeSet) {
 	_ = conn.SetNoDelay(true)
 	_ = conn.SetKeepAlive(true)
@@ -46,7 +42,7 @@ func (dh *DuplexHandler) Init(conn *net.TCPConn, cfg *DuplexServerConfig, scopes
 	dh.scopeMap = scopes
 }
 
-func (dh *DuplexHandler) HandlerLoop(hs *HandleSet) {
+func (dh *DuplexHandler) StartHandler(hs *HandleSet) {
 	defer dh.link.CloseConnect()
 	// Get client greeting info
 	err := dh.readGreeting()
@@ -59,8 +55,15 @@ func (dh *DuplexHandler) HandlerLoop(hs *HandleSet) {
 	dh.log.Info("DuplexHandler %s started for device %s", dh.HndName, dh.DevName)
 	defer dh.log.Info("DuplexHandler %s stopped for device %s", dh.HndName, dh.DevName)
 
-	go dh.readingLoop()
-	dh.waitingLoop()
+	hs.wg.Add(1)
+	go dh.readingLoop(&hs.wg)
+	dh.waitingLoop(&hs.wg)
+}
+
+func (dh *DuplexHandler) StopHandle(wg *sync.WaitGroup) {
+	wg.Done()
+	dh.link.CloseConnect()
+	close(dh.done)
 }
 
 // Implementation of DuplexManager interface
@@ -78,13 +81,13 @@ func (dh *DuplexHandler) OnNewPacket(pack *Packet) bool {
 
 func (dh *DuplexHandler) OnWriteError(err error) error {
 	dh.log.Debug("DuplexHandler OnWriteError: %s", err)
-	dh.Stop()
+	//	dh.Stop()
 	return err
 }
 
 func (dh *DuplexHandler) OnReadError(err error) error {
 	dh.log.Debug("DuplexHandler OnReadError: %s", err)
-	dh.Stop()
+	//	dh.Stop()
 	return err
 }
 

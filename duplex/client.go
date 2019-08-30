@@ -5,6 +5,7 @@ import (
 	"github.com/iftsoft/device/core"
 	"io"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -33,12 +34,14 @@ func NewDuplexClient(cfg *DuplexClientConfig) *DuplexClient {
 	return dc
 }
 
-func (dc *DuplexClient) Start() {
+func (dc *DuplexClient) StartClient(wg *sync.WaitGroup) {
+	wg.Add(1)
 	dc.log.Info("Starting client engine")
-	go dc.clientLoop(dc.config.Port)
+	go dc.clientLoop(wg, dc.config.Port)
 }
 
-func (dc *DuplexClient) Stop() {
+func (dc *DuplexClient) StopClient(wg *sync.WaitGroup) {
+	wg.Done()
 	dc.log.Info("Stopping client engine")
 	close(dc.done)
 }
@@ -93,10 +96,14 @@ func (dc *DuplexClient) OnTimerTick(tm time.Time) {
 	}
 }
 
-func (dc *DuplexClient) clientLoop(port int32) {
-	_ = dc.connectToServer(port)
+func (dc *DuplexClient) clientLoop(wg *sync.WaitGroup, port int32) {
+	err := dc.connectToServer(port)
+	if err != nil {
+		return
+	}
 	defer dc.link.CloseConnect()
-	dc.waitingLoop()
+	go dc.readingLoop(wg)
+	dc.waitingLoop(wg)
 }
 
 func (dc *DuplexClient) connectToServer(port int32) error {
@@ -109,7 +116,6 @@ func (dc *DuplexClient) connectToServer(port int32) error {
 		dc.link.CloseConnect()
 		return err
 	}
-	go dc.readingLoop()
 	return nil
 }
 

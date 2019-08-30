@@ -84,11 +84,8 @@ func (hs *HandleSet) StopAllHandlers() {
 	defer hs.mutex.RUnlock()
 	for _, hnd := range hs.store {
 		if hnd != nil {
-			hnd.Stop()
+			hnd.StopHandle(&hs.wg)
 		}
 	}
-}
-
-func (hs *HandleSet) WaitAllHandlers() {
 	hs.wg.Wait()
 }

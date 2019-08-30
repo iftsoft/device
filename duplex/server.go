@@ -74,8 +74,6 @@ func (ds *DuplexServer) StopListen() {
 	_ = ds.listener.Close()
 	ds.log.Trace("Closing all connections...")
 	ds.handles.StopAllHandlers()
-	ds.log.Trace("Waiting for running handlers.")
-	ds.handles.WaitAllHandlers()
 	ds.log.Info("All connections are closed.")
 }
 
@@ -105,6 +103,6 @@ func (ds *DuplexServer) handleMessages(conn *net.TCPConn) {
 	hand := ds.handles.AddHandler()
 	if hand != nil {
 		hand.Init(conn, ds.config, ds.scopeMap)
-		hand.HandlerLoop(ds.handles)
+		hand.StartHandler(ds.handles)
 	}
 }
