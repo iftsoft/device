@@ -19,6 +19,7 @@ func main() {
 	err, appCfg := config.GetSrvConfig(appPar)
 	if err != nil {
 		fmt.Println(err)
+		return
 	} else {
 		core.StartFileLogger(&appCfg.Logger)
 	}

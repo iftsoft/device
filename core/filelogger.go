@@ -52,6 +52,13 @@ func StopFileLogger() {
 	}
 }
 
+func getLogSource() bool {
+	if gLogger.config != nil {
+		return gLogger.config.Source
+	}
+	return false
+}
+
 func LogToFile(level int, mesg string) {
 	if len(mesg) > 0 && gLogger.config != nil && level > LogLevelEmpty {
 		if level <= gLogger.config.LogLevel {

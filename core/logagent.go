@@ -34,25 +34,25 @@ func GetLogAgent(level int, title string) *LogAgent {
 	if level >= LogLevelMax {
 		level = LogLevelEmpty
 	}
-	return &LogAgent{level, title, false}
+	return &LogAgent{level, title, getLogSource()}
 }
-func GetLogAgentEx(level int, title string, line bool) *LogAgent {
+func GetLogAgentEx(level int, title string, src bool) *LogAgent {
 	if level >= LogLevelMax {
 		level = LogLevelEmpty
 	}
-	return &LogAgent{level, title, line}
+	return &LogAgent{level, title, src}
 }
 
 type LogAgent struct {
 	logLevel int
 	modTitle string
-	fileLine bool
+	source   bool
 }
 
-func (log *LogAgent) Init(level int, title string, line bool) {
+func (log *LogAgent) Init(level int, title string, src bool) {
 	log.logLevel = level
 	log.modTitle = title
-	log.fileLine = line
+	log.source = src
 }
 
 func (log *LogAgent) SetLevel(level int) {
@@ -129,7 +129,7 @@ func (log *LogAgent) formatLine(level int, text string) {
 	}
 	gid := GetGID()
 	var mesg string
-	if log.fileLine {
+	if log.source {
 		pc, file, line, ok := runtime.Caller(2)
 		if ok {
 			mesg = fmt.Sprintf("%s [%s %s %s] %s:%d %s() %s\n",
