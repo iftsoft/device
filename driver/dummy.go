@@ -22,6 +22,7 @@ func NewDummyDriver() *DummyDriver {
 }
 
 func (dd *DummyDriver) InitDevice(manager interface{}) error {
+	dd.log.Debug("DummyDriver run cmd:%s", "InitDevice")
 	device, okDev := manager.(common.DeviceCallback)
 	if okDev {
 		dd.device = device
@@ -31,15 +32,19 @@ func (dd *DummyDriver) InitDevice(manager interface{}) error {
 
 func (dd *DummyDriver) StartDevice(cfg *config.DeviceConfig) error {
 	dd.config = cfg
+	dd.log.Debug("DummyDriver run cmd:%s", "StartDevice")
 	return nil
 }
 func (dd *DummyDriver) DeviceTimer(unix int64) error {
+	dd.log.Debug("DummyDriver run cmd:%s", "DeviceTimer")
 	return nil
 }
 func (dd *DummyDriver) StopDevice() error {
+	dd.log.Debug("DummyDriver run cmd:%s", "StopDevice")
 	return nil
 }
 func (dd *DummyDriver) ClearDevice() error {
+	dd.log.Debug("DummyDriver run cmd:%s", "ClearDevice")
 	return nil
 }
 

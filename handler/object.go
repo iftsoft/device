@@ -66,13 +66,52 @@ func (op *ObjectProxy) OnClientStarted(name string) {
 
 func (op *ObjectProxy) runDeviceTask(name string) {
 	query := &common.SystemQuery{}
-	query.DevName = name
 	value := &common.DeviceQuery{}
 	time.Sleep(time.Millisecond)
 	op.log.Trace("ObjectProxy.runDeviceTask dev:%s", name)
-	_ = op.Inform(name, query)
-	_ = op.Config(name, query)
-	_ = op.Status(name, value)
+	err := op.Config(name, query)
+	if err != nil {
+		return
+	}
+
+	time.Sleep(time.Second)
+	err = op.Inform(name, query)
+	if err != nil {
+		return
+	}
+
+	time.Sleep(time.Second)
+	err = op.Start(name, query)
+	if err != nil {
+		return
+	}
+
+	time.Sleep(time.Second)
+	err = op.Config(name, query)
+	if err != nil {
+		return
+	}
+
+	time.Sleep(time.Second)
+	err = op.Reset(name, value)
+	if err != nil {
+		return
+	}
+
+	time.Sleep(time.Second)
+	err = op.Status(name, value)
+	if err != nil {
+		return
+	}
+
+	time.Sleep(time.Second)
+	err = op.Cancel(name, value)
+	if err != nil {
+		return
+	}
+
+	time.Sleep(time.Second)
+	err = op.Stop(name, query)
 }
 
 func (op *ObjectProxy) OnClientStopped(name string) {

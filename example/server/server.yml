@@ -2,7 +2,7 @@
 logger:
   logPath: ../logs
   logFile: server
-  source: true
+  source: false
 #  logLevel: 7
 #  consLevel: 4
 #  maxFiles: 2

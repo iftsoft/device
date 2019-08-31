@@ -9,17 +9,15 @@ import (
 
 type SystemClient struct {
 	scopeItem *duplex.ScopeItem
-	//	transport duplex.Transporter
-	commands common.SystemManager
-	log      *core.LogAgent
+	commands  common.SystemManager
+	log       *core.LogAgent
 }
 
 func NewSystemClient() *SystemClient {
 	sc := SystemClient{
 		scopeItem: duplex.NewScopeItem(duplex.ScopeSystem),
-		//		transport: nil,
-		commands: nil,
-		log:      nil,
+		commands:  nil,
+		log:       nil,
 	}
 	return &sc
 }
@@ -27,7 +25,6 @@ func NewSystemClient() *SystemClient {
 func (sc *SystemClient) Init( //trans duplex.Transporter,
 	command common.SystemManager, log *core.LogAgent) {
 	sc.log = log
-	//	sc.transport = trans
 	sc.commands = command
 	// init scope functions
 	if sc.scopeItem != nil {
@@ -77,20 +74,3 @@ func (sc *SystemClient) decodeQuery(name string, cmd string, dump []byte) (
 func (sc *SystemClient) GetScopeItem() *duplex.ScopeItem {
 	return sc.scopeItem
 }
-
-//// Implementation of common.SystemCallback
-//func (sc *SystemClient) SystemReply(name string, reply *common.SystemReply) error {
-//	dump, err := json.Marshal(reply)
-//	if err != nil {
-//		return err
-//	}
-//	if sc.log != nil {
-//		sc.log.Dump("SystemClient dev:%s send cmd:%s pack:%s",
-//			name, common.CmdSystemReply, string(dump))
-//	}
-//	pack := duplex.NewPacket(duplex.ScopeSystem, name, common.CmdSystemReply, dump)
-//	if sc.transport != nil {
-//		err = sc.transport.SendPacket(pack)
-//	}
-//	return err
-//}

@@ -14,6 +14,7 @@ type DuplexHandler struct {
 	DevName  string
 	Config   *DuplexServerConfig
 	scopeMap *ScopeSet
+	wg       *sync.WaitGroup
 }
 
 func GetDuplexHandler() *DuplexHandler {
@@ -55,15 +56,17 @@ func (dh *DuplexHandler) StartHandler(hs *HandleSet) {
 	dh.log.Info("DuplexHandler %s started for device %s", dh.HndName, dh.DevName)
 	defer dh.log.Info("DuplexHandler %s stopped for device %s", dh.HndName, dh.DevName)
 
+	dh.wg = &hs.wg
 	hs.wg.Add(1)
-	go dh.readingLoop(&hs.wg)
-	dh.waitingLoop(&hs.wg)
+	go dh.readingLoop(dh.wg)
+	dh.waitingLoop(dh.wg)
 }
 
 func (dh *DuplexHandler) StopHandle(wg *sync.WaitGroup) {
 	wg.Done()
 	dh.link.CloseConnect()
 	close(dh.done)
+	dh.wg = nil
 }
 
 // Implementation of DuplexManager interface
@@ -81,13 +84,13 @@ func (dh *DuplexHandler) OnNewPacket(pack *Packet) bool {
 
 func (dh *DuplexHandler) OnWriteError(err error) error {
 	dh.log.Debug("DuplexHandler OnWriteError: %s", err)
-	//	dh.Stop()
+	dh.StopHandle(dh.wg)
 	return err
 }
 
 func (dh *DuplexHandler) OnReadError(err error) error {
 	dh.log.Debug("DuplexHandler OnReadError: %s", err)
-	//	dh.Stop()
+	dh.StopHandle(dh.wg)
 	return err
 }
 

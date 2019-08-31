@@ -9,19 +9,21 @@ import (
 
 type DeviceClient struct {
 	scopeItem *duplex.ScopeItem
-	//	transport duplex.Transporter
-	commands common.DeviceManager
-	log      *core.LogAgent
+	commands  common.DeviceManager
+	log       *core.LogAgent
 }
 
 func NewDeviceClient() *DeviceClient {
 	dc := DeviceClient{
 		scopeItem: duplex.NewScopeItem(duplex.ScopeDevice),
-		//		transport: nil,
-		commands: nil,
-		log:      nil,
+		commands:  nil,
+		log:       nil,
 	}
 	return &dc
+}
+
+func (dc *DeviceClient) GetScopeItem() *duplex.ScopeItem {
+	return dc.scopeItem
 }
 
 func (dc *DeviceClient) Init(command common.DeviceManager, log *core.LogAgent) {
@@ -57,8 +59,4 @@ func (dc *DeviceClient) decodeQuery(name string, cmd string, dump []byte) (query
 	query = &common.DeviceQuery{}
 	err = json.Unmarshal(dump, query)
 	return query, err
-}
-
-func (dc *DeviceClient) GetScopeItem() *duplex.ScopeItem {
-	return dc.scopeItem
 }

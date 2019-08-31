@@ -39,10 +39,6 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 }
 
 func (sd *SystemDevice) InitDevice(worker interface{}) {
-	driver, okDrv := worker.(driver.DeviceDriver)
-	if okDrv {
-		sd.driver = driver
-	}
 	sd.system.Init(sd, sd.log)
 	sd.duplex.AddScopeItem(sd.system.GetScopeItem())
 
@@ -51,7 +47,11 @@ func (sd *SystemDevice) InitDevice(worker interface{}) {
 		sd.device.Init(device, sd.log)
 		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
 	}
-	driver.InitDevice(sd)
+	drv, okDrv := worker.(driver.DeviceDriver)
+	if okDrv {
+		_ = drv.InitDevice(sd)
+		sd.driver = drv
+	}
 }
 
 func (sd *SystemDevice) StartDevice() {
@@ -89,30 +89,82 @@ func (sd *SystemDevice) deviceLoop(wg *sync.WaitGroup) {
 func (sd *SystemDevice) onTimerTick(tm time.Time) {
 	sd.log.Trace("System device onTimerTick %s", tm.Format(time.StampMilli))
 	if sd.driver != nil && sd.state == common.SysStateRunning {
-		sd.driver.DeviceTimer(tm.Unix())
+		_ = sd.driver.DeviceTimer(tm.Unix())
 	}
 }
 
 // Implementation of common.SystemManager
 //
 func (sd *SystemDevice) Config(name string, query *common.SystemQuery) error {
-	return nil
+	reply := &common.SystemReply{}
+	reply.Command = common.CmdSystemConfig
+	reply.State = sd.state
+	return sd.SystemReply(name, reply)
 }
 
 func (sd *SystemDevice) Inform(name string, query *common.SystemQuery) error {
-	return nil
+	reply := &common.SystemReply{}
+	reply.Command = common.CmdSystemInform
+	reply.State = sd.state
+	return sd.SystemReply(name, reply)
 }
 
 func (sd *SystemDevice) Start(name string, query *common.SystemQuery) error {
-	return nil
+	sd.state = common.SysStateUndefined
+	var err error
+	if sd.driver != nil {
+		err = sd.driver.StartDevice(sd.config)
+		if err == nil {
+			sd.state = common.SysStateRunning
+		}
+	}
+	reply := &common.SystemReply{}
+	reply.Command = common.CmdSystemStart
+	reply.State = sd.state
+	if err != nil {
+		reply.Error = err.Error()
+	}
+	return sd.SystemReply(name, reply)
 }
 
 func (sd *SystemDevice) Stop(name string, query *common.SystemQuery) error {
-	return nil
+	sd.state = common.SysStateUndefined
+	var err error
+	if sd.driver != nil {
+		err = sd.driver.StopDevice()
+		if err == nil {
+			sd.state = common.SysStateStopped
+		}
+	}
+	reply := &common.SystemReply{}
+	reply.Command = common.CmdSystemStop
+	reply.State = sd.state
+	if err != nil {
+		reply.Error = err.Error()
+	}
+	return sd.SystemReply(name, reply)
 }
 
 func (sd *SystemDevice) Restart(name string, query *common.SystemQuery) error {
-	return nil
+	sd.state = common.SysStateUndefined
+	var err error
+	if sd.driver != nil {
+		err = sd.driver.StopDevice()
+		if err == nil {
+			sd.state = common.SysStateStopped
+		}
+		err = sd.driver.StartDevice(sd.config)
+		if err == nil {
+			sd.state = common.SysStateRunning
+		}
+	}
+	reply := &common.SystemReply{}
+	reply.Command = common.CmdSystemRestart
+	reply.State = sd.state
+	if err != nil {
+		reply.Error = err.Error()
+	}
+	return sd.SystemReply(name, reply)
 }
 
 // Implementation of common.SystemCallback

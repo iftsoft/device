@@ -1,5 +1,14 @@
 package common
 
+type EnumSystemState int16
+
+// System state codes
+const (
+	SysStateUndefined EnumSystemState = iota
+	SysStateRunning
+	SysStateStopped
+)
+
 const (
 	CmdSystemReply   = "SystemReply"
 	CmdSystemConfig  = "Config"
@@ -10,12 +19,13 @@ const (
 )
 
 type SystemQuery struct {
-	DevName string
+	//	DevName string
 }
 
 type SystemReply struct {
-	DevName string
+	//	DevName string
 	Command string
+	Error   string
 	State   EnumSystemState
 }
 
