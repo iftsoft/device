@@ -35,9 +35,17 @@ func (ss *SystemServer) Init(server duplex.ServerManager, callback common.System
 	ss.callback = callback
 	if ss.scopeItem != nil {
 		ss.scopeItem.SetScopeFunc(common.CmdSystemReply, func(name string, dump []byte) {
-			reply, err := ss.decodeReply(name, common.CmdSystemReply, dump)
+			reply := &common.SystemReply{}
+			err := ss.decodeReply(name, common.CmdSystemReply, dump, reply)
 			if err == nil && ss.callback != nil {
 				err = ss.callback.SystemReply(name, reply)
+			}
+		})
+		ss.scopeItem.SetScopeFunc(common.CmdSystemHealth, func(name string, dump []byte) {
+			reply := &common.SystemHealth{}
+			err := ss.decodeReply(name, common.CmdSystemHealth, dump, reply)
+			if err == nil && ss.callback != nil {
+				err = ss.callback.SystemHealth(name, reply)
 			}
 		})
 		if ss.server != nil {
@@ -46,13 +54,11 @@ func (ss *SystemServer) Init(server duplex.ServerManager, callback common.System
 	}
 }
 
-func (ss *SystemServer) decodeReply(name string, cmd string, dump []byte) (reply *common.SystemReply, err error) {
+func (ss *SystemServer) decodeReply(name string, cmd string, dump []byte, reply interface{}) error {
 	if ss.log != nil {
 		ss.log.Dump("SystemServer dev:%s get cmd:%s, pack:%s", name, cmd, string(dump))
 	}
-	reply = &common.SystemReply{}
-	err = json.Unmarshal(dump, reply)
-	return reply, err
+	return json.Unmarshal(dump, reply)
 }
 
 func (ss *SystemServer) SendSystemCommand(name string, cmd string, query interface{}) error {

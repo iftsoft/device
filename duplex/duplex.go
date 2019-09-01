@@ -115,7 +115,7 @@ func keepDoingSomething() (bool, error) {
 		// Got a tick, we should check on doSomething()
 		case <-tick:
 			ok, err := doSomething()
-			// Error from doSomething(), we should bail
+			// Message from doSomething(), we should bail
 			if err != nil {
 				return false, err
 			// doSomething() worked! let's finish up

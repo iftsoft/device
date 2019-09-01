@@ -43,8 +43,8 @@ func (dd *DummyDriver) StopDevice() error {
 	dd.log.Debug("DummyDriver run cmd:%s", "StopDevice")
 	return nil
 }
-func (dd *DummyDriver) ClearDevice() error {
-	dd.log.Debug("DummyDriver run cmd:%s", "ClearDevice")
+func (dd *DummyDriver) CheckDevice(metrics *common.SystemMetrics) error {
+	dd.log.Debug("DummyDriver run cmd:%s", "CheckDevice")
 	return nil
 }
 

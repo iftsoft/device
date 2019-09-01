@@ -15,7 +15,7 @@ func GetGID() string {
 	return string(b)
 }
 
-// Extract error text from Error object
+// Extract error text from Message object
 func GetErrorText(err error) string {
 	if err != nil {
 		return err.Error()

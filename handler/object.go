@@ -130,6 +130,14 @@ func (op *ObjectProxy) SystemReply(name string, reply *common.SystemReply) error
 	return nil
 }
 
+func (op *ObjectProxy) SystemHealth(name string, reply *common.SystemHealth) error {
+	object := op.GetObjectState(name)
+	if object != nil {
+		return object.SystemHealth(name, reply)
+	}
+	return nil
+}
+
 // Implementation of common.SystemManager
 func (op *ObjectProxy) Config(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemConfig, query)

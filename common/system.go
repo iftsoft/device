@@ -1,6 +1,14 @@
 package common
 
+type EnumSystemError int16
 type EnumSystemState int16
+
+// System state codes
+const (
+	SysErrSuccess EnumSystemError = iota
+	SysErrSystemFail
+	SysErrDeviceFail
+)
 
 // System state codes
 const (
@@ -11,6 +19,7 @@ const (
 
 const (
 	CmdSystemReply   = "SystemReply"
+	CmdSystemHealth  = "SystemHealth"
 	CmdSystemConfig  = "Config"
 	CmdSystemInform  = "Inform"
 	CmdSystemStart   = "Start"
@@ -25,12 +34,28 @@ type SystemQuery struct {
 type SystemReply struct {
 	//	DevName string
 	Command string
-	Error   string
+	Message string
+	Error   EnumSystemError
 	State   EnumSystemState
+}
+
+type SystemMetrics struct {
+	Uptime uint32
+	Counts map[string]uint32
+	Totals map[string]uint32
+	Topics map[string]string
+}
+
+type SystemHealth struct {
+	Moment  int64
+	Error   EnumSystemError
+	State   EnumSystemState
+	Metrics SystemMetrics
 }
 
 type SystemCallback interface {
 	SystemReply(name string, reply *SystemReply) error
+	SystemHealth(name string, reply *SystemHealth) error
 }
 
 type SystemManager interface {

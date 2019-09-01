@@ -122,7 +122,7 @@ func (sd *SystemDevice) Start(name string, query *common.SystemQuery) error {
 	reply.Command = common.CmdSystemStart
 	reply.State = sd.state
 	if err != nil {
-		reply.Error = err.Error()
+		reply.Message = err.Error()
 	}
 	return sd.SystemReply(name, reply)
 }
@@ -140,7 +140,7 @@ func (sd *SystemDevice) Stop(name string, query *common.SystemQuery) error {
 	reply.Command = common.CmdSystemStop
 	reply.State = sd.state
 	if err != nil {
-		reply.Error = err.Error()
+		reply.Message = err.Error()
 	}
 	return sd.SystemReply(name, reply)
 }
@@ -162,7 +162,7 @@ func (sd *SystemDevice) Restart(name string, query *common.SystemQuery) error {
 	reply.Command = common.CmdSystemRestart
 	reply.State = sd.state
 	if err != nil {
-		reply.Error = err.Error()
+		reply.Message = err.Error()
 	}
 	return sd.SystemReply(name, reply)
 }
@@ -170,6 +170,9 @@ func (sd *SystemDevice) Restart(name string, query *common.SystemQuery) error {
 // Implementation of common.SystemCallback
 func (sd *SystemDevice) SystemReply(name string, reply *common.SystemReply) error {
 	return sd.encodeReply(duplex.ScopeSystem, name, common.CmdSystemReply, reply)
+}
+func (sd *SystemDevice) SystemHealth(name string, reply *common.SystemHealth) error {
+	return sd.encodeReply(duplex.ScopeSystem, name, common.CmdSystemHealth, reply)
 }
 
 // Implementation of common.DeviceCallback

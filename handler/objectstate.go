@@ -26,8 +26,16 @@ func (os *ObjectState) Init(name string, log *core.LogAgent) {
 // Implementation of common.SystemCallback
 func (os *ObjectState) SystemReply(name string, reply *common.SystemReply) error {
 	if os.log != nil {
-		os.log.Debug("ObjectState dev:%s get cmd:%s",
+		os.log.Debug("ObjectState.SystemReply dev:%s get cmd:%s",
 			name, reply.Command)
+	}
+	return nil
+}
+
+func (os *ObjectState) SystemHealth(name string, reply *common.SystemHealth) error {
+	if os.log != nil {
+		os.log.Debug("ObjectState.SystemHealth dev:%s for moment:%d",
+			name, reply.Moment)
 	}
 	return nil
 }
