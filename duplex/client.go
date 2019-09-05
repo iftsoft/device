@@ -9,18 +9,18 @@ import (
 	"time"
 )
 
-type DuplexClientConfig struct {
+type ClientConfig struct {
 	Port    int32  `yaml:"port"`
 	DevName string `yaml:"devName"`
 }
 
 type DuplexClient struct {
 	Duplex
-	config   *DuplexClientConfig
+	config   *ClientConfig
 	scopeMap *ScopeSet
 }
 
-func NewDuplexClient(cfg *DuplexClientConfig) *DuplexClient {
+func NewDuplexClient(cfg *ClientConfig) *DuplexClient {
 	dc := &DuplexClient{
 		Duplex: Duplex{
 			link: LinkHolder{},

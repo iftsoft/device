@@ -36,12 +36,6 @@ func GetLogAgent(level int, title string) *LogAgent {
 	}
 	return &LogAgent{level, title, getLogSource()}
 }
-func GetLogAgentEx(level int, title string, src bool) *LogAgent {
-	if level >= LogLevelMax {
-		level = LogLevelEmpty
-	}
-	return &LogAgent{level, title, src}
-}
 
 type LogAgent struct {
 	logLevel int

@@ -10,8 +10,8 @@ import (
 )
 
 type SrvConfig struct {
-	Logger core.LogConfig            `yaml:"logger"`
-	Server duplex.DuplexServerConfig `yaml:"server"`
+	Logger core.LogConfig      `yaml:"logger"`
+	Server duplex.ServerConfig `yaml:"server"`
 }
 
 func GetDefaultSrvConfig() *SrvConfig {
@@ -24,7 +24,7 @@ func GetDefaultSrvConfig() *SrvConfig {
 			MaxFiles:  8,
 			MaxSize:   1024,
 		},
-		Server: duplex.DuplexServerConfig{
+		Server: duplex.ServerConfig{
 			Port: duplex.DuplexPort,
 		},
 	}

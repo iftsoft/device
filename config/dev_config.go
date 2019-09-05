@@ -22,7 +22,6 @@ const (
 )
 
 type CommonConfig struct {
-	DevName  string `yaml:"devName"`
 	Model    string `yaml:"model"`
 	Version  string `yaml:"version"`
 	Timeout  int32  `yaml:"timeout"`

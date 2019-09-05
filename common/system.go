@@ -40,9 +40,9 @@ type SystemReply struct {
 }
 
 type SystemMetrics struct {
-	Uptime uint32
+	Uptime int64
 	Counts map[string]uint32
-	Totals map[string]uint32
+	Totals map[string]float32
 	Topics map[string]string
 }
 
@@ -51,6 +51,20 @@ type SystemHealth struct {
 	Error   EnumSystemError
 	State   EnumSystemState
 	Metrics SystemMetrics
+}
+
+func NewSystemHealth() *SystemHealth {
+	sh := &SystemHealth{
+		Error: 0,
+		State: 0,
+		Metrics: SystemMetrics{
+			Uptime: 0,
+			Counts: make(map[string]uint32),
+			Totals: make(map[string]float32),
+			Topics: make(map[string]string),
+		},
+	}
+	return sh
 }
 
 type SystemCallback interface {

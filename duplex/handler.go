@@ -12,7 +12,7 @@ type DuplexHandler struct {
 	Duplex
 	HndName  string
 	DevName  string
-	Config   *DuplexServerConfig
+	Config   *ServerConfig
 	scopeMap *ScopeSet
 	wg       *sync.WaitGroup
 }
@@ -33,7 +33,7 @@ func GetDuplexHandler() *DuplexHandler {
 	return dh
 }
 
-func (dh *DuplexHandler) Init(conn *net.TCPConn, cfg *DuplexServerConfig, scopes *ScopeSet) {
+func (dh *DuplexHandler) Init(conn *net.TCPConn, cfg *ServerConfig, scopes *ScopeSet) {
 	_ = conn.SetNoDelay(true)
 	_ = conn.SetKeepAlive(true)
 	_ = conn.SetKeepAlivePeriod(5 * time.Second)

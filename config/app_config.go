@@ -10,9 +10,9 @@ import (
 )
 
 type AppConfig struct {
-	Logger core.LogConfig            `yaml:"logger"`
-	Client duplex.DuplexClientConfig `yaml:"client"`
-	Device DeviceConfig              `yaml:"device"`
+	Logger core.LogConfig      `yaml:"logger"`
+	Client duplex.ClientConfig `yaml:"client"`
+	Device DeviceConfig        `yaml:"device"`
 }
 
 func GetDefaultAppConfig() *AppConfig {
@@ -25,7 +25,7 @@ func GetDefaultAppConfig() *AppConfig {
 			MaxFiles:  8,
 			MaxSize:   1024,
 		},
-		Client: duplex.DuplexClientConfig{
+		Client: duplex.ClientConfig{
 			Port:    duplex.DuplexPort,
 			DevName: "TestDevice",
 		},

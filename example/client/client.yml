@@ -6,8 +6,9 @@ client:
 logger:
   logPath: ../logs
   logFile: client
-#  logLevel: 7
-#  consLevel: 4
+  source:  false
+  logLevel: 7
+  consLevel: 6
 #  maxFiles: 2
 #  maxSize: 256
 

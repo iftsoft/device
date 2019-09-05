@@ -22,8 +22,7 @@ func NewSystemClient() *SystemClient {
 	return &sc
 }
 
-func (sc *SystemClient) Init( //trans duplex.Transporter,
-	command common.SystemManager, log *core.LogAgent) {
+func (sc *SystemClient) Init(command common.SystemManager, log *core.LogAgent) {
 	sc.log = log
 	sc.commands = command
 	// init scope functions

@@ -19,9 +19,9 @@ func main() {
 	err, appCfg := config.GetAppConfig(appPar)
 	if err != nil {
 		fmt.Println(err)
-	} else {
-		core.StartFileLogger(&appCfg.Logger)
+		return
 	}
+	core.StartFileLogger(&appCfg.Logger)
 	log := core.GetLogAgent(core.LogLevelTrace, "APP")
 	log.Info("Start application")
 	log.Info("App params: %+v", appPar)
@@ -30,32 +30,19 @@ func main() {
 		log.Info("Config client: %+v", appCfg.Client)
 		log.Info("Config device: %+v", appCfg.Device)
 	}
-	//cln := duplex.NewDuplexClient(&appCfg.Client)
-	//
-	//logger := core.GetLogAgent(core.LogLevelTrace, "System")
-	//sysClnt := proxy.NewSystemClient()
-	//sysStub := proxy.NewSystemStub()
-	//sysClnt.Init(cln, sysStub, logger)
-	//sysStub.Init(sysClnt, logger)
-	//
-	//devClnt := proxy.NewDeviceClient()
-	//devStub := proxy.NewDeviceStub()
-	//devClnt.Init(cln, devStub, logger)
-	//devStub.Init(devClnt, logger)
-	//
-	//cln.AddScopeItem(sysClnt.GetScopeItem())
-	//cln.AddScopeItem(devClnt.GetScopeItem())
-	//cln.Start()
 
 	dev := system.NewSystemDevice(appCfg)
 	drv := driver.NewDummyDriver()
-	dev.InitDevice(drv)
-	dev.StartDevice()
+	err = dev.InitDevice(drv)
+	if err == nil {
+		dev.StartDevice()
 
-	WaitForSignal(log)
+		WaitForSignal(log)
 
-	dev.StopDevice()
-	//cln.Stop()
+		dev.StopDevice()
+	} else {
+		log.Error("Can't start device: %s", err)
+	}
 	log.Info("Stop application")
 	time.Sleep(time.Second)
 	core.StopFileLogger()

@@ -11,12 +11,12 @@ type ServerManager interface {
 	GetTransporter(name string) Transporter
 }
 
-type DuplexServerConfig struct {
+type ServerConfig struct {
 	Port int32 `yaml:"port"`
 }
 
 type DuplexServer struct {
-	config   *DuplexServerConfig
+	config   *ServerConfig
 	listener *net.TCPListener
 	scopeMap *ScopeSet
 	handles  *HandleSet
@@ -24,7 +24,7 @@ type DuplexServer struct {
 	exit     bool
 }
 
-func NewDuplexServer(config *DuplexServerConfig, log *core.LogAgent) *DuplexServer {
+func NewDuplexServer(config *ServerConfig, log *core.LogAgent) *DuplexServer {
 	ds := DuplexServer{
 		config:   config,
 		listener: nil,
