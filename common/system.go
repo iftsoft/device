@@ -28,11 +28,9 @@ const (
 )
 
 type SystemQuery struct {
-	//	DevName string
 }
 
 type SystemReply struct {
-	//	DevName string
 	Command string
 	Message string
 	Error   EnumSystemError

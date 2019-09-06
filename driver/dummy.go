@@ -24,8 +24,7 @@ func NewDummyDriver() *DummyDriver {
 // Implementation of DeviceDriver interface
 func (dd *DummyDriver) InitDevice(manager interface{}) error {
 	dd.log.Debug("DummyDriver run cmd:%s", "InitDevice")
-	device, okDev := manager.(common.DeviceCallback)
-	if okDev {
+	if device, ok := manager.(common.DeviceCallback); ok {
 		dd.device = device
 	}
 	return nil

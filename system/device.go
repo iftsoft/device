@@ -54,14 +54,12 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	sd.duplex.AddScopeItem(sd.system.GetScopeItem())
 
 	// Setup Device scope interface
-	device, okDev := worker.(common.DeviceManager)
-	if okDev {
+	if device, ok := worker.(common.DeviceManager); ok {
 		sd.device.Init(device, sd.log)
 		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
 	}
 	// Setup Device driver interface
-	drv, okDrv := worker.(driver.DeviceDriver)
-	if okDrv {
+	if drv, ok := worker.(driver.DeviceDriver); ok {
 		sd.driver = drv
 		return drv.InitDevice(sd)
 	}

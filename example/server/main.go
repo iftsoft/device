@@ -42,6 +42,7 @@ func main() {
 		srv.StopListen()
 	}
 	log.Info("Stop server application")
+	obj.Cleanup()
 	time.Sleep(time.Second)
 	core.StopFileLogger()
 	fmt.Println("-------END------------")

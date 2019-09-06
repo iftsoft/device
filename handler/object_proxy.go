@@ -5,15 +5,16 @@ import (
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
 	"github.com/iftsoft/device/proxy"
-	"time"
+	"sync"
 )
 
 type ObjectProxy struct {
 	server duplex.ServerManager
 	system *proxy.SystemServer
 	device *proxy.DeviceServer
-	objMap map[string]*ObjectState
+	objMap map[string]*ObjectHandler
 	log    *core.LogAgent
+	wg     sync.WaitGroup
 }
 
 func NewObjectProxy() *ObjectProxy {
@@ -21,7 +22,7 @@ func NewObjectProxy() *ObjectProxy {
 		server: nil,
 		system: proxy.NewSystemServer(),
 		device: proxy.NewDeviceServer(),
-		objMap: make(map[string]*ObjectState),
+		objMap: make(map[string]*ObjectHandler),
 		log:    core.GetLogAgent(core.LogLevelTrace, "Object"),
 	}
 	return &op
@@ -33,7 +34,15 @@ func (op *ObjectProxy) Init(server duplex.ServerManager) {
 	op.device.Init(op.server, op, op.log)
 }
 
-func (op *ObjectProxy) GetObjectState(name string) *ObjectState {
+func (op *ObjectProxy) Cleanup() {
+	for name, obj := range op.objMap {
+		obj.StopObject()
+		delete(op.objMap, name)
+	}
+	op.wg.Wait()
+}
+
+func (op *ObjectProxy) GetObjectState(name string) *ObjectHandler {
 	if name == "" {
 		return nil
 	}
@@ -41,8 +50,12 @@ func (op *ObjectProxy) GetObjectState(name string) *ObjectState {
 	if ok {
 		return obj
 	}
-	obj = NewObjectState()
-	obj.Init(name, op.log)
+	obj = NewObjectState(name, op.log)
+	err := obj.InitObject(op)
+	if err != nil {
+		return nil
+	}
+	obj.StartObject(&op.wg)
 	op.objMap[name] = obj
 	return obj
 }
@@ -50,6 +63,10 @@ func (op *ObjectProxy) GetObjectState(name string) *ObjectState {
 func (op *ObjectProxy) DelObjectState(name string) {
 	if name == "" {
 		return
+	}
+	obj, ok := op.objMap[name]
+	if ok {
+		obj.StopObject()
 	}
 	delete(op.objMap, name)
 }
@@ -61,57 +78,7 @@ func (op *ObjectProxy) OnClientStarted(name string) {
 	}
 	op.log.Trace("ObjectProxy.OnClientStarted dev:%s", name)
 	obj := op.GetObjectState(name)
-	go op.runDeviceTask(obj.DevName)
-}
-
-func (op *ObjectProxy) runDeviceTask(name string) {
-	query := &common.SystemQuery{}
-	value := &common.DeviceQuery{}
-	time.Sleep(time.Millisecond)
-	op.log.Trace("ObjectProxy.runDeviceTask dev:%s", name)
-	err := op.Config(name, query)
-	if err != nil {
-		return
-	}
-
-	time.Sleep(time.Second)
-	err = op.Inform(name, query)
-	if err != nil {
-		return
-	}
-
-	time.Sleep(time.Second)
-	err = op.Start(name, query)
-	if err != nil {
-		return
-	}
-
-	time.Sleep(time.Second)
-	err = op.Config(name, query)
-	if err != nil {
-		return
-	}
-
-	time.Sleep(time.Second)
-	err = op.Reset(name, value)
-	if err != nil {
-		return
-	}
-
-	time.Sleep(time.Second)
-	err = op.Status(name, value)
-	if err != nil {
-		return
-	}
-
-	time.Sleep(time.Second)
-	err = op.Cancel(name, value)
-	if err != nil {
-		return
-	}
-
-	time.Sleep(time.Second)
-	err = op.Stop(name, query)
+	obj.OnClientStarted(name)
 }
 
 func (op *ObjectProxy) OnClientStopped(name string) {
@@ -119,6 +86,8 @@ func (op *ObjectProxy) OnClientStopped(name string) {
 		return
 	}
 	op.log.Trace("ObjectProxy.OnClientStopped dev:%s", name)
+	obj := op.GetObjectState(name)
+	obj.OnClientStopped(name)
 }
 
 // Implementation of common.SystemCallback
