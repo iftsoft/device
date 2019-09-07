@@ -165,3 +165,11 @@ func (oh *ObjectHandler) ActionPrompt(name string, reply *common.DevicePrompt) e
 	}
 	return nil
 }
+
+func (oh *ObjectHandler) ReaderReturn(name string, reply *common.DeviceInform) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.ReaderReturn dev:%s, action:%d, info:%s",
+			name, reply.Action, reply.Inform)
+	}
+	return nil
+}

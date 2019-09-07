@@ -58,7 +58,7 @@ type ReaderCallback interface {
 }
 
 type ReaderManager interface {
-	ChipGetAT(name string, query *DeviceQuery) error
+	ChipGetATR(name string, query *DeviceQuery) error
 	ChipPowerOff(name string, query *DeviceQuery) error
 	ChipCommand(name string, query *ReaderChipQuery) error
 	ReadPIN(name string, query *ReaderPinQuery) error

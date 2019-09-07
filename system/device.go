@@ -223,6 +223,9 @@ func (sd *SystemDevice) StateChanged(name string, reply *common.DeviceState) err
 func (sd *SystemDevice) ActionPrompt(name string, reply *common.DevicePrompt) error {
 	return sd.encodeReply(duplex.ScopeDevice, common.CmdActionPrompt, reply)
 }
+func (sd *SystemDevice) ReaderReturn(name string, reply *common.DeviceInform) error {
+	return sd.encodeReply(duplex.ScopeDevice, common.CmdReaderReturn, reply)
+}
 
 func (sd *SystemDevice) encodeReply(scope duplex.PacketScope, cmd string, reply interface{}) error {
 	dump, err := json.Marshal(reply)

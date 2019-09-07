@@ -62,6 +62,13 @@ func (ss *DeviceServer) Init(server duplex.ServerManager, callback common.Device
 				err = ss.callback.ActionPrompt(name, reply)
 			}
 		})
+		ss.scopeItem.SetScopeFunc(common.CmdReaderReturn, func(name string, dump []byte) {
+			reply := &common.DeviceInform{}
+			err := ss.decodeReply(name, common.CmdReaderReturn, dump, reply)
+			if err == nil && ss.callback != nil {
+				err = ss.callback.ReaderReturn(name, reply)
+			}
+		})
 		if ss.server != nil {
 			ss.server.AddScopeItem(ss.scopeItem)
 		}

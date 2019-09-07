@@ -25,15 +25,17 @@ const (
 
 const (
 	ScopeSystem PacketScope = iota
-	ScopeConfig
 	ScopeDevice
+	ScopeReader
+	ScopeValidator
 	ScopeMax
 )
 
 var listScopeName = []string{
 	"System",
-	"Config",
 	"Device",
+	"Reader",
+	"Validator",
 	"",
 }
 

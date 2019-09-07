@@ -161,15 +161,27 @@ func (op *ObjectProxy) ActionPrompt(name string, reply *common.DevicePrompt) err
 	return nil
 }
 
+func (op *ObjectProxy) ReaderReturn(name string, reply *common.DeviceInform) error {
+	object := op.GetObjectState(name)
+	if object != nil {
+		return object.ReaderReturn(name, reply)
+	}
+	return nil
+}
+
 // Implementation of common.DeviceManager
 func (op *ObjectProxy) Cancel(name string, query *common.DeviceQuery) error {
 	return op.device.SendDeviceCommand(name, common.CmdDeviceCancel, query)
 }
-
 func (op *ObjectProxy) Reset(name string, query *common.DeviceQuery) error {
 	return op.device.SendDeviceCommand(name, common.CmdDeviceReset, query)
 }
-
 func (op *ObjectProxy) Status(name string, query *common.DeviceQuery) error {
 	return op.device.SendDeviceCommand(name, common.CmdDeviceStatus, query)
+}
+func (op *ObjectProxy) RunAction(name string, query *common.DeviceQuery) error {
+	return op.device.SendDeviceCommand(name, common.CmdRunAction, query)
+}
+func (op *ObjectProxy) StopAction(name string, query *common.DeviceQuery) error {
+	return op.device.SendDeviceCommand(name, common.CmdStopAction, query)
 }

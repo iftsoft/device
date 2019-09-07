@@ -53,13 +53,17 @@ func (dd *DummyDriver) CheckDevice(metrics *common.SystemMetrics) error {
 func (dd *DummyDriver) Cancel(name string, query *common.DeviceQuery) error {
 	return dd.dummyCommandReply(name, common.CmdDeviceCancel, query)
 }
-
 func (dd *DummyDriver) Reset(name string, query *common.DeviceQuery) error {
 	return dd.dummyCommandReply(name, common.CmdDeviceReset, query)
 }
-
 func (dd *DummyDriver) Status(name string, query *common.DeviceQuery) error {
 	return dd.dummyCommandReply(name, common.CmdDeviceStatus, query)
+}
+func (dd *DummyDriver) RunAction(name string, query *common.DeviceQuery) error {
+	return dd.dummyCommandReply(name, common.CmdRunAction, query)
+}
+func (dd *DummyDriver) StopAction(name string, query *common.DeviceQuery) error {
+	return dd.dummyCommandReply(name, common.CmdStopAction, query)
 }
 
 func (dd *DummyDriver) dummyCommandReply(name string, cmd string, query interface{}) error {

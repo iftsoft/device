@@ -5,7 +5,7 @@ const (
 	CmdExecuteError = "ExecuteError"
 	CmdStateChanged = "StateChanged"
 	CmdActionPrompt = "ActionPrompt"
-	CmdActionInform = "ActionInform"
+	CmdReaderReturn = "ReaderReturn"
 	CmdDeviceCancel = "Cancel"
 	CmdDeviceReset  = "Reset"
 	CmdDeviceStatus = "Status"
@@ -48,7 +48,7 @@ type DeviceCallback interface {
 	ExecuteError(name string, value *DeviceError) error
 	StateChanged(name string, value *DeviceState) error
 	ActionPrompt(name string, value *DevicePrompt) error
-	ActionReturn(name string, value *DeviceInform) error
+	ReaderReturn(name string, value *DeviceInform) error
 }
 
 type DeviceManager interface {
