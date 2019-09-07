@@ -7,12 +7,15 @@ import (
 	"time"
 )
 
+type TestFunc func(*ObjectHandler) error
+
 type ObjectHandler struct {
 	devName string
 	system  common.SystemManager
 	device  common.DeviceManager
 	log     *core.LogAgent
 	done    chan struct{}
+	tests   []TestFunc
 }
 
 func NewObjectState(name string, log *core.LogAgent) *ObjectHandler {
@@ -22,6 +25,7 @@ func NewObjectState(name string, log *core.LogAgent) *ObjectHandler {
 		device:  nil,
 		log:     log,
 		done:    make(chan struct{}),
+		tests:   make([]TestFunc, 0),
 	}
 	return &oh
 }
@@ -68,66 +72,48 @@ func (oh *ObjectHandler) objectHandlerLoop(wg *sync.WaitGroup) {
 
 func (oh *ObjectHandler) onTimerTick(tm time.Time) {
 	oh.log.Trace("Object handler %s onTimerTick %s", oh.devName, tm.Format(time.StampMilli))
+	if len(oh.tests) > 0 {
+		tstFunc := oh.tests[0]
+		oh.tests = oh.tests[1:]
+		if tstFunc != nil {
+			_ = tstFunc(oh)
+		}
+	}
 }
 
 // Implementation of duplex.ClientManager
 func (oh *ObjectHandler) OnClientStarted(name string) {
 	oh.log.Debug("ObjectHandler.OnClientStarted dev:%s", name)
+	oh.fillTestList()
 }
 
 func (oh *ObjectHandler) OnClientStopped(name string) {
 	oh.log.Debug("ObjectHandler.OnClientStopped dev:%s", name)
+	oh.tests = nil
 }
 
-func (oh *ObjectHandler) runDeviceTask() {
-	/*	query := &common.SystemQuery{}
-		value := &common.DeviceQuery{}
-		time.Sleep(time.Millisecond)
-		oh.log.Trace("ObjectProxy.runDeviceTask dev:%s", name)
-		err := op.Config(name, query)
-		if err != nil {
-			return
-		}
-
-		time.Sleep(time.Second)
-		err = op.Inform(name, query)
-		if err != nil {
-			return
-		}
-
-		time.Sleep(time.Second)
-		err = op.Start(name, query)
-		if err != nil {
-			return
-		}
-
-		time.Sleep(time.Second)
-		err = op.Config(name, query)
-		if err != nil {
-			return
-		}
-
-		time.Sleep(time.Second)
-		err = op.Reset(name, value)
-		if err != nil {
-			return
-		}
-
-		time.Sleep(time.Second)
-		err = op.Status(name, value)
-		if err != nil {
-			return
-		}
-
-		time.Sleep(time.Second)
-		err = op.Cancel(name, value)
-		if err != nil {
-			return
-		}
-
-		time.Sleep(time.Second)
-		err = op.Stop(name, query)
-	*/
+func (oh *ObjectHandler) fillTestList() {
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.system.Config(hnd.devName, &common.SystemQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.system.Start(hnd.devName, &common.SystemQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.system.Inform(hnd.devName, &common.SystemQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.device.Reset(hnd.devName, &common.DeviceQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.device.Status(hnd.devName, &common.DeviceQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.device.Cancel(hnd.devName, &common.DeviceQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.system.Stop(hnd.devName, &common.SystemQuery{})
+	})
 }
 
 // Implementation of common.SystemCallback
