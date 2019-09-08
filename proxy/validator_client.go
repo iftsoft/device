@@ -66,18 +66,18 @@ func (vc *ValidatorClient) Init(command common.ValidatorManager, log *core.LogAg
 				err = vc.commands.StopValidate(name, query)
 			}
 		})
-		vc.scopeItem.SetScopeFunc(common.CmdCheckStore, func(name string, dump []byte) {
+		vc.scopeItem.SetScopeFunc(common.CmdCheckValidator, func(name string, dump []byte) {
 			query := &common.ValidatorQuery{}
-			err := vc.decodeQuery(name, common.CmdCheckStore, dump, query)
+			err := vc.decodeQuery(name, common.CmdCheckValidator, dump, query)
 			if err == nil && vc.commands != nil {
-				err = vc.commands.CheckStore(name, query)
+				err = vc.commands.CheckValidator(name, query)
 			}
 		})
-		vc.scopeItem.SetScopeFunc(common.CmdClearStore, func(name string, dump []byte) {
+		vc.scopeItem.SetScopeFunc(common.CmdClearValidator, func(name string, dump []byte) {
 			query := &common.ValidatorQuery{}
-			err := vc.decodeQuery(name, common.CmdClearStore, dump, query)
+			err := vc.decodeQuery(name, common.CmdClearValidator, dump, query)
 			if err == nil && vc.commands != nil {
-				err = vc.commands.ClearStore(name, query)
+				err = vc.commands.ClearValidator(name, query)
 			}
 		})
 	}

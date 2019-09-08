@@ -76,7 +76,7 @@ func (vs *ValidatorServer) decodeReply(name string, cmd string, dump []byte, rep
 	return err
 }
 
-func (vs *ValidatorServer) SendReaderCommand(name string, cmd string, query interface{}) error {
+func (vs *ValidatorServer) SendValidatorCommand(name string, cmd string, query interface{}) error {
 	if vs.server == nil {
 		return errors.New("ServerManager is not set for ValidatorServer")
 	}

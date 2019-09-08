@@ -10,8 +10,8 @@ const (
 	CmdNoteAccept     = "NoteAccept"
 	CmdNoteReject     = "NoteReject"
 	CmdStopValidate   = "StopValidate"
-	CmdCheckStore     = "CheckStore"
-	CmdClearStore     = "ClearStore"
+	CmdCheckValidator = "CheckValidator"
+	CmdClearValidator = "ClearValidator"
 )
 
 type ValidatorBill struct {
@@ -50,6 +50,6 @@ type ValidatorManager interface {
 	NoteAccept(name string, query *ValidatorQuery) error
 	NoteReject(name string, query *ValidatorQuery) error
 	StopValidate(name string, query *ValidatorQuery) error
-	CheckStore(name string, query *ValidatorQuery) error
-	ClearStore(name string, query *ValidatorQuery) error
+	CheckValidator(name string, query *ValidatorQuery) error
+	ClearValidator(name string, query *ValidatorQuery) error
 }

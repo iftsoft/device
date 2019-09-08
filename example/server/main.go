@@ -33,7 +33,7 @@ func main() {
 	srv := duplex.NewDuplexServer(&appCfg.Server, log)
 	obj := handler.NewObjectProxy()
 	obj.Init(srv)
-	srv.SetClientManager(obj)
+	srv.SetClientManager(obj.GetClientManager())
 	err = srv.StartListen()
 	if err == nil {
 

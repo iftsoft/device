@@ -5,168 +5,63 @@ import (
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
 	"github.com/iftsoft/device/proxy"
-	"sync"
 )
 
 type ObjectProxy struct {
-	server duplex.ServerManager
-	system *proxy.SystemServer
-	device *proxy.DeviceServer
-	objMap map[string]*ObjectHandler
-	log    *core.LogAgent
-	wg     sync.WaitGroup
+	server    duplex.ServerManager
+	system    *proxy.SystemServer
+	device    *proxy.DeviceServer
+	reader    *proxy.ReaderServer
+	validator *proxy.ValidatorServer
+	router    *ObjectRouter
+	log       *core.LogAgent
 }
 
 func NewObjectProxy() *ObjectProxy {
 	op := ObjectProxy{
-		server: nil,
-		system: proxy.NewSystemServer(),
-		device: proxy.NewDeviceServer(),
-		objMap: make(map[string]*ObjectHandler),
-		log:    core.GetLogAgent(core.LogLevelTrace, "Object"),
+		server:    nil,
+		system:    proxy.NewSystemServer(),
+		device:    proxy.NewDeviceServer(),
+		reader:    proxy.NewReaderServer(),
+		validator: proxy.NewValidatorServer(),
+		router:    NewObjectRouter(),
+		log:       core.GetLogAgent(core.LogLevelTrace, "Object"),
 	}
 	return &op
 }
 
 func (op *ObjectProxy) Init(server duplex.ServerManager) {
 	op.server = server
-	op.system.Init(op.server, op, op.log)
-	op.device.Init(op.server, op, op.log)
+	op.system.Init(server, op.router, op.log)
+	op.device.Init(server, op.router, op.log)
+	op.reader.Init(server, op.router, op.log)
+	op.validator.Init(server, op.router, op.log)
+	op.router.InitRouter(op.log, op)
 }
 
 func (op *ObjectProxy) Cleanup() {
-	for name, obj := range op.objMap {
-		obj.StopObject()
-		delete(op.objMap, name)
-	}
-	op.wg.Wait()
+	op.router.Cleanup()
 }
 
-func (op *ObjectProxy) GetObjectState(name string) *ObjectHandler {
-	if name == "" {
-		return nil
-	}
-	obj, ok := op.objMap[name]
-	if ok {
-		return obj
-	}
-	obj = NewObjectState(name, op.log)
-	err := obj.InitObject(op)
-	if err != nil {
-		return nil
-	}
-	obj.StartObject(&op.wg)
-	op.objMap[name] = obj
-	return obj
-}
-
-func (op *ObjectProxy) DelObjectState(name string) {
-	if name == "" {
-		return
-	}
-	obj, ok := op.objMap[name]
-	if ok {
-		obj.StopObject()
-	}
-	delete(op.objMap, name)
-}
-
-// Implementation of duplex.ClientManager
-func (op *ObjectProxy) OnClientStarted(name string) {
-	if name == "" {
-		return
-	}
-	op.log.Trace("ObjectProxy.OnClientStarted dev:%s", name)
-	obj := op.GetObjectState(name)
-	obj.OnClientStarted(name)
-}
-
-func (op *ObjectProxy) OnClientStopped(name string) {
-	if name == "" {
-		return
-	}
-	op.log.Trace("ObjectProxy.OnClientStopped dev:%s", name)
-	obj := op.GetObjectState(name)
-	obj.OnClientStopped(name)
-}
-
-// Implementation of common.SystemCallback
-func (op *ObjectProxy) SystemReply(name string, reply *common.SystemReply) error {
-	object := op.GetObjectState(name)
-	if object != nil {
-		return object.SystemReply(name, reply)
-	}
-	return nil
-}
-
-func (op *ObjectProxy) SystemHealth(name string, reply *common.SystemHealth) error {
-	object := op.GetObjectState(name)
-	if object != nil {
-		return object.SystemHealth(name, reply)
-	}
-	return nil
+func (op *ObjectProxy) GetClientManager() duplex.ClientManager {
+	return op.router
 }
 
 // Implementation of common.SystemManager
 func (op *ObjectProxy) Config(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemConfig, query)
 }
-
 func (op *ObjectProxy) Inform(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemInform, query)
 }
-
 func (op *ObjectProxy) Start(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemStart, query)
 }
-
 func (op *ObjectProxy) Stop(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemStop, query)
 }
-
 func (op *ObjectProxy) Restart(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemRestart, query)
-}
-
-// Implementation of common.DeviceCallback
-func (op *ObjectProxy) DeviceReply(name string, reply *common.DeviceReply) error {
-	object := op.GetObjectState(name)
-	if object != nil {
-		return object.DeviceReply(name, reply)
-	}
-	return nil
-}
-
-func (op *ObjectProxy) ExecuteError(name string, reply *common.DeviceError) error {
-	object := op.GetObjectState(name)
-	if object != nil {
-		return object.ExecuteError(name, reply)
-	}
-	return nil
-}
-
-func (op *ObjectProxy) StateChanged(name string, reply *common.DeviceState) error {
-	object := op.GetObjectState(name)
-	if object != nil {
-		return object.StateChanged(name, reply)
-	}
-	return nil
-}
-
-func (op *ObjectProxy) ActionPrompt(name string, reply *common.DevicePrompt) error {
-	object := op.GetObjectState(name)
-	if object != nil {
-		return object.ActionPrompt(name, reply)
-	}
-	return nil
-}
-
-func (op *ObjectProxy) ReaderReturn(name string, reply *common.DeviceInform) error {
-	object := op.GetObjectState(name)
-	if object != nil {
-		return object.ReaderReturn(name, reply)
-	}
-	return nil
 }
 
 // Implementation of common.DeviceManager
@@ -184,4 +79,53 @@ func (op *ObjectProxy) RunAction(name string, query *common.DeviceQuery) error {
 }
 func (op *ObjectProxy) StopAction(name string, query *common.DeviceQuery) error {
 	return op.device.SendDeviceCommand(name, common.CmdStopAction, query)
+}
+
+// Implementation of common.ReaderManager
+func (op *ObjectProxy) ChipGetATR(name string, query *common.DeviceQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdChipGetATR, query)
+}
+func (op *ObjectProxy) ChipPowerOff(name string, query *common.DeviceQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdChipPowerOff, query)
+}
+func (op *ObjectProxy) ChipCommand(name string, query *common.ReaderChipQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdChipCommand, query)
+}
+func (op *ObjectProxy) ReadPIN(name string, query *common.ReaderPinQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdReadPIN, query)
+}
+func (op *ObjectProxy) LoadMasterKey(name string, query *common.ReaderPinQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdLoadMasterKey, query)
+}
+func (op *ObjectProxy) LoadWorkKey(name string, query *common.ReaderPinQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdLoadWorkKey, query)
+}
+func (op *ObjectProxy) TestMasterKey(name string, query *common.ReaderPinQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdTestMasterKey, query)
+}
+func (op *ObjectProxy) TestWorkKey(name string, query *common.ReaderPinQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdTestWorkKey, query)
+}
+
+// Implementation of common.ValidatorManager
+func (op *ObjectProxy) InitValidator(name string, query *common.ValidatorQuery) error {
+	return op.validator.SendValidatorCommand(name, common.CmdInitValidator, query)
+}
+func (op *ObjectProxy) DoValidate(name string, query *common.ValidatorQuery) error {
+	return op.validator.SendValidatorCommand(name, common.CmdDoValidate, query)
+}
+func (op *ObjectProxy) NoteAccept(name string, query *common.ValidatorQuery) error {
+	return op.validator.SendValidatorCommand(name, common.CmdNoteAccept, query)
+}
+func (op *ObjectProxy) NoteReject(name string, query *common.ValidatorQuery) error {
+	return op.validator.SendValidatorCommand(name, common.CmdNoteReject, query)
+}
+func (op *ObjectProxy) StopValidate(name string, query *common.ValidatorQuery) error {
+	return op.validator.SendValidatorCommand(name, common.CmdStopValidate, query)
+}
+func (op *ObjectProxy) CheckValidator(name string, query *common.ValidatorQuery) error {
+	return op.validator.SendValidatorCommand(name, common.CmdCheckValidator, query)
+}
+func (op *ObjectProxy) ClearValidator(name string, query *common.ValidatorQuery) error {
+	return op.validator.SendValidatorCommand(name, common.CmdClearValidator, query)
 }

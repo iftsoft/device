@@ -14,17 +14,19 @@ import (
 )
 
 type SystemDevice struct {
-	devName string
-	state   common.EnumSystemState
-	driver  driver.DeviceDriver
-	duplex  *duplex.DuplexClient
-	config  *config.DeviceConfig
-	system  *proxy.SystemClient
-	device  *proxy.DeviceClient
-	log     *core.LogAgent
-	done    chan struct{}
-	wg      sync.WaitGroup
-	checkTm time.Time
+	devName   string
+	state     common.EnumSystemState
+	driver    driver.DeviceDriver
+	duplex    *duplex.DuplexClient
+	config    *config.DeviceConfig
+	system    *proxy.SystemClient
+	device    *proxy.DeviceClient
+	reader    *proxy.ReaderClient
+	validator *proxy.ValidatorClient
+	log       *core.LogAgent
+	done      chan struct{}
+	wg        sync.WaitGroup
+	checkTm   time.Time
 }
 
 func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
@@ -32,15 +34,17 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 		return nil
 	}
 	sd := SystemDevice{
-		devName: cfg.Client.DevName,
-		state:   common.SysStateUndefined,
-		driver:  nil,
-		duplex:  duplex.NewDuplexClient(&cfg.Client),
-		config:  &cfg.Device,
-		system:  proxy.NewSystemClient(),
-		device:  proxy.NewDeviceClient(),
-		log:     core.GetLogAgent(core.LogLevelTrace, "Device"),
-		done:    make(chan struct{}),
+		devName:   cfg.Client.DevName,
+		state:     common.SysStateUndefined,
+		driver:    nil,
+		duplex:    duplex.NewDuplexClient(&cfg.Client),
+		config:    &cfg.Device,
+		system:    proxy.NewSystemClient(),
+		device:    proxy.NewDeviceClient(),
+		reader:    proxy.NewReaderClient(),
+		validator: proxy.NewValidatorClient(),
+		log:       core.GetLogAgent(core.LogLevelTrace, "Device"),
+		done:      make(chan struct{}),
 	}
 	return &sd
 }
@@ -56,6 +60,16 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	// Setup Device scope interface
 	if device, ok := worker.(common.DeviceManager); ok {
 		sd.device.Init(device, sd.log)
+		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
+	}
+	// Setup Reader scope interface
+	if reader, ok := worker.(common.ReaderManager); ok {
+		sd.reader.Init(reader, sd.log)
+		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
+	}
+	// Setup Validator scope interface
+	if valid, ok := worker.(common.ValidatorManager); ok {
+		sd.validator.Init(valid, sd.log)
 		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
 	}
 	// Setup Device driver interface
@@ -225,6 +239,31 @@ func (sd *SystemDevice) ActionPrompt(name string, reply *common.DevicePrompt) er
 }
 func (sd *SystemDevice) ReaderReturn(name string, reply *common.DeviceInform) error {
 	return sd.encodeReply(duplex.ScopeDevice, common.CmdReaderReturn, reply)
+}
+
+// Implementation of common.ReaderCallback
+func (sd *SystemDevice) CardDescription(name string, reply *common.ReaderCardInfo) error {
+	return sd.encodeReply(duplex.ScopeReader, common.CmdCardDescription, reply)
+}
+func (sd *SystemDevice) ChipResponse(name string, reply *common.ReaderChipReply) error {
+	return sd.encodeReply(duplex.ScopeReader, common.CmdChipResponse, reply)
+}
+func (sd *SystemDevice) PinPadReply(name string, reply *common.ReaderPinReply) error {
+	return sd.encodeReply(duplex.ScopeReader, common.CmdPinPadReply, reply)
+}
+
+// Implementation of common.ValidatorCallback
+func (sd *SystemDevice) NoteAccepted(name string, reply *common.ValidatorAccept) error {
+	return sd.encodeReply(duplex.ScopeValidator, common.CmdNoteAccepted, reply)
+}
+func (sd *SystemDevice) CashIsStored(name string, reply *common.ValidatorAccept) error {
+	return sd.encodeReply(duplex.ScopeValidator, common.CmdCashIsStored, reply)
+}
+func (sd *SystemDevice) CashReturned(name string, reply *common.ValidatorAccept) error {
+	return sd.encodeReply(duplex.ScopeValidator, common.CmdCashReturned, reply)
+}
+func (sd *SystemDevice) ValidatorStore(name string, reply *common.ValidatorStore) error {
+	return sd.encodeReply(duplex.ScopeValidator, common.CmdValidatorStore, reply)
 }
 
 func (sd *SystemDevice) encodeReply(scope duplex.PacketScope, cmd string, reply interface{}) error {

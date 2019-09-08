@@ -10,22 +10,26 @@ import (
 type TestFunc func(*ObjectHandler) error
 
 type ObjectHandler struct {
-	devName string
-	system  common.SystemManager
-	device  common.DeviceManager
-	log     *core.LogAgent
-	done    chan struct{}
-	tests   []TestFunc
+	devName   string
+	system    common.SystemManager
+	device    common.DeviceManager
+	reader    common.ReaderManager
+	validator common.ValidatorManager
+	log       *core.LogAgent
+	done      chan struct{}
+	tests     []TestFunc
 }
 
-func NewObjectState(name string, log *core.LogAgent) *ObjectHandler {
+func NewObjectHandler(name string, log *core.LogAgent) *ObjectHandler {
 	oh := ObjectHandler{
-		devName: name,
-		system:  nil,
-		device:  nil,
-		log:     log,
-		done:    make(chan struct{}),
-		tests:   make([]TestFunc, 0),
+		devName:   name,
+		system:    nil,
+		device:    nil,
+		reader:    nil,
+		validator: nil,
+		log:       log,
+		done:      make(chan struct{}),
+		tests:     make([]TestFunc, 0),
 	}
 	return &oh
 }
@@ -37,6 +41,12 @@ func (oh *ObjectHandler) InitObject(proxy interface{}) error {
 	}
 	if device, ok := proxy.(common.DeviceManager); ok {
 		oh.device = device
+	}
+	if reader, ok := proxy.(common.ReaderManager); ok {
+		oh.reader = reader
+	}
+	if valid, ok := proxy.(common.ValidatorManager); ok {
+		oh.validator = valid
 	}
 	return nil
 }
@@ -141,7 +151,6 @@ func (oh *ObjectHandler) DeviceReply(name string, reply *common.DeviceReply) err
 	}
 	return nil
 }
-
 func (oh *ObjectHandler) ExecuteError(name string, reply *common.DeviceError) error {
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.ExecuteError dev:%s, action:%d, error:%d - %s",
@@ -149,7 +158,6 @@ func (oh *ObjectHandler) ExecuteError(name string, reply *common.DeviceError) er
 	}
 	return nil
 }
-
 func (oh *ObjectHandler) StateChanged(name string, reply *common.DeviceState) error {
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.StateChanged dev:%s, old state:%d, new state:%d",
@@ -157,7 +165,6 @@ func (oh *ObjectHandler) StateChanged(name string, reply *common.DeviceState) er
 	}
 	return nil
 }
-
 func (oh *ObjectHandler) ActionPrompt(name string, reply *common.DevicePrompt) error {
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.ActionPrompt dev:%s, action:%d, prompt:%d",
@@ -165,11 +172,63 @@ func (oh *ObjectHandler) ActionPrompt(name string, reply *common.DevicePrompt) e
 	}
 	return nil
 }
-
 func (oh *ObjectHandler) ReaderReturn(name string, reply *common.DeviceInform) error {
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.ReaderReturn dev:%s, action:%d, info:%s",
 			name, reply.Action, reply.Inform)
+	}
+	return nil
+}
+
+// Implementation of common.ReaderCallback
+func (oh *ObjectHandler) CardDescription(name string, reply *common.ReaderCardInfo) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.CardDescription dev:%s, CardPAN:%s, ExpDate:%s",
+			name, reply.CardPan, reply.ExpDate)
+	}
+	return nil
+}
+func (oh *ObjectHandler) ChipResponse(name string, reply *common.ReaderChipReply) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.ChipResponse dev:%s, Protocol:%d",
+			name, reply.Protocol)
+	}
+	return nil
+}
+func (oh *ObjectHandler) PinPadReply(name string, reply *common.ReaderPinReply) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.PinPadReply dev:%s, PinLen:%d",
+			name, reply.PinLength)
+	}
+	return nil
+}
+
+// Implementation of common.ValidatorCallback
+func (oh *ObjectHandler) NoteAccepted(name string, reply *common.ValidatorAccept) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.NoteAccepted dev:%s, Curr:%d, Amount:%f",
+			name, reply.Currency, reply.Amount)
+	}
+	return nil
+}
+func (oh *ObjectHandler) CashIsStored(name string, reply *common.ValidatorAccept) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.CashIsStored dev:%s, Curr:%d, Amount:%f",
+			name, reply.Currency, reply.Amount)
+	}
+	return nil
+}
+func (oh *ObjectHandler) CashReturned(name string, reply *common.ValidatorAccept) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.CashReturned dev:%s, Curr:%d, Amount:%f",
+			name, reply.Currency, reply.Amount)
+	}
+	return nil
+}
+func (oh *ObjectHandler) ValidatorStore(name string, reply *common.ValidatorStore) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.ValidatorStore dev:%s, Size:%d",
+			name, len(reply.Note))
 	}
 	return nil
 }
