@@ -92,6 +92,18 @@ func (dd *DummyDriver) dummyDeviceReply(name string, cmd string, query interface
 
 // Implementation of common.ReaderManager
 //
+func (dd *DummyDriver) EnterCard(name string, query *common.DeviceQuery) error {
+	return dd.dummyDeviceReply(name, common.CmdEnterCard, query)
+}
+func (dd *DummyDriver) EjectCard(name string, query *common.DeviceQuery) error {
+	return dd.dummyDeviceReply(name, common.CmdEjectCard, query)
+}
+func (dd *DummyDriver) CaptureCard(name string, query *common.DeviceQuery) error {
+	return dd.dummyDeviceReply(name, common.CmdCaptureCard, query)
+}
+func (dd *DummyDriver) ReadCard(name string, query *common.DeviceQuery) error {
+	return dd.dummyDeviceReply(name, common.CmdReadCard, query)
+}
 func (dd *DummyDriver) ChipGetATR(name string, query *common.DeviceQuery) error {
 	return dd.dummyDeviceReply(name, common.CmdChipGetATR, query)
 }

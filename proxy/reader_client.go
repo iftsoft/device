@@ -31,6 +31,34 @@ func (rc *ReaderClient) Init(command common.ReaderManager, log *core.LogAgent) {
 	rc.commands = command
 	// init scope functions
 	if rc.scopeItem != nil {
+		rc.scopeItem.SetScopeFunc(common.CmdEnterCard, func(name string, dump []byte) {
+			query := &common.DeviceQuery{}
+			err := rc.decodeQuery(name, common.CmdEnterCard, dump, query)
+			if err == nil && rc.commands != nil {
+				err = rc.commands.EnterCard(name, query)
+			}
+		})
+		rc.scopeItem.SetScopeFunc(common.CmdEjectCard, func(name string, dump []byte) {
+			query := &common.DeviceQuery{}
+			err := rc.decodeQuery(name, common.CmdEjectCard, dump, query)
+			if err == nil && rc.commands != nil {
+				err = rc.commands.EjectCard(name, query)
+			}
+		})
+		rc.scopeItem.SetScopeFunc(common.CmdCaptureCard, func(name string, dump []byte) {
+			query := &common.DeviceQuery{}
+			err := rc.decodeQuery(name, common.CmdCaptureCard, dump, query)
+			if err == nil && rc.commands != nil {
+				err = rc.commands.CaptureCard(name, query)
+			}
+		})
+		rc.scopeItem.SetScopeFunc(common.CmdReadCard, func(name string, dump []byte) {
+			query := &common.DeviceQuery{}
+			err := rc.decodeQuery(name, common.CmdReadCard, dump, query)
+			if err == nil && rc.commands != nil {
+				err = rc.commands.ReadCard(name, query)
+			}
+		})
 		rc.scopeItem.SetScopeFunc(common.CmdChipGetATR, func(name string, dump []byte) {
 			query := &common.DeviceQuery{}
 			err := rc.decodeQuery(name, common.CmdChipGetATR, dump, query)

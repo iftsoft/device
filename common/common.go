@@ -18,8 +18,8 @@ type DeviceQuery struct {
 }
 
 type DeviceReply struct {
-	Command  string
-	DevType  EnumDevType
+	Command string
+	//	DevType  EnumDevType
 	DevState EnumDevState
 	ErrCode  EnumDevError
 	ErrText  string

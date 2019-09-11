@@ -181,6 +181,13 @@ func (oh *ObjectHandler) ReaderReturn(name string, reply *common.DeviceInform) e
 }
 
 // Implementation of common.ReaderCallback
+func (oh *ObjectHandler) CardPosition(name string, reply *common.ReaderCardPos) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.CardPosition dev:%s, Position:%d",
+			name, reply.Position)
+	}
+	return nil
+}
 func (oh *ObjectHandler) CardDescription(name string, reply *common.ReaderCardInfo) error {
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.CardDescription dev:%s, CardPAN:%s, ExpDate:%s",

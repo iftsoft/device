@@ -137,6 +137,13 @@ func (or *ObjectRouter) ReaderReturn(name string, reply *common.DeviceInform) er
 }
 
 // Implementation of common.ReaderCallback
+func (or *ObjectRouter) CardPosition(name string, reply *common.ReaderCardPos) error {
+	object := or.GetObjectHandler(name)
+	if object != nil {
+		return object.CardPosition(name, reply)
+	}
+	return nil
+}
 func (or *ObjectRouter) CardDescription(name string, reply *common.ReaderCardInfo) error {
 	object := or.GetObjectHandler(name)
 	if object != nil {

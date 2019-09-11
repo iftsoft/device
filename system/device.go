@@ -105,7 +105,12 @@ func (sd *SystemDevice) deviceLoop(wg *sync.WaitGroup) {
 			sd.state = common.SysStateRunning
 		}
 	}
-	defer sd.driver.StopDevice()
+	defer func() {
+		err := sd.driver.StopDevice()
+		if err == nil {
+			sd.state = common.SysStateStopped
+		}
+	}()
 
 	sd.checkTm = time.Now()
 	tick := time.NewTicker(100 * time.Millisecond)
@@ -242,6 +247,9 @@ func (sd *SystemDevice) ReaderReturn(name string, reply *common.DeviceInform) er
 }
 
 // Implementation of common.ReaderCallback
+func (sd *SystemDevice) CardPosition(name string, reply *common.ReaderCardPos) error {
+	return sd.encodeReply(duplex.ScopeReader, common.CmdCardPosition, reply)
+}
 func (sd *SystemDevice) CardDescription(name string, reply *common.ReaderCardInfo) error {
 	return sd.encodeReply(duplex.ScopeReader, common.CmdCardDescription, reply)
 }

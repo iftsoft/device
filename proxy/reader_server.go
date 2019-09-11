@@ -34,6 +34,13 @@ func (rs *ReaderServer) Init(server duplex.ServerManager, callback common.Reader
 	rs.server = server
 	rs.callback = callback
 	if rs.scopeItem != nil {
+		rs.scopeItem.SetScopeFunc(common.CmdCardPosition, func(name string, dump []byte) {
+			reply := &common.ReaderCardPos{}
+			err := rs.decodeReply(name, common.CmdCardPosition, dump, reply)
+			if err == nil && rs.callback != nil {
+				err = rs.callback.CardPosition(name, reply)
+			}
+		})
 		rs.scopeItem.SetScopeFunc(common.CmdCardDescription, func(name string, dump []byte) {
 			reply := &common.ReaderCardInfo{}
 			err := rs.decodeReply(name, common.CmdCardDescription, dump, reply)

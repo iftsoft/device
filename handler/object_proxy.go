@@ -82,6 +82,18 @@ func (op *ObjectProxy) StopAction(name string, query *common.DeviceQuery) error 
 }
 
 // Implementation of common.ReaderManager
+func (op *ObjectProxy) EnterCard(name string, query *common.DeviceQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdEnterCard, query)
+}
+func (op *ObjectProxy) EjectCard(name string, query *common.DeviceQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdEjectCard, query)
+}
+func (op *ObjectProxy) CaptureCard(name string, query *common.DeviceQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdCaptureCard, query)
+}
+func (op *ObjectProxy) ReadCard(name string, query *common.DeviceQuery) error {
+	return op.reader.SendReaderCommand(name, common.CmdReadCard, query)
+}
 func (op *ObjectProxy) ChipGetATR(name string, query *common.DeviceQuery) error {
 	return op.reader.SendReaderCommand(name, common.CmdChipGetATR, query)
 }
