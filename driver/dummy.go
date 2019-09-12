@@ -11,6 +11,7 @@ type DummyDriver struct {
 	device    common.DeviceCallback
 	reader    common.ReaderCallback
 	validator common.ValidatorCallback
+	pinpad    common.PinPadCallback
 	log       *core.LogAgent
 }
 
@@ -20,6 +21,7 @@ func NewDummyDriver() *DummyDriver {
 		device:    nil,
 		reader:    nil,
 		validator: nil,
+		pinpad:    nil,
 		log:       core.GetLogAgent(core.LogLevelTrace, "Dummy"),
 	}
 	return &dd
@@ -36,6 +38,9 @@ func (dd *DummyDriver) InitDevice(manager interface{}) error {
 	}
 	if validator, ok := manager.(common.ValidatorCallback); ok {
 		dd.validator = validator
+	}
+	if pinpad, ok := manager.(common.PinPadCallback); ok {
+		dd.pinpad = pinpad
 	}
 	return nil
 }
@@ -113,33 +118,6 @@ func (dd *DummyDriver) ChipPowerOff(name string, query *common.DeviceQuery) erro
 func (dd *DummyDriver) ChipCommand(name string, query *common.ReaderChipQuery) error {
 	return dd.dummyDeviceReply(name, common.CmdChipCommand, query)
 }
-func (dd *DummyDriver) ReadPIN(name string, query *common.ReaderPinQuery) error {
-	return dd.dummyDeviceReply(name, common.CmdReadPIN, query)
-}
-func (dd *DummyDriver) LoadMasterKey(name string, query *common.ReaderPinQuery) error {
-	return dd.dummyPinPadReply(name, common.CmdLoadMasterKey, query)
-}
-func (dd *DummyDriver) LoadWorkKey(name string, query *common.ReaderPinQuery) error {
-	return dd.dummyPinPadReply(name, common.CmdLoadWorkKey, query)
-}
-func (dd *DummyDriver) TestMasterKey(name string, query *common.ReaderPinQuery) error {
-	return dd.dummyPinPadReply(name, common.CmdTestMasterKey, query)
-}
-func (dd *DummyDriver) TestWorkKey(name string, query *common.ReaderPinQuery) error {
-	return dd.dummyPinPadReply(name, common.CmdTestWorkKey, query)
-}
-
-func (dd *DummyDriver) dummyPinPadReply(name string, cmd string, query interface{}) error {
-	if dd.log != nil {
-		dd.log.Debug("DummyDriver dev:%s run cmd:%s", name, cmd)
-	}
-	reply := &common.ReaderPinReply{}
-	var err error
-	if dd.reader != nil {
-		err = dd.reader.PinPadReply(name, reply)
-	}
-	return err
-}
 
 // Implementation of common.ValidatorManager
 //
@@ -193,6 +171,36 @@ func (dd *DummyDriver) dummyValidatorAccept(name string, cmd string, query *comm
 		case common.CmdNoteReject:
 			err = dd.validator.CashReturned(name, reply)
 		}
+	}
+	return err
+}
+
+// Implementation of common.ReaderManager
+//
+func (dd *DummyDriver) ReadPIN(name string, query *common.ReaderPinQuery) error {
+	return dd.dummyDeviceReply(name, common.CmdReadPIN, query)
+}
+func (dd *DummyDriver) LoadMasterKey(name string, query *common.ReaderPinQuery) error {
+	return dd.dummyPinPadReply(name, common.CmdLoadMasterKey, query)
+}
+func (dd *DummyDriver) LoadWorkKey(name string, query *common.ReaderPinQuery) error {
+	return dd.dummyPinPadReply(name, common.CmdLoadWorkKey, query)
+}
+func (dd *DummyDriver) TestMasterKey(name string, query *common.ReaderPinQuery) error {
+	return dd.dummyPinPadReply(name, common.CmdTestMasterKey, query)
+}
+func (dd *DummyDriver) TestWorkKey(name string, query *common.ReaderPinQuery) error {
+	return dd.dummyPinPadReply(name, common.CmdTestWorkKey, query)
+}
+
+func (dd *DummyDriver) dummyPinPadReply(name string, cmd string, query interface{}) error {
+	if dd.log != nil {
+		dd.log.Debug("DummyDriver dev:%s run cmd:%s", name, cmd)
+	}
+	reply := &common.ReaderPinReply{}
+	var err error
+	if dd.reader != nil {
+		err = dd.pinpad.PinPadReply(name, reply)
 	}
 	return err
 }

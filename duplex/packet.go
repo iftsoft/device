@@ -28,6 +28,7 @@ const (
 	ScopeDevice
 	ScopeReader
 	ScopeValidator
+	ScopePinPad
 	ScopeMax
 )
 

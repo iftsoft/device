@@ -80,41 +80,6 @@ func (rc *ReaderClient) Init(command common.ReaderManager, log *core.LogAgent) {
 				err = rc.commands.ChipCommand(name, query)
 			}
 		})
-		rc.scopeItem.SetScopeFunc(common.CmdReadPIN, func(name string, dump []byte) {
-			query := &common.ReaderPinQuery{}
-			err := rc.decodeQuery(name, common.CmdReadPIN, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.ReadPIN(name, query)
-			}
-		})
-		rc.scopeItem.SetScopeFunc(common.CmdLoadMasterKey, func(name string, dump []byte) {
-			query := &common.ReaderPinQuery{}
-			err := rc.decodeQuery(name, common.CmdLoadMasterKey, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.LoadMasterKey(name, query)
-			}
-		})
-		rc.scopeItem.SetScopeFunc(common.CmdLoadWorkKey, func(name string, dump []byte) {
-			query := &common.ReaderPinQuery{}
-			err := rc.decodeQuery(name, common.CmdLoadWorkKey, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.LoadWorkKey(name, query)
-			}
-		})
-		rc.scopeItem.SetScopeFunc(common.CmdTestMasterKey, func(name string, dump []byte) {
-			query := &common.ReaderPinQuery{}
-			err := rc.decodeQuery(name, common.CmdTestMasterKey, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.TestMasterKey(name, query)
-			}
-		})
-		rc.scopeItem.SetScopeFunc(common.CmdTestWorkKey, func(name string, dump []byte) {
-			query := &common.ReaderPinQuery{}
-			err := rc.decodeQuery(name, common.CmdTestWorkKey, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.TestWorkKey(name, query)
-			}
-		})
 	}
 }
 

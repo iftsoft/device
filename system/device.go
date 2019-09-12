@@ -23,6 +23,7 @@ type SystemDevice struct {
 	device    *proxy.DeviceClient
 	reader    *proxy.ReaderClient
 	validator *proxy.ValidatorClient
+	pinpad    *proxy.PinPadClient
 	log       *core.LogAgent
 	done      chan struct{}
 	wg        sync.WaitGroup
@@ -43,6 +44,7 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 		device:    proxy.NewDeviceClient(),
 		reader:    proxy.NewReaderClient(),
 		validator: proxy.NewValidatorClient(),
+		pinpad:    proxy.NewPinPadClient(),
 		log:       core.GetLogAgent(core.LogLevelTrace, "Device"),
 		done:      make(chan struct{}),
 	}
@@ -70,6 +72,11 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	// Setup Validator scope interface
 	if valid, ok := worker.(common.ValidatorManager); ok {
 		sd.validator.Init(valid, sd.log)
+		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
+	}
+	// Setup PinPad scope interface
+	if pinpad, ok := worker.(common.PinPadManager); ok {
+		sd.pinpad.Init(pinpad, sd.log)
 		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
 	}
 	// Setup Device driver interface
@@ -256,9 +263,6 @@ func (sd *SystemDevice) CardDescription(name string, reply *common.ReaderCardInf
 func (sd *SystemDevice) ChipResponse(name string, reply *common.ReaderChipReply) error {
 	return sd.encodeReply(duplex.ScopeReader, common.CmdChipResponse, reply)
 }
-func (sd *SystemDevice) PinPadReply(name string, reply *common.ReaderPinReply) error {
-	return sd.encodeReply(duplex.ScopeReader, common.CmdPinPadReply, reply)
-}
 
 // Implementation of common.ValidatorCallback
 func (sd *SystemDevice) NoteAccepted(name string, reply *common.ValidatorAccept) error {
@@ -274,6 +278,12 @@ func (sd *SystemDevice) ValidatorStore(name string, reply *common.ValidatorStore
 	return sd.encodeReply(duplex.ScopeValidator, common.CmdValidatorStore, reply)
 }
 
+// Implementation of common.ReaderCallback
+func (sd *SystemDevice) PinPadReply(name string, reply *common.ReaderPinReply) error {
+	return sd.encodeReply(duplex.ScopePinPad, common.CmdPinPadReply, reply)
+}
+
+// Common function for reply encoding
 func (sd *SystemDevice) encodeReply(scope duplex.PacketScope, cmd string, reply interface{}) error {
 	dump, err := json.Marshal(reply)
 	if err != nil {

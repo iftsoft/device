@@ -13,6 +13,7 @@ type ObjectProxy struct {
 	device    *proxy.DeviceServer
 	reader    *proxy.ReaderServer
 	validator *proxy.ValidatorServer
+	pinpad    *proxy.PinPadServer
 	router    *ObjectRouter
 	log       *core.LogAgent
 }
@@ -24,6 +25,7 @@ func NewObjectProxy() *ObjectProxy {
 		device:    proxy.NewDeviceServer(),
 		reader:    proxy.NewReaderServer(),
 		validator: proxy.NewValidatorServer(),
+		pinpad:    proxy.NewPinPadServer(),
 		router:    NewObjectRouter(),
 		log:       core.GetLogAgent(core.LogLevelTrace, "Object"),
 	}
@@ -36,6 +38,7 @@ func (op *ObjectProxy) Init(server duplex.ServerManager) {
 	op.device.Init(server, op.router, op.log)
 	op.reader.Init(server, op.router, op.log)
 	op.validator.Init(server, op.router, op.log)
+	op.pinpad.Init(server, op.router, op.log)
 	op.router.InitRouter(op.log, op)
 }
 
@@ -103,21 +106,6 @@ func (op *ObjectProxy) ChipPowerOff(name string, query *common.DeviceQuery) erro
 func (op *ObjectProxy) ChipCommand(name string, query *common.ReaderChipQuery) error {
 	return op.reader.SendReaderCommand(name, common.CmdChipCommand, query)
 }
-func (op *ObjectProxy) ReadPIN(name string, query *common.ReaderPinQuery) error {
-	return op.reader.SendReaderCommand(name, common.CmdReadPIN, query)
-}
-func (op *ObjectProxy) LoadMasterKey(name string, query *common.ReaderPinQuery) error {
-	return op.reader.SendReaderCommand(name, common.CmdLoadMasterKey, query)
-}
-func (op *ObjectProxy) LoadWorkKey(name string, query *common.ReaderPinQuery) error {
-	return op.reader.SendReaderCommand(name, common.CmdLoadWorkKey, query)
-}
-func (op *ObjectProxy) TestMasterKey(name string, query *common.ReaderPinQuery) error {
-	return op.reader.SendReaderCommand(name, common.CmdTestMasterKey, query)
-}
-func (op *ObjectProxy) TestWorkKey(name string, query *common.ReaderPinQuery) error {
-	return op.reader.SendReaderCommand(name, common.CmdTestWorkKey, query)
-}
 
 // Implementation of common.ValidatorManager
 func (op *ObjectProxy) InitValidator(name string, query *common.ValidatorQuery) error {
@@ -140,4 +128,21 @@ func (op *ObjectProxy) CheckValidator(name string, query *common.ValidatorQuery)
 }
 func (op *ObjectProxy) ClearValidator(name string, query *common.ValidatorQuery) error {
 	return op.validator.SendValidatorCommand(name, common.CmdClearValidator, query)
+}
+
+// Implementation of common.PinPadManager
+func (op *ObjectProxy) ReadPIN(name string, query *common.ReaderPinQuery) error {
+	return op.pinpad.SendPinPadCommand(name, common.CmdReadPIN, query)
+}
+func (op *ObjectProxy) LoadMasterKey(name string, query *common.ReaderPinQuery) error {
+	return op.pinpad.SendPinPadCommand(name, common.CmdLoadMasterKey, query)
+}
+func (op *ObjectProxy) LoadWorkKey(name string, query *common.ReaderPinQuery) error {
+	return op.pinpad.SendPinPadCommand(name, common.CmdLoadWorkKey, query)
+}
+func (op *ObjectProxy) TestMasterKey(name string, query *common.ReaderPinQuery) error {
+	return op.pinpad.SendPinPadCommand(name, common.CmdTestMasterKey, query)
+}
+func (op *ObjectProxy) TestWorkKey(name string, query *common.ReaderPinQuery) error {
+	return op.pinpad.SendPinPadCommand(name, common.CmdTestWorkKey, query)
 }

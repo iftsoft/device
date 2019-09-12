@@ -158,13 +158,6 @@ func (or *ObjectRouter) ChipResponse(name string, reply *common.ReaderChipReply)
 	}
 	return nil
 }
-func (or *ObjectRouter) PinPadReply(name string, reply *common.ReaderPinReply) error {
-	object := or.GetObjectHandler(name)
-	if object != nil {
-		return object.PinPadReply(name, reply)
-	}
-	return nil
-}
 
 // Implementation of common.ValidatorCallback
 func (or *ObjectRouter) NoteAccepted(name string, reply *common.ValidatorAccept) error {
@@ -192,6 +185,15 @@ func (or *ObjectRouter) ValidatorStore(name string, reply *common.ValidatorStore
 	object := or.GetObjectHandler(name)
 	if object != nil {
 		return object.ValidatorStore(name, reply)
+	}
+	return nil
+}
+
+// Implementation of common.ReaderCallback
+func (or *ObjectRouter) PinPadReply(name string, reply *common.ReaderPinReply) error {
+	object := or.GetObjectHandler(name)
+	if object != nil {
+		return object.PinPadReply(name, reply)
 	}
 	return nil
 }

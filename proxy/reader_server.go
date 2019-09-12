@@ -55,13 +55,6 @@ func (rs *ReaderServer) Init(server duplex.ServerManager, callback common.Reader
 				err = rs.callback.ChipResponse(name, reply)
 			}
 		})
-		rs.scopeItem.SetScopeFunc(common.CmdPinPadReply, func(name string, dump []byte) {
-			reply := &common.ReaderPinReply{}
-			err := rs.decodeReply(name, common.CmdPinPadReply, dump, reply)
-			if err == nil && rs.callback != nil {
-				err = rs.callback.PinPadReply(name, reply)
-			}
-		})
 		if rs.server != nil {
 			rs.server.AddScopeItem(rs.scopeItem)
 		}

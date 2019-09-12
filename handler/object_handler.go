@@ -15,6 +15,7 @@ type ObjectHandler struct {
 	device    common.DeviceManager
 	reader    common.ReaderManager
 	validator common.ValidatorManager
+	pinpad    common.PinPadManager
 	log       *core.LogAgent
 	done      chan struct{}
 	tests     []TestFunc
@@ -27,6 +28,7 @@ func NewObjectHandler(name string, log *core.LogAgent) *ObjectHandler {
 		device:    nil,
 		reader:    nil,
 		validator: nil,
+		pinpad:    nil,
 		log:       log,
 		done:      make(chan struct{}),
 		tests:     make([]TestFunc, 0),
@@ -47,6 +49,9 @@ func (oh *ObjectHandler) InitObject(proxy interface{}) error {
 	}
 	if valid, ok := proxy.(common.ValidatorManager); ok {
 		oh.validator = valid
+	}
+	if pinpad, ok := proxy.(common.PinPadManager); ok {
+		oh.pinpad = pinpad
 	}
 	return nil
 }
@@ -202,13 +207,6 @@ func (oh *ObjectHandler) ChipResponse(name string, reply *common.ReaderChipReply
 	}
 	return nil
 }
-func (oh *ObjectHandler) PinPadReply(name string, reply *common.ReaderPinReply) error {
-	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.PinPadReply dev:%s, PinLen:%d",
-			name, reply.PinLength)
-	}
-	return nil
-}
 
 // Implementation of common.ValidatorCallback
 func (oh *ObjectHandler) NoteAccepted(name string, reply *common.ValidatorAccept) error {
@@ -236,6 +234,15 @@ func (oh *ObjectHandler) ValidatorStore(name string, reply *common.ValidatorStor
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.ValidatorStore dev:%s, Size:%d",
 			name, len(reply.Note))
+	}
+	return nil
+}
+
+// Implementation of common.PinPadCallback
+func (oh *ObjectHandler) PinPadReply(name string, reply *common.ReaderPinReply) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.PinPadReply dev:%s, PinLen:%d",
+			name, reply.PinLength)
 	}
 	return nil
 }
