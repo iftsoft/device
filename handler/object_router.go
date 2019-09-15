@@ -136,6 +136,15 @@ func (or *ObjectRouter) ReaderReturn(name string, reply *common.DeviceInform) er
 	return nil
 }
 
+// Implementation of common.PrinterCallback
+func (or *ObjectRouter) PrinterProgress(name string, reply *common.PrinterProgress) error {
+	object := or.GetObjectHandler(name)
+	if object != nil {
+		return object.PrinterProgress(name, reply)
+	}
+	return nil
+}
+
 // Implementation of common.ReaderCallback
 func (or *ObjectRouter) CardPosition(name string, reply *common.ReaderCardPos) error {
 	object := or.GetObjectHandler(name)

@@ -11,6 +11,7 @@ type ObjectProxy struct {
 	server    duplex.ServerManager
 	system    *proxy.SystemServer
 	device    *proxy.DeviceServer
+	printer   *proxy.PrinterServer
 	reader    *proxy.ReaderServer
 	validator *proxy.ValidatorServer
 	pinpad    *proxy.PinPadServer
@@ -23,6 +24,7 @@ func NewObjectProxy() *ObjectProxy {
 		server:    nil,
 		system:    proxy.NewSystemServer(),
 		device:    proxy.NewDeviceServer(),
+		printer:   proxy.NewPrinterServer(),
 		reader:    proxy.NewReaderServer(),
 		validator: proxy.NewValidatorServer(),
 		pinpad:    proxy.NewPinPadServer(),
@@ -36,6 +38,7 @@ func (op *ObjectProxy) Init(server duplex.ServerManager) {
 	op.server = server
 	op.system.Init(server, op.router, op.log)
 	op.device.Init(server, op.router, op.log)
+	op.printer.Init(server, op.router, op.log)
 	op.reader.Init(server, op.router, op.log)
 	op.validator.Init(server, op.router, op.log)
 	op.pinpad.Init(server, op.router, op.log)
@@ -82,6 +85,14 @@ func (op *ObjectProxy) RunAction(name string, query *common.DeviceQuery) error {
 }
 func (op *ObjectProxy) StopAction(name string, query *common.DeviceQuery) error {
 	return op.device.SendDeviceCommand(name, common.CmdStopAction, query)
+}
+
+// Implementation of common.PrinterManager
+func (op *ObjectProxy) InitPrinter(name string, query *common.PrinterSetup) error {
+	return op.printer.SendPrinterCommand(name, common.CmdInitPrinter, query)
+}
+func (op *ObjectProxy) PrintText(name string, query *common.PrinterQuery) error {
+	return op.printer.SendPrinterCommand(name, common.CmdPrintText, query)
 }
 
 // Implementation of common.ReaderManager

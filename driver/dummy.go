@@ -9,6 +9,7 @@ import (
 type DummyDriver struct {
 	config    *config.DeviceConfig
 	device    common.DeviceCallback
+	printer   common.PrinterCallback
 	reader    common.ReaderCallback
 	validator common.ValidatorCallback
 	pinpad    common.PinPadCallback
@@ -19,6 +20,7 @@ func NewDummyDriver() *DummyDriver {
 	dd := DummyDriver{
 		config:    nil,
 		device:    nil,
+		printer:   nil,
 		reader:    nil,
 		validator: nil,
 		pinpad:    nil,
@@ -30,17 +32,26 @@ func NewDummyDriver() *DummyDriver {
 // Implementation of DeviceDriver interface
 func (dd *DummyDriver) InitDevice(manager interface{}) error {
 	dd.log.Debug("DummyDriver run cmd:%s", "InitDevice")
+	mask := common.ScopeFlagSystem
 	if device, ok := manager.(common.DeviceCallback); ok {
 		dd.device = device
+		mask |= common.ScopeFlagDevice
+	}
+	if printer, ok := manager.(common.PrinterCallback); ok {
+		dd.printer = printer
+		mask |= common.ScopeFlagPrinter
 	}
 	if reader, ok := manager.(common.ReaderCallback); ok {
 		dd.reader = reader
+		mask |= common.ScopeFlagReader
 	}
 	if validator, ok := manager.(common.ValidatorCallback); ok {
 		dd.validator = validator
+		mask |= common.ScopeFlagValidator
 	}
 	if pinpad, ok := manager.(common.PinPadCallback); ok {
 		dd.pinpad = pinpad
+		mask |= common.ScopeFlagPinPad
 	}
 	return nil
 }
@@ -93,6 +104,15 @@ func (dd *DummyDriver) dummyDeviceReply(name string, cmd string, query interface
 		err = dd.device.DeviceReply(name, reply)
 	}
 	return err
+}
+
+// Implementation of common.PrinterManager
+//
+func (dd *DummyDriver) InitPrinter(name string, query *common.PrinterSetup) error {
+	return dd.dummyDeviceReply(name, common.CmdInitPrinter, query)
+}
+func (dd *DummyDriver) PrintText(name string, query *common.PrinterQuery) error {
+	return dd.dummyDeviceReply(name, common.CmdPrintText, query)
 }
 
 // Implementation of common.ReaderManager
@@ -175,7 +195,7 @@ func (dd *DummyDriver) dummyValidatorAccept(name string, cmd string, query *comm
 	return err
 }
 
-// Implementation of common.ReaderManager
+// Implementation of common.PinPadManager
 //
 func (dd *DummyDriver) ReadPIN(name string, query *common.ReaderPinQuery) error {
 	return dd.dummyDeviceReply(name, common.CmdReadPIN, query)

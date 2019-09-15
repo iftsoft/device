@@ -13,6 +13,7 @@ type ObjectHandler struct {
 	devName   string
 	system    common.SystemManager
 	device    common.DeviceManager
+	printer   common.PrinterManager
 	reader    common.ReaderManager
 	validator common.ValidatorManager
 	pinpad    common.PinPadManager
@@ -26,6 +27,7 @@ func NewObjectHandler(name string, log *core.LogAgent) *ObjectHandler {
 		devName:   name,
 		system:    nil,
 		device:    nil,
+		printer:   nil,
 		reader:    nil,
 		validator: nil,
 		pinpad:    nil,
@@ -43,6 +45,9 @@ func (oh *ObjectHandler) InitObject(proxy interface{}) error {
 	}
 	if device, ok := proxy.(common.DeviceManager); ok {
 		oh.device = device
+	}
+	if printer, ok := proxy.(common.PrinterManager); ok {
+		oh.printer = printer
 	}
 	if reader, ok := proxy.(common.ReaderManager); ok {
 		oh.reader = reader
@@ -181,6 +186,15 @@ func (oh *ObjectHandler) ReaderReturn(name string, reply *common.DeviceInform) e
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.ReaderReturn dev:%s, action:%d, info:%s",
 			name, reply.Action, reply.Inform)
+	}
+	return nil
+}
+
+// Implementation of common.PrinterCallback
+func (oh *ObjectHandler) PrinterProgress(name string, reply *common.PrinterProgress) error {
+	if oh.log != nil {
+		oh.log.Debug("ObjectHandler.PrinterProgress dev:%s, Done:%d, From:%d",
+			name, reply.PageDone, reply.PagesAll)
 	}
 	return nil
 }

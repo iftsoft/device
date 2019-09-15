@@ -15,12 +15,14 @@ import (
 
 type SystemDevice struct {
 	devName   string
+	scopeMask common.DevScopeMask
 	state     common.EnumSystemState
 	driver    driver.DeviceDriver
 	duplex    *duplex.DuplexClient
 	config    *config.DeviceConfig
 	system    *proxy.SystemClient
 	device    *proxy.DeviceClient
+	printer   *proxy.PrinterClient
 	reader    *proxy.ReaderClient
 	validator *proxy.ValidatorClient
 	pinpad    *proxy.PinPadClient
@@ -36,12 +38,14 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 	}
 	sd := SystemDevice{
 		devName:   cfg.Client.DevName,
+		scopeMask: common.ScopeFlagSystem,
 		state:     common.SysStateUndefined,
 		driver:    nil,
 		duplex:    duplex.NewDuplexClient(&cfg.Client),
 		config:    &cfg.Device,
 		system:    proxy.NewSystemClient(),
 		device:    proxy.NewDeviceClient(),
+		printer:   proxy.NewPrinterClient(),
 		reader:    proxy.NewReaderClient(),
 		validator: proxy.NewValidatorClient(),
 		pinpad:    proxy.NewPinPadClient(),
@@ -63,21 +67,31 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	if device, ok := worker.(common.DeviceManager); ok {
 		sd.device.Init(device, sd.log)
 		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
+		sd.scopeMask |= common.ScopeFlagDevice
+	}
+	// Setup Printer scope interface
+	if printer, ok := worker.(common.PrinterManager); ok {
+		sd.printer.Init(printer, sd.log)
+		sd.duplex.AddScopeItem(sd.printer.GetScopeItem())
+		sd.scopeMask |= common.ScopeFlagPrinter
 	}
 	// Setup Reader scope interface
 	if reader, ok := worker.(common.ReaderManager); ok {
 		sd.reader.Init(reader, sd.log)
-		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
+		sd.duplex.AddScopeItem(sd.reader.GetScopeItem())
+		sd.scopeMask |= common.ScopeFlagReader
 	}
 	// Setup Validator scope interface
 	if valid, ok := worker.(common.ValidatorManager); ok {
 		sd.validator.Init(valid, sd.log)
-		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
+		sd.duplex.AddScopeItem(sd.validator.GetScopeItem())
+		sd.scopeMask |= common.ScopeFlagValidator
 	}
 	// Setup PinPad scope interface
 	if pinpad, ok := worker.(common.PinPadManager); ok {
 		sd.pinpad.Init(pinpad, sd.log)
-		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
+		sd.duplex.AddScopeItem(sd.pinpad.GetScopeItem())
+		sd.scopeMask |= common.ScopeFlagPinPad
 	}
 	// Setup Device driver interface
 	if drv, ok := worker.(driver.DeviceDriver); ok {
@@ -251,6 +265,11 @@ func (sd *SystemDevice) ActionPrompt(name string, reply *common.DevicePrompt) er
 }
 func (sd *SystemDevice) ReaderReturn(name string, reply *common.DeviceInform) error {
 	return sd.encodeReply(duplex.ScopeDevice, common.CmdReaderReturn, reply)
+}
+
+// Implementation of common.PrinterCallback
+func (sd *SystemDevice) PrinterProgress(name string, reply *common.PrinterProgress) error {
+	return sd.encodeReply(duplex.ScopePrinter, common.CmdPrinterProgress, reply)
 }
 
 // Implementation of common.ReaderCallback

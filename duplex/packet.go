@@ -26,8 +26,11 @@ const (
 const (
 	ScopeSystem PacketScope = iota
 	ScopeDevice
+	ScopePrinter
 	ScopeReader
 	ScopeValidator
+	ScopeDispenser
+	ScopeVending
 	ScopePinPad
 	ScopeMax
 )

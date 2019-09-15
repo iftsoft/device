@@ -9,19 +9,33 @@ type EnumDevState int16
 type EnumDevAction int16
 type EnumDevPrompt int16
 type EnumDevWarning int16
+type DevScopeMask uint32
+
+// Scope Flags
+const (
+	ScopeFlagSystem DevScopeMask = 0
+	ScopeFlagDevice              = 1 << iota
+	ScopeFlagPrinter
+	ScopeFlagReader
+	ScopeFlagValidator
+	ScopeFlagDispenser
+	ScopeFlagVending
+	ScopeFlagPinPad
+	ScopeFlagCustom
+)
 
 // Device types
 const (
 	DevTypeDefault EnumDevType = iota
+	DevTypePrinter
 	DevTypeCardReader
 	DevTypeBarScanner
-	DevTypePINEntry
-	DevTypePrinter
 	DevTypeCashValidator
 	DevTypeCoinValidator
 	DevTypeCashDispenser
 	DevTypeCoinDispenser
 	DevTypeVending
+	DevTypePINEntry
 	DevTypeCustom
 )
 

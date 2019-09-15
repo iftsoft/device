@@ -58,18 +58,3 @@ type DeviceManager interface {
 	RunAction(name string, query *DeviceQuery) error
 	StopAction(name string, query *DeviceQuery) error
 }
-
-type PrinterQuery struct {
-	Text string
-}
-
-type PrinterSetup struct {
-	PaperPath int32
-	Landscape bool
-	ShowImage int32
-}
-
-type PrinterManager interface {
-	InitPrinter(name string, query *PrinterSetup) error
-	PrintText(name string, query *PrinterQuery) error
-}
