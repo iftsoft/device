@@ -9,18 +9,19 @@ type EnumDevState int16
 type EnumDevAction int16
 type EnumDevPrompt int16
 type EnumDevWarning int16
-type DevScopeMask uint32
+type DevScopeMask uint64
 
 // Scope Flags
 const (
-	ScopeFlagSystem DevScopeMask = 0
-	ScopeFlagDevice              = 1 << iota
+	ScopeFlagUnknown DevScopeMask = 0
+	ScopeFlagSystem  DevScopeMask = 1 << iota
+	ScopeFlagDevice
 	ScopeFlagPrinter
 	ScopeFlagReader
+	ScopeFlagPinPad
 	ScopeFlagValidator
 	ScopeFlagDispenser
 	ScopeFlagVending
-	ScopeFlagPinPad
 	ScopeFlagCustom
 )
 

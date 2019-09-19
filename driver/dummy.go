@@ -30,7 +30,7 @@ func NewDummyDriver() *DummyDriver {
 }
 
 // Implementation of DeviceDriver interface
-func (dd *DummyDriver) InitDevice(manager interface{}) error {
+func (dd *DummyDriver) InitDevice(manager interface{}) common.DevScopeMask {
 	dd.log.Debug("DummyDriver run cmd:%s", "InitDevice")
 	mask := common.ScopeFlagSystem
 	if device, ok := manager.(common.DeviceCallback); ok {
@@ -53,7 +53,7 @@ func (dd *DummyDriver) InitDevice(manager interface{}) error {
 		dd.pinpad = pinpad
 		mask |= common.ScopeFlagPinPad
 	}
-	return nil
+	return mask
 }
 
 func (dd *DummyDriver) StartDevice(cfg *config.DeviceConfig) error {

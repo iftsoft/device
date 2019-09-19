@@ -15,7 +15,8 @@ import (
 
 type SystemDevice struct {
 	devName   string
-	scopeMask common.DevScopeMask
+	unitMask  common.DevScopeMask
+	backMask  common.DevScopeMask
 	state     common.EnumSystemState
 	driver    driver.DeviceDriver
 	duplex    *duplex.DuplexClient
@@ -38,7 +39,8 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 	}
 	sd := SystemDevice{
 		devName:   cfg.Client.DevName,
-		scopeMask: common.ScopeFlagSystem,
+		unitMask:  common.ScopeFlagUnknown,
+		backMask:  common.ScopeFlagUnknown,
 		state:     common.SysStateUndefined,
 		driver:    nil,
 		duplex:    duplex.NewDuplexClient(&cfg.Client),
@@ -62,41 +64,43 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	// Setup System scope interface
 	sd.system.Init(sd, sd.log)
 	sd.duplex.AddScopeItem(sd.system.GetScopeItem())
+	sd.unitMask = common.ScopeFlagSystem
 
 	// Setup Device scope interface
 	if device, ok := worker.(common.DeviceManager); ok {
 		sd.device.Init(device, sd.log)
 		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
-		sd.scopeMask |= common.ScopeFlagDevice
+		sd.unitMask |= common.ScopeFlagDevice
 	}
 	// Setup Printer scope interface
 	if printer, ok := worker.(common.PrinterManager); ok {
 		sd.printer.Init(printer, sd.log)
 		sd.duplex.AddScopeItem(sd.printer.GetScopeItem())
-		sd.scopeMask |= common.ScopeFlagPrinter
+		sd.unitMask |= common.ScopeFlagPrinter
 	}
 	// Setup Reader scope interface
 	if reader, ok := worker.(common.ReaderManager); ok {
 		sd.reader.Init(reader, sd.log)
 		sd.duplex.AddScopeItem(sd.reader.GetScopeItem())
-		sd.scopeMask |= common.ScopeFlagReader
+		sd.unitMask |= common.ScopeFlagReader
 	}
 	// Setup Validator scope interface
 	if valid, ok := worker.(common.ValidatorManager); ok {
 		sd.validator.Init(valid, sd.log)
 		sd.duplex.AddScopeItem(sd.validator.GetScopeItem())
-		sd.scopeMask |= common.ScopeFlagValidator
+		sd.unitMask |= common.ScopeFlagValidator
 	}
 	// Setup PinPad scope interface
 	if pinpad, ok := worker.(common.PinPadManager); ok {
 		sd.pinpad.Init(pinpad, sd.log)
 		sd.duplex.AddScopeItem(sd.pinpad.GetScopeItem())
-		sd.scopeMask |= common.ScopeFlagPinPad
+		sd.unitMask |= common.ScopeFlagPinPad
 	}
 	// Setup Device driver interface
 	if drv, ok := worker.(driver.DeviceDriver); ok {
 		sd.driver = drv
-		return drv.InitDevice(sd)
+		sd.backMask = drv.InitDevice(sd)
+		return nil
 	}
 	return errors.New("device driver is not implemented")
 }

@@ -2,6 +2,7 @@ package duplex
 
 import (
 	"errors"
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 )
 
@@ -28,26 +29,45 @@ const (
 	ScopeDevice
 	ScopePrinter
 	ScopeReader
+	ScopePinPad
 	ScopeValidator
 	ScopeDispenser
 	ScopeVending
-	ScopePinPad
-	ScopeMax
+	ScopeLast
+	ScopeCustom = 32
+	ScopeMax    = 64
 )
 
 var listScopeName = []string{
 	"System",
 	"Device",
+	"Printer",
 	"Reader",
+	"PinPad",
 	"Validator",
+	"Dispenser",
+	"ScopeVending",
 	"",
 }
 
 func GetScopeName(scope PacketScope) string {
-	if scope < ScopeMax {
+	if scope < ScopeLast {
 		return listScopeName[scope]
 	}
+	if scope < ScopeCustom {
+		return "Reserve"
+	}
+	if scope < ScopeMax {
+		return "Custom"
+	}
 	return "Unknown"
+}
+
+func GetScopeMask(scope PacketScope) common.DevScopeMask {
+	if scope < ScopeMax {
+		return 1 << scope
+	}
+	return common.ScopeFlagUnknown
 }
 
 type Packet struct {
@@ -77,8 +97,8 @@ func NewPacket(scope PacketScope, name string, cmd string, data []byte) *Packet 
 
 func (p *Packet) Print(log *core.LogAgent, text string) {
 	if p != nil && log != nil {
-		log.Dump("%s packet Scope:%s, Device:%s, Command:%s, Data len:%d, Content:%s",
-			text, GetScopeName(p.Scope), p.DevName, p.Command, len(p.Content), string(p.Content))
+		log.Dump("%s packet Device:%s, Scope:%d(%s), Command:%s, Data len:%d, Content:%s",
+			text, p.DevName, p.Scope, GetScopeName(p.Scope), p.Command, len(p.Content), string(p.Content))
 	}
 }
 
