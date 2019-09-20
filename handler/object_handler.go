@@ -114,13 +114,10 @@ func (oh *ObjectHandler) OnClientStopped(name string) {
 
 func (oh *ObjectHandler) fillTestList() {
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
-		return hnd.system.Config(hnd.devName, &common.SystemQuery{})
+		return hnd.system.Inform(hnd.devName, &common.SystemQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
 		return hnd.system.Start(hnd.devName, &common.SystemQuery{})
-	})
-	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
-		return hnd.system.Inform(hnd.devName, &common.SystemQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
 		return hnd.device.Reset(hnd.devName, &common.DeviceQuery{})
@@ -129,10 +126,19 @@ func (oh *ObjectHandler) fillTestList() {
 		return hnd.device.Status(hnd.devName, &common.DeviceQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.device.RunAction(hnd.devName, &common.DeviceQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
 		return hnd.device.Cancel(hnd.devName, &common.DeviceQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.device.StopAction(hnd.devName, &common.DeviceQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
 		return hnd.system.Stop(hnd.devName, &common.SystemQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.system.Terminate(hnd.devName, &common.SystemQuery{})
 	})
 }
 

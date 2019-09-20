@@ -177,10 +177,19 @@ func (sd *SystemDevice) sendDeviceMetrics(tm time.Time) {
 
 // Implementation of common.SystemManager
 //
-func (sd *SystemDevice) Config(name string, query *common.SystemQuery) error {
+func (sd *SystemDevice) Terminate(name string, query *common.SystemQuery) error {
+	sd.state = common.SysStateUndefined
+	var err error
+	if sd.driver != nil {
+		err = sd.driver.StopDevice()
+	}
 	reply := &common.SystemReply{}
-	reply.Command = common.CmdSystemConfig
+	reply.Command = common.CmdSystemTerminate
 	reply.State = sd.state
+	if err != nil {
+		reply.Message = err.Error()
+	}
+	core.SendQuitSignal(100)
 	return sd.SystemReply(name, reply)
 }
 

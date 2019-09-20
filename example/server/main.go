@@ -6,9 +6,6 @@ import (
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
 	"github.com/iftsoft/device/handler"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -35,7 +32,7 @@ func main() {
 	err = srv.StartListen()
 	if err == nil {
 
-		WaitForSignal(log)
+		core.WaitForSignal(log)
 
 		srv.StopListen()
 	}
@@ -44,11 +41,4 @@ func main() {
 	time.Sleep(time.Second)
 	core.StopFileLogger()
 	fmt.Println("-------END------------")
-}
-
-func WaitForSignal(out *core.LogAgent) {
-	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-	s := <-ch
-	out.Info("Got signal: %v, exiting.", s)
 }

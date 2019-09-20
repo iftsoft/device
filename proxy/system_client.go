@@ -27,10 +27,10 @@ func (sc *SystemClient) Init(command common.SystemManager, log *core.LogAgent) {
 	sc.commands = command
 	// init scope functions
 	if sc.scopeItem != nil {
-		sc.scopeItem.SetScopeFunc(common.CmdSystemConfig, func(name string, dump []byte) {
-			query, err := sc.decodeQuery(name, common.CmdSystemRestart, dump)
+		sc.scopeItem.SetScopeFunc(common.CmdSystemTerminate, func(name string, dump []byte) {
+			query, err := sc.decodeQuery(name, common.CmdSystemTerminate, dump)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Config(name, query)
+				err = sc.commands.Terminate(name, query)
 			}
 		})
 		sc.scopeItem.SetScopeFunc(common.CmdSystemInform, func(name string, dump []byte) {

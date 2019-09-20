@@ -18,13 +18,13 @@ const (
 )
 
 const (
-	CmdSystemReply   = "SystemReply"
-	CmdSystemHealth  = "SystemHealth"
-	CmdSystemConfig  = "Config"
-	CmdSystemInform  = "Inform"
-	CmdSystemStart   = "Start"
-	CmdSystemStop    = "Stop"
-	CmdSystemRestart = "Restart"
+	CmdSystemReply     = "SystemReply"
+	CmdSystemHealth    = "SystemHealth"
+	CmdSystemTerminate = "Terminate"
+	CmdSystemInform    = "Inform"
+	CmdSystemStart     = "Start"
+	CmdSystemStop      = "Stop"
+	CmdSystemRestart   = "Restart"
 )
 
 type SystemQuery struct {
@@ -71,7 +71,7 @@ type SystemCallback interface {
 }
 
 type SystemManager interface {
-	Config(name string, query *SystemQuery) error
+	Terminate(name string, query *SystemQuery) error
 	Inform(name string, query *SystemQuery) error
 	Start(name string, query *SystemQuery) error
 	Stop(name string, query *SystemQuery) error

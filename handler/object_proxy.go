@@ -54,8 +54,8 @@ func (op *ObjectProxy) GetClientManager() duplex.ClientManager {
 }
 
 // Implementation of common.SystemManager
-func (op *ObjectProxy) Config(name string, query *common.SystemQuery) error {
-	return op.system.SendSystemCommand(name, common.CmdSystemConfig, query)
+func (op *ObjectProxy) Terminate(name string, query *common.SystemQuery) error {
+	return op.system.SendSystemCommand(name, common.CmdSystemTerminate, query)
 }
 func (op *ObjectProxy) Inform(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemInform, query)

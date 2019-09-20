@@ -18,16 +18,18 @@ device:
     version: 0.1.0
     timeout: 30
     autoLoad: False
-  serial:
-    portNumber: 1
-    baudRate: 9600
-    dataBits: 8
-    stopBits: 1
-    parity: 0
-    sendTimeout: 50
-    recvTimeout: 250
   printer:
   reader:
   validator:
   dispenser:
   vendor:
+  linker:
+    linkType: 1
+    serial:
+      portNumber: 1
+      baudRate: 9600
+      dataBits: 8
+      stopBits: 1
+      parity: 0
+      sendTimeout: 50
+      recvTimeout: 250

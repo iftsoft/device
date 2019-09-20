@@ -28,17 +28,6 @@ type CommonConfig struct {
 	AutoLoad bool   `yaml:"autoLoad"`
 }
 
-type SerialConfig struct {
-	PortNumber  int32 `yaml:"portNumber"`
-	BaudRate    int32 `yaml:"baudRate"`
-	DataBits    int32 `yaml:"dataBits"`
-	StopBits    int32 `yaml:"stopBits"`
-	Parity      int32 `yaml:"parity"`
-	FlowControl int32 `yaml:"flowControl"`
-	SendTimeout int32 `yaml:"sendTimeout"`
-	RecvTimeout int32 `yaml:"recvTimeout"`
-}
-
 type PrinterConfig struct {
 	PrintName   string `yaml:"printName"`
 	ImageFile   string `yaml:"imageFile"`
@@ -80,25 +69,25 @@ type VendorConfig struct {
 
 type DeviceConfig struct {
 	Common    *CommonConfig    `yaml:"common"`
-	Serial    *SerialConfig    `yaml:"serial"`
 	Printer   *PrinterConfig   `yaml:"printer"`
 	Reader    *ReaderConfig    `yaml:"reader"`
 	Pinpad    *PinPadConfig    `yaml:"pinpad"`
 	Validator *ValidatorConfig `yaml:"validator"`
 	Dispenser *DispenserConfig `yaml:"dispenser"`
 	Vendor    *VendorConfig    `yaml:"vendor"`
+	Linker    *LinkerConfig    `yaml:"linker"`
 }
 
 func GetDefaultDeviceConfig() *DeviceConfig {
 	devCfg := &DeviceConfig{
 		Common:    &CommonConfig{},
-		Serial:    &SerialConfig{},
 		Printer:   &PrinterConfig{},
 		Reader:    &ReaderConfig{},
 		Pinpad:    &PinPadConfig{},
 		Validator: &ValidatorConfig{},
 		Dispenser: &DispenserConfig{},
 		Vendor:    &VendorConfig{},
+		Linker:    GetDefaultLinkerConfig(),
 	}
 	return devCfg
 }

@@ -6,9 +6,6 @@ import (
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/driver"
 	"github.com/iftsoft/device/system"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -33,7 +30,7 @@ func main() {
 	if err == nil {
 		dev.StartDevice()
 
-		WaitForSignal(log)
+		core.WaitForSignal(log)
 
 		dev.StopDevice()
 	} else {
@@ -43,11 +40,4 @@ func main() {
 	time.Sleep(time.Second)
 	core.StopFileLogger()
 	fmt.Println("-------END------------")
-}
-
-func WaitForSignal(out *core.LogAgent) {
-	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-	s := <-ch
-	out.Info("Got signal: %v, exiting.", s)
 }
