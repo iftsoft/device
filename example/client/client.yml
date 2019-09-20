@@ -1,7 +1,7 @@
 # Test config file
-client:
+duplex:
   port: 9380
-  devName: TestDevice
+#  devName: TestDevice
 
 logger:
   logPath: ../logs
@@ -14,7 +14,6 @@ logger:
 
 device:
   common:
-    devName: emulator
     model: screen
     version: 0.1.0
     timeout: 30

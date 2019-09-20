@@ -15,22 +15,20 @@ import (
 func main() {
 	fmt.Println("-------BEGIN------------")
 
-	appPar := config.GetSrvParams()
+	appPar := config.GetAppParams()
 	err, appCfg := config.GetSrvConfig(appPar)
 	if err != nil {
 		fmt.Println(err)
 		return
 	} else {
-		core.StartFileLogger(&appCfg.Logger)
+		core.StartFileLogger(appCfg.Logger)
 	}
 	log := core.GetLogAgent(core.LogLevelTrace, "APP")
 	log.Info("Start server application")
-	log.Info("Server app params: %+v", appPar)
-	if appCfg != nil {
-		log.Info("Config logger: %+v", appCfg.Logger)
-		log.Info("Config server: %+v", appCfg.Server)
-	}
-	srv := duplex.NewDuplexServer(&appCfg.Server, log)
+	log.Info(appPar.String())
+	log.Info(appCfg.String())
+
+	srv := duplex.NewDuplexServer(appCfg.Duplex, log)
 	obj := handler.NewObjectProxy()
 	obj.Init(srv)
 	srv.SetClientManager(obj.GetClientManager())

@@ -21,15 +21,11 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	core.StartFileLogger(&appCfg.Logger)
+	core.StartFileLogger(appCfg.Logger)
 	log := core.GetLogAgent(core.LogLevelTrace, "APP")
 	log.Info("Start application")
-	log.Info("App params: %+v", appPar)
-	if appCfg != nil {
-		log.Info("Config logger: %+v", appCfg.Logger)
-		log.Info("Config client: %+v", appCfg.Client)
-		log.Info("Config device: %+v", appCfg.Device)
-	}
+	log.Info(appPar.String())
+	log.Info(appCfg.String())
 
 	dev := system.NewSystemDevice(appCfg)
 	drv := driver.NewDummyDriver()

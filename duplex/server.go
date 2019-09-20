@@ -15,6 +15,20 @@ type ServerConfig struct {
 	Port int32 `yaml:"port"`
 }
 
+func GetDefaultServerConfig() *ServerConfig {
+	srvCfg := &ServerConfig{
+		Port: DuplexPort,
+	}
+	return srvCfg
+}
+
+func (cfg *ServerConfig) String() string {
+	str := fmt.Sprintf("Duplex server config: "+
+		"Port = %d.",
+		cfg.Port)
+	return str
+}
+
 type DuplexServer struct {
 	config   *ServerConfig
 	listener *net.TCPListener

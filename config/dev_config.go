@@ -4,12 +4,12 @@ type EnumDevRole int32
 
 // Device types
 const (
-	DevRolePrinter EnumDevRole = 1 >> iota
+	DevRolePrinter EnumDevRole = 1 << iota
 	DevRoleBarScanner
 	DevRoleCardReader
 	DevRoleValidator
 	DevRoleItemVendor
-	DevRoleDispensor
+	DevRoleDispenser
 	DevRoleTerminal
 	DevRoleCustom
 )
@@ -51,8 +51,11 @@ type PrinterConfig struct {
 type ReaderConfig struct {
 	SkipPrefix int32 `yaml:"skipPrefix"`
 	CardAccept int16 `yaml:"cardAccept"`
-	NeedEnter  bool  `yaml:"needEnter"`
-	PinDigits  int32 `yaml:"pinDigits"`
+}
+
+type PinPadConfig struct {
+	NeedEnter bool  `yaml:"needEnter"`
+	PinDigits int32 `yaml:"pinDigits"`
 }
 
 type ValidatorConfig struct {
@@ -76,11 +79,26 @@ type VendorConfig struct {
 }
 
 type DeviceConfig struct {
-	Common    CommonConfig    `yaml:"common"`
-	Serial    SerialConfig    `yaml:"serial"`
-	Printer   PrinterConfig   `yaml:"printer"`
-	Reader    ReaderConfig    `yaml:"reader"`
-	Validator ValidatorConfig `yaml:"validator"`
-	Dispenser DispenserConfig `yaml:"dispenser"`
-	Vendor    VendorConfig    `yaml:"vendor"`
+	Common    *CommonConfig    `yaml:"common"`
+	Serial    *SerialConfig    `yaml:"serial"`
+	Printer   *PrinterConfig   `yaml:"printer"`
+	Reader    *ReaderConfig    `yaml:"reader"`
+	Pinpad    *PinPadConfig    `yaml:"pinpad"`
+	Validator *ValidatorConfig `yaml:"validator"`
+	Dispenser *DispenserConfig `yaml:"dispenser"`
+	Vendor    *VendorConfig    `yaml:"vendor"`
+}
+
+func GetDefaultDeviceConfig() *DeviceConfig {
+	devCfg := &DeviceConfig{
+		Common:    &CommonConfig{},
+		Serial:    &SerialConfig{},
+		Printer:   &PrinterConfig{},
+		Reader:    &ReaderConfig{},
+		Pinpad:    &PinPadConfig{},
+		Validator: &ValidatorConfig{},
+		Dispenser: &DispenserConfig{},
+		Vendor:    &VendorConfig{},
+	}
+	return devCfg
 }

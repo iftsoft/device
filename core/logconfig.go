@@ -35,8 +35,8 @@ func GetDefaultConfig(name string) *LogConfig {
 	cfg := LogConfig{
 		LogPath:   "",
 		LogFile:   name,
-		LogLevel:  LogLevelInfo,
-		ConsLevel: LogLevelError,
+		LogLevel:  LogLevelTrace,
+		ConsLevel: LogLevelDump,
 		MaxFiles:  8,
 		MaxSize:   1024,
 		Source:    false,

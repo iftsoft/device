@@ -14,6 +14,21 @@ type ClientConfig struct {
 	DevName string `yaml:"devName"`
 }
 
+func GetDefaultClientConfig() *ClientConfig {
+	srvCfg := &ClientConfig{
+		Port:    DuplexPort,
+		DevName: "",
+	}
+	return srvCfg
+}
+
+func (cfg *ClientConfig) String() string {
+	str := fmt.Sprintf("Duplex client config: "+
+		"Port = %d, DevName = %s.",
+		cfg.Port, cfg.DevName)
+	return str
+}
+
 type DuplexClient struct {
 	Duplex
 	config   *ClientConfig

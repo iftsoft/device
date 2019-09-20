@@ -38,13 +38,13 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 		return nil
 	}
 	sd := SystemDevice{
-		devName:   cfg.Client.DevName,
+		devName:   cfg.Duplex.DevName,
 		unitMask:  common.ScopeFlagUnknown,
 		backMask:  common.ScopeFlagUnknown,
 		state:     common.SysStateUndefined,
 		driver:    nil,
-		duplex:    duplex.NewDuplexClient(&cfg.Client),
-		config:    &cfg.Device,
+		duplex:    duplex.NewDuplexClient(cfg.Duplex),
+		config:    cfg.Device,
 		system:    proxy.NewSystemClient(),
 		device:    proxy.NewDeviceClient(),
 		printer:   proxy.NewPrinterClient(),
