@@ -4,6 +4,7 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/linker"
 )
 
 type DummyDriver struct {
@@ -13,6 +14,7 @@ type DummyDriver struct {
 	reader    common.ReaderCallback
 	validator common.ValidatorCallback
 	pinpad    common.PinPadCallback
+	linker    linker.PortLinker
 	log       *core.LogAgent
 }
 
@@ -24,6 +26,7 @@ func NewDummyDriver() *DummyDriver {
 		reader:    nil,
 		validator: nil,
 		pinpad:    nil,
+		linker:    nil,
 		log:       core.GetLogAgent(core.LogLevelTrace, "Dummy"),
 	}
 	return &dd
@@ -58,16 +61,19 @@ func (dd *DummyDriver) InitDevice(manager interface{}) common.DevScopeMask {
 
 func (dd *DummyDriver) StartDevice(cfg *config.DeviceConfig) error {
 	dd.config = cfg
+	dd.linker = linker.GetPortLinker(cfg.Linker)
+	err := dd.linker.Open()
 	dd.log.Debug("DummyDriver run cmd:%s", "StartDevice")
-	return nil
+	return err
 }
 func (dd *DummyDriver) DeviceTimer(unix int64) error {
 	dd.log.Debug("DummyDriver run cmd:%s", "DeviceTimer")
 	return nil
 }
 func (dd *DummyDriver) StopDevice() error {
+	err := dd.linker.Close()
 	dd.log.Debug("DummyDriver run cmd:%s", "StopDevice")
-	return nil
+	return err
 }
 func (dd *DummyDriver) CheckDevice(metrics *common.SystemMetrics) error {
 	dd.log.Debug("DummyDriver run cmd:%s", "CheckDevice")
