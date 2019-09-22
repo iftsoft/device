@@ -25,17 +25,17 @@ func (d DummyLink) Close() error {
 	return nil
 }
 
-func (d DummyLink) Reset() error {
+func (d DummyLink) Reset(ResetMode) error {
 	d.log.Debug("DummyLink run cmd:Reset")
 	return nil
 }
 
-func (d DummyLink) Write(data []byte) error {
+func (d DummyLink) Write(data []byte) (int, error) {
 	d.log.Debug("DummyLink run cmd:Write")
-	return nil
+	return 0, nil
 }
 
-func (d DummyLink) Read(wait int) ([]byte, error) {
+func (d DummyLink) Read(data []byte) (int, error) {
 	d.log.Debug("DummyLink run cmd:Read")
-	return nil, nil
+	return 0, nil
 }

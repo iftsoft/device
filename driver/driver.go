@@ -6,9 +6,9 @@ import (
 )
 
 type DeviceDriver interface {
-	InitDevice(manager interface{}) common.DevScopeMask
-	StartDevice(cfg *config.DeviceConfig) error
+	InitDevice(manager interface{}, cfg *config.DeviceConfig) common.DevScopeMask
+	StartDevice() error
+	StopDevice() error
 	DeviceTimer(unix int64) error
 	CheckDevice(metrics *common.SystemMetrics) error
-	StopDevice() error
 }

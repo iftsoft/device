@@ -2,12 +2,14 @@ package linker
 
 import "github.com/iftsoft/device/config"
 
+type ResetMode byte
+
 type PortLinker interface {
 	Open() error
 	Close() error
-	Reset() error
-	Write(data []byte) error
-	Read(wait int) ([]byte, error)
+	Reset(mode ResetMode) error
+	Write(data []byte) (int, error)
+	Read(data []byte) (int, error)
 }
 
 func GetPortLinker(cfg *config.LinkerConfig) PortLinker {

@@ -99,7 +99,7 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	// Setup Device driver interface
 	if drv, ok := worker.(driver.DeviceDriver); ok {
 		sd.driver = drv
-		sd.backMask = drv.InitDevice(sd)
+		sd.backMask = drv.InitDevice(sd, sd.config)
 		return nil
 	}
 	return errors.New("device driver is not implemented")
@@ -125,7 +125,7 @@ func (sd *SystemDevice) deviceLoop(wg *sync.WaitGroup) {
 	defer sd.log.Debug("System device loop is stopped")
 
 	if sd.config.Common.AutoLoad {
-		err := sd.driver.StartDevice(sd.config)
+		err := sd.driver.StartDevice()
 		if err == nil {
 			sd.state = common.SysStateRunning
 		}
@@ -202,7 +202,7 @@ func (sd *SystemDevice) Inform(name string, query *common.SystemQuery) error {
 
 func (sd *SystemDevice) Start(name string, query *common.SystemQuery) error {
 	sd.state = common.SysStateUndefined
-	err := sd.driver.StartDevice(sd.config)
+	err := sd.driver.StartDevice()
 	if err == nil {
 		sd.state = common.SysStateRunning
 	}
@@ -241,7 +241,7 @@ func (sd *SystemDevice) Restart(name string, query *common.SystemQuery) error {
 		if err == nil {
 			sd.state = common.SysStateStopped
 		}
-		err = sd.driver.StartDevice(sd.config)
+		err = sd.driver.StartDevice()
 		if err == nil {
 			sd.state = common.SysStateRunning
 		}

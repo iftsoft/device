@@ -33,8 +33,11 @@ func NewDummyDriver() *DummyDriver {
 }
 
 // Implementation of DeviceDriver interface
-func (dd *DummyDriver) InitDevice(manager interface{}) common.DevScopeMask {
+func (dd *DummyDriver) InitDevice(manager interface{}, cfg *config.DeviceConfig) common.DevScopeMask {
 	dd.log.Debug("DummyDriver run cmd:%s", "InitDevice")
+	dd.config = cfg
+	dd.linker = linker.GetPortLinker(cfg.Linker)
+
 	mask := common.ScopeFlagSystem
 	if device, ok := manager.(common.DeviceCallback); ok {
 		dd.device = device
@@ -59,9 +62,7 @@ func (dd *DummyDriver) InitDevice(manager interface{}) common.DevScopeMask {
 	return mask
 }
 
-func (dd *DummyDriver) StartDevice(cfg *config.DeviceConfig) error {
-	dd.config = cfg
-	dd.linker = linker.GetPortLinker(cfg.Linker)
+func (dd *DummyDriver) StartDevice() error {
 	err := dd.linker.Open()
 	dd.log.Debug("DummyDriver run cmd:%s", "StartDevice")
 	return err

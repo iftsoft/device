@@ -10,14 +10,14 @@ const (
 )
 
 type SerialConfig struct {
-	PortNumber  int32 `yaml:"portNumber"`
-	BaudRate    int32 `yaml:"baudRate"`
-	DataBits    int32 `yaml:"dataBits"`
-	StopBits    int32 `yaml:"stopBits"`
-	Parity      int32 `yaml:"parity"`
-	FlowControl int32 `yaml:"flowControl"`
-	SendTimeout int32 `yaml:"sendTimeout"`
-	RecvTimeout int32 `yaml:"recvTimeout"`
+	PortName    string `yaml:"portName"`
+	BaudRate    uint32 `yaml:"baudRate"`
+	DataBits    uint16 `yaml:"dataBits"`
+	StopBits    uint16 `yaml:"stopBits"`
+	Parity      uint16 `yaml:"parity"`
+	FlowControl uint16 `yaml:"flowControl"`
+	SendTimeout uint16 `yaml:"sendTimeout"`
+	RecvTimeout uint16 `yaml:"recvTimeout"`
 }
 
 type HidUsbConfig struct {
