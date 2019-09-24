@@ -22,6 +22,19 @@ func NewDummyLinker(cfg *config.HidUsbConfig) *HidUsbLink {
 	return &h
 }
 
+func EnumerateHidUsbPorts() (list []*config.HidUsbConfig, err error) {
+	units := hid.Enumerate(0, 0)
+	for _, unit := range units {
+		item := &config.HidUsbConfig{
+			VendorID:  unit.VendorID,
+			ProductID: unit.ProductID,
+			Serial:    unit.Serial,
+		}
+		list = append(list, item)
+	}
+	return list, err
+}
+
 func (h HidUsbLink) Open() (err error) {
 	if h.config == nil {
 		return errors.New("HidUsb config is not set")

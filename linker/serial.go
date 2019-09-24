@@ -22,6 +22,11 @@ func NewSerialLink(cfg *config.SerialConfig) *SerialLink {
 	return &s
 }
 
+func EnumerateSerialPorts() (list []string, err error) {
+	list, err = serial.GetPortsList()
+	return list, err
+}
+
 func (s SerialLink) Open() (err error) {
 	if s.config == nil {
 		return errors.New("serial config is not set")
