@@ -24,6 +24,9 @@ func NewDummyLinker(cfg *config.HidUsbConfig) *HidUsbLink {
 
 func EnumerateHidUsbPorts() (list []*config.HidUsbConfig, err error) {
 	units := hid.Enumerate(0, 0)
+	if units == nil {
+		return nil, errors.New("hidapi library is not working")
+	}
 	for _, unit := range units {
 		item := &config.HidUsbConfig{
 			VendorID:  unit.VendorID,

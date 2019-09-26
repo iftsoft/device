@@ -26,7 +26,7 @@ func main() {
 	log.Info(appPar.String())
 	log.Info(appCfg.String())
 
-	err = GetLinkerPorts(log)
+	err = linker.GetLinkerPorts(log)
 
 	srv := duplex.NewDuplexServer(appCfg.Duplex, log)
 	obj := handler.NewObjectProxy()
@@ -44,22 +44,4 @@ func main() {
 	time.Sleep(time.Second)
 	core.StopFileLogger()
 	fmt.Println("-------END------------")
-}
-
-func GetLinkerPorts(out *core.LogAgent) error {
-	out.Info("Serial ports")
-	serList, err := linker.EnumerateSerialPorts()
-	if err == nil {
-		for i, ser := range serList {
-			out.Info("   Port#%d - %s", i, ser)
-		}
-	}
-	out.Info("HID / USB ports")
-	hidList, err := linker.EnumerateHidUsbPorts()
-	if err == nil {
-		for i, hid := range hidList {
-			out.Info("   Port#%d - %d:%d/%s", i, hid.VendorID, hid.ProductID, hid.Serial)
-		}
-	}
-	return err
 }

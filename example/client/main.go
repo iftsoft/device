@@ -5,6 +5,7 @@ import (
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/driver"
+	"github.com/iftsoft/device/linker"
 	"github.com/iftsoft/device/system"
 	"time"
 )
@@ -23,6 +24,8 @@ func main() {
 	log.Info("Start application")
 	log.Info(appPar.String())
 	log.Info(appCfg.String())
+
+	err = linker.GetLinkerPorts(log)
 
 	dev := system.NewSystemDevice(appCfg)
 	drv := driver.NewDummyDriver()
