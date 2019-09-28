@@ -16,6 +16,7 @@ type DummyDriver struct {
 	pinpad    common.PinPadCallback
 	linker    linker.PortLinker
 	log       *core.LogAgent
+	devState  common.EnumDevState
 }
 
 func NewDummyDriver() *DummyDriver {
@@ -28,6 +29,7 @@ func NewDummyDriver() *DummyDriver {
 		pinpad:    nil,
 		linker:    nil,
 		log:       core.GetLogAgent(core.LogLevelTrace, "Dummy"),
+		devState:  common.DevStateUndefined,
 	}
 	return &dd
 }
@@ -64,6 +66,9 @@ func (dd *DummyDriver) InitDevice(manager interface{}, cfg *config.DeviceConfig)
 
 func (dd *DummyDriver) StartDevice() error {
 	err := dd.linker.Open()
+	//if err == nil {
+	//	err = linker.CheckPortLoopback(dd.linker)
+	//}
 	dd.log.Debug("DummyDriver run cmd:%s", "StartDevice")
 	return err
 }
@@ -105,8 +110,12 @@ func (dd *DummyDriver) dummyDeviceReply(name string, cmd string, query interface
 	}
 	reply := &common.DeviceReply{}
 	reply.Command = cmd
-	reply.DevState = common.DevStateUndefined
+	reply.DevState = dd.devState
 	var err error
+	err = linker.CheckPortLoopback(dd.linker)
+	if err != nil {
+		reply.ErrText = err.Error()
+	}
 	if dd.device != nil {
 		err = dd.device.DeviceReply(name, reply)
 	}

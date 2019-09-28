@@ -1,16 +1,15 @@
 package linker
 
 import (
+	"errors"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 )
 
-type ResetMode byte
-
 type PortLinker interface {
 	Open() error
 	Close() error
-	Reset(mode ResetMode) error
+	Flash() error
 	Write(data []byte) (int, error)
 	Read(data []byte) (int, error)
 }
@@ -32,23 +31,45 @@ func GetPortLinker(cfg *config.LinkerConfig) PortLinker {
 }
 
 func GetLinkerPorts(out *core.LogAgent) error {
-	out.Info("Serial ports")
-	serList, err := EnumerateSerialPorts()
-	if err == nil {
-		for i, ser := range serList {
-			out.Info("   Port#%d - %s", i, ser)
-		}
-	} else {
+	_, err := EnumerateSerialPorts(out)
+	if err != nil {
 		out.Error("Serial port error: %s", err.Error())
 	}
-	out.Info("HID / USB ports")
-	hidList, err := EnumerateHidUsbPorts()
-	if err == nil {
-		for i, hid := range hidList {
-			out.Info("   Port#%d - %d:%d/%s", i, hid.VendorID, hid.ProductID, hid.Serial)
-		}
-	} else {
+	_, err = EnumerateHidUsbPorts(out)
+	if err != nil {
 		out.Error("HidUsb port error: %s", err.Error())
+	}
+	return err
+}
+
+func CheckPortLoopback(port PortLinker) error {
+	if port == nil {
+		return errors.New("wrong linker pointer")
+	}
+	err := port.Flash()
+	if err != nil {
+		return err
+	}
+
+	var nw, nr int
+	data := []byte{0xAA, 0x55, 0x00, 0xFF}
+	dump := make([]byte, 8)
+	nw, err = port.Write(data)
+	if err != nil {
+		return err
+	}
+	nr, err = port.Read(dump)
+	if err != nil {
+		return err
+	}
+	if nw != nr {
+		return errors.New("wrong byte count")
+	}
+	if data[0] != dump[0] &&
+		data[1] != dump[1] &&
+		data[2] != dump[2] &&
+		data[3] != dump[3] {
+		return errors.New("wrong dump data")
 	}
 	return err
 }

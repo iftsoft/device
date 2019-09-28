@@ -22,12 +22,15 @@ func NewDummyLinker(cfg *config.HidUsbConfig) *HidUsbLink {
 	return &h
 }
 
-func EnumerateHidUsbPorts() (list []*config.HidUsbConfig, err error) {
+func EnumerateHidUsbPorts(out *core.LogAgent) (list []*config.HidUsbConfig, err error) {
+	out.Debug("HidUsb port enumeration")
 	units := hid.Enumerate(0, 0)
 	if units == nil {
 		return nil, errors.New("hidapi library is not working")
 	}
-	for _, unit := range units {
+	for i, unit := range units {
+		out.Dump("   Port#%d - %d:%d/%s (%s - %s, %s)", i,
+			unit.VendorID, unit.ProductID, unit.Serial, unit.Manufacturer, unit.Product, unit.Path)
 		item := &config.HidUsbConfig{
 			VendorID:  unit.VendorID,
 			ProductID: unit.ProductID,
@@ -38,7 +41,7 @@ func EnumerateHidUsbPorts() (list []*config.HidUsbConfig, err error) {
 	return list, err
 }
 
-func (h HidUsbLink) Open() (err error) {
+func (h *HidUsbLink) Open() (err error) {
 	if h.config == nil {
 		return errors.New("HidUsb config is not set")
 	}
@@ -51,7 +54,7 @@ func (h HidUsbLink) Open() (err error) {
 	return err
 }
 
-func (h HidUsbLink) Close() (err error) {
+func (h *HidUsbLink) Close() (err error) {
 	if h.link == nil {
 		return err
 	}
@@ -62,11 +65,11 @@ func (h HidUsbLink) Close() (err error) {
 	return err
 }
 
-func (h HidUsbLink) Reset(ResetMode) error {
+func (h *HidUsbLink) Flash() error {
 	return nil
 }
 
-func (h HidUsbLink) Write(data []byte) (n int, err error) {
+func (h *HidUsbLink) Write(data []byte) (n int, err error) {
 	if h.link == nil {
 		err = errors.New("serial port is not open")
 	}
@@ -74,7 +77,7 @@ func (h HidUsbLink) Write(data []byte) (n int, err error) {
 	return n, err
 }
 
-func (h HidUsbLink) Read(data []byte) (n int, err error) {
+func (h *HidUsbLink) Read(data []byte) (n int, err error) {
 	if h.link == nil {
 		err = errors.New("serial port is not open")
 	}

@@ -25,7 +25,7 @@ func (d DummyLink) Close() error {
 	return nil
 }
 
-func (d DummyLink) Reset(ResetMode) error {
+func (d DummyLink) Flash() error {
 	d.log.Debug("DummyLink run cmd:Reset")
 	return nil
 }
