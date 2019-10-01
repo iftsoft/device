@@ -8,20 +8,25 @@ import (
 )
 
 type Loopback struct {
-	config *config.DeviceConfig
-	log    *core.LogAgent
-	linker PortLinker
-	reply  chan []byte
+	config  *config.DeviceConfig
+	log     *core.LogAgent
+	linker  PortLinker
+	reply   chan []byte
+	timeout uint16
 }
 
 func GetLoopback(cfg *config.DeviceConfig, log *core.LogAgent) *Loopback {
 	lb := &Loopback{
-		config: cfg,
-		log:    log,
-		linker: nil,
-		reply:  make(chan []byte),
+		config:  cfg,
+		log:     log,
+		linker:  nil,
+		reply:   make(chan []byte),
+		timeout: cfg.Linker.Timeout,
 	}
 	lb.linker = GetPortLinker(cfg.Linker, lb)
+	if lb.timeout == 0 {
+		lb.timeout = 250
+	}
 	return lb
 }
 
@@ -72,8 +77,8 @@ func (lb *Loopback) CheckLink() error {
 		case dump = <-lb.reply:
 			goto StopWait
 		case tm := <-tick.C:
-			delta := tm.Sub(start) / time.Millisecond
-			if delta > 500 {
+			delta := uint16(tm.Sub(start) / time.Millisecond)
+			if delta > lb.timeout {
 				lb.log.Warn("Loopback timeout (ms): %d", delta)
 				return errors.New("linker timeout")
 			}

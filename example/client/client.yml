@@ -1,36 +1,40 @@
 # Test config file
 duplex:
   port: 9380
-#  devName: TestDevice
+#  dev_name: TestDevice
 
 logger:
-  logPath: ../logs
-  logFile: client
+  log_path: ../logs
+  log_file: client
+  log_level: 7
+  cons_level: 7
+#  max_files: 2
+#  max_size: 256
   source:  false
-  logLevel: 7
-  consLevel: 7
-#  maxFiles: 2
-#  maxSize: 256
 
 device:
+  linker:
+    link_type: 0
+    timeout: 250
+    serial:
+      # port_name: /dev/ttyUSB2
+      port_name: COM3
+      baud_rate: 9600
+      data_bits: 8
+      stop_bits: 1
+      parity: 0
+    hidusb:
+      vendor_id: 0
+      product_id: 0
+      serial:
   common:
     model: screen
     version: 0.1.0
     timeout: 30
-    autoLoad: False
+    auto_load: False
   printer:
   reader:
   validator:
   dispenser:
   vendor:
-  linker:
-    linkType: 0
-    serial:
-#      portName: /dev/ttyUSB2
-      portName: COM3
-      baudRate: 9600
-      dataBits: 8
-      stopBits: 1
-      parity: 0
-      sendTimeout: 50
-      recvTimeout: 250
+

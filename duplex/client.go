@@ -11,7 +11,7 @@ import (
 
 type ClientConfig struct {
 	Port    int32  `yaml:"port"`
-	DevName string `yaml:"devName"`
+	DevName string `yaml:"dev_name"`
 }
 
 func GetDefaultClientConfig() *ClientConfig {

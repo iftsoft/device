@@ -3,11 +3,11 @@ duplex:
   port: 9380
 
 logger:
-  logPath: ../logs
-  logFile: server
+  log_path: ../logs
+  log_file: server
+#  log_level: 7
+#  cons_level: 6
+#  max_files: 2
+#  max_size: 256
   source: false
-#  logLevel: 7
-#  consLevel: 6
-#  maxFiles: 2
-#  maxSize: 256
 

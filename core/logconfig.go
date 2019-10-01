@@ -6,12 +6,12 @@ import (
 )
 
 type LogConfig struct {
-	LogPath   string `yaml:"logPath"`
-	LogFile   string `yaml:"logFile"`
-	LogLevel  int    `yaml:"logLevel"`
-	ConsLevel int    `yaml:"consLevel"`
-	MaxFiles  int    `yaml:"maxFiles"` // limit the number of log files under `logPath`
-	MaxSize   int64  `yaml:"maxSize"`  // limit size of a log file (KByte)
+	LogPath   string `yaml:"log_path"`
+	LogFile   string `yaml:"log_file"`
+	LogLevel  int    `yaml:"log_level"`
+	ConsLevel int    `yaml:"cons_level"`
+	MaxFiles  int    `yaml:"max_files"` // limit the number of log files under `logPath`
+	MaxSize   int64  `yaml:"max_size"`  // limit size of a log file (KByte)
 	Source    bool   `yaml:"source"`
 }
 
