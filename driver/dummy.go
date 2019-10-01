@@ -14,7 +14,7 @@ type DummyDriver struct {
 	reader    common.ReaderCallback
 	validator common.ValidatorCallback
 	pinpad    common.PinPadCallback
-	linker    linker.PortLinker
+	loopback  *linker.Loopback
 	log       *core.LogAgent
 	devState  common.EnumDevState
 }
@@ -27,7 +27,7 @@ func NewDummyDriver() *DummyDriver {
 		reader:    nil,
 		validator: nil,
 		pinpad:    nil,
-		linker:    nil,
+		loopback:  nil,
 		log:       core.GetLogAgent(core.LogLevelTrace, "Dummy"),
 		devState:  common.DevStateUndefined,
 	}
@@ -38,7 +38,7 @@ func NewDummyDriver() *DummyDriver {
 func (dd *DummyDriver) InitDevice(manager interface{}, cfg *config.DeviceConfig) common.DevScopeMask {
 	dd.log.Debug("DummyDriver run cmd:%s", "InitDevice")
 	dd.config = cfg
-	dd.linker = linker.GetPortLinker(cfg.Linker)
+	dd.loopback = linker.GetLoopback(dd.config, dd.log)
 
 	mask := common.ScopeFlagSystem
 	if device, ok := manager.(common.DeviceCallback); ok {
@@ -65,11 +65,8 @@ func (dd *DummyDriver) InitDevice(manager interface{}, cfg *config.DeviceConfig)
 }
 
 func (dd *DummyDriver) StartDevice() error {
-	err := dd.linker.Open()
-	//if err == nil {
-	//	err = linker.CheckPortLoopback(dd.linker)
-	//}
 	dd.log.Debug("DummyDriver run cmd:%s", "StartDevice")
+	err := dd.loopback.OpenLink()
 	return err
 }
 func (dd *DummyDriver) DeviceTimer(unix int64) error {
@@ -77,8 +74,8 @@ func (dd *DummyDriver) DeviceTimer(unix int64) error {
 	return nil
 }
 func (dd *DummyDriver) StopDevice() error {
-	err := dd.linker.Close()
 	dd.log.Debug("DummyDriver run cmd:%s", "StopDevice")
+	err := dd.loopback.CloseLink()
 	return err
 }
 func (dd *DummyDriver) CheckDevice(metrics *common.SystemMetrics) error {
@@ -108,14 +105,11 @@ func (dd *DummyDriver) dummyDeviceReply(name string, cmd string, query interface
 	if dd.log != nil {
 		dd.log.Debug("DummyDriver dev:%s run cmd:%s", name, cmd)
 	}
+	err := dd.loopback.CheckLink()
 	reply := &common.DeviceReply{}
 	reply.Command = cmd
 	reply.DevState = dd.devState
-	var err error
-	err = linker.CheckPortLoopback(dd.linker)
-	if err != nil {
-		reply.ErrText = err.Error()
-	}
+	reply.ErrText = core.GetErrorText(err)
 	if dd.device != nil {
 		err = dd.device.DeviceReply(name, reply)
 	}

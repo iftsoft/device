@@ -8,7 +8,7 @@ logger:
   logFile: client
   source:  false
   logLevel: 7
-  consLevel: 6
+  consLevel: 7
 #  maxFiles: 2
 #  maxSize: 256
 
@@ -24,9 +24,10 @@ device:
   dispenser:
   vendor:
   linker:
-    linkType: 1
+    linkType: 0
     serial:
-      portName: /dev/ttyUSB2
+#      portName: /dev/ttyUSB2
+      portName: COM3
       baudRate: 9600
       dataBits: 8
       stopBits: 1
