@@ -162,36 +162,36 @@ func (oh *ObjectHandler) SystemHealth(name string, reply *common.SystemHealth) e
 // Implementation of common.DeviceCallback
 func (oh *ObjectHandler) DeviceReply(name string, reply *common.DeviceReply) error {
 	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.DeviceReply dev:%s, cmd:%s, state:%d",
-			name, reply.Command, reply.DevState)
+		oh.log.Debug("ObjectHandler.DeviceReply dev:%s, cmd:%s, state:%s",
+			name, reply.Command, reply.DevState.String())
 	}
 	return nil
 }
 func (oh *ObjectHandler) ExecuteError(name string, reply *common.DeviceError) error {
 	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.ExecuteError dev:%s, action:%d, error:%d - %s",
-			name, reply.Action, reply.ErrCode, reply.ErrText)
+		oh.log.Debug("ObjectHandler.ExecuteError dev:%s, action:%s, error:%d - %s",
+			name, reply.Action.String(), reply.ErrCode, reply.ErrText)
 	}
 	return nil
 }
 func (oh *ObjectHandler) StateChanged(name string, reply *common.DeviceState) error {
 	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.StateChanged dev:%s, old state:%d, new state:%d",
-			name, reply.OldState, reply.NewState)
+		oh.log.Debug("ObjectHandler.StateChanged dev:%s, old state:%s, new state:%s",
+			name, reply.OldState.String(), reply.NewState.String())
 	}
 	return nil
 }
 func (oh *ObjectHandler) ActionPrompt(name string, reply *common.DevicePrompt) error {
 	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.ActionPrompt dev:%s, action:%d, prompt:%d",
-			name, reply.Action, reply.Prompt)
+		oh.log.Debug("ObjectHandler.ActionPrompt dev:%s, action:%s, prompt:%s",
+			name, reply.Action.String(), reply.Prompt.String())
 	}
 	return nil
 }
 func (oh *ObjectHandler) ReaderReturn(name string, reply *common.DeviceInform) error {
 	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.ReaderReturn dev:%s, action:%d, info:%s",
-			name, reply.Action, reply.Inform)
+		oh.log.Debug("ObjectHandler.ReaderReturn dev:%s, action:%s, info:%s",
+			name, reply.Action.String(), reply.Inform)
 	}
 	return nil
 }
