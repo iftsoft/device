@@ -42,8 +42,8 @@ func (s *SerialLink) Open() (err error) {
 	m := &serial.Mode{
 		BaudRate: int(s.config.BaudRate),
 		DataBits: int(s.config.DataBits),
-		Parity:   serial.OddParity,  //serial.Parity(s.config.Parity),
-		StopBits: serial.OneStopBit, //.StopBits(s.config.StopBits),
+		Parity:   serial.Parity(s.config.Parity),
+		StopBits: serial.StopBits(s.config.StopBits),
 	}
 	s.port, err = serial.Open(s.config.PortName, m)
 	if s.port == nil && err == nil {

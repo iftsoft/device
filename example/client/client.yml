@@ -21,8 +21,8 @@ device:
       port_name: COM3
       baud_rate: 9600
       data_bits: 8
-      stop_bits: 1
-      parity: 0
+      stop_bits: 0
+      parity: 1
     hidusb:
       vendor_id: 0
       product_id: 0

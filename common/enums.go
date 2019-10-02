@@ -2,13 +2,12 @@ package common
 
 type DevAmount float32
 type DevCounter int32
-type DevCurrency int16
-type EnumDevType int16
-type EnumDevError int16
-type EnumDevState int16
-type EnumDevAction int16
-type EnumDevPrompt int16
-type EnumDevWarning int16
+type DevCurrency uint16
+type EnumDevType uint16
+type EnumDevError uint16
+type EnumDevState uint16
+type EnumDevAction uint16
+type EnumDevPrompt uint16
 type DevScopeMask uint64
 
 // Scope Flags
@@ -45,6 +44,37 @@ const (
 	DevErrorSuccess EnumDevError = iota
 	DevErrorBadArgument
 )
+
+// String returns a string explaining the device error
+func (e EnumDevError) String() string {
+	switch e {
+	case DevErrorSuccess:
+		return "Success"
+	case DevErrorBadArgument:
+		return "Bad argument"
+	default:
+		return "Other error"
+	}
+}
+
+// DevError is an implementation of error interface for device
+type DevError struct {
+	code   EnumDevError
+	reason error
+}
+
+// Error returns the full description of the error
+func (e DevError) Error() string {
+	if e.reason != nil {
+		return e.code.String() + ": " + e.reason.Error()
+	}
+	return e.code.String()
+}
+
+// Code returns an identifier for the kind of error occurred
+func (e DevError) Code() EnumDevError {
+	return e.code
+}
 
 // Device status codes
 const (
@@ -83,6 +113,18 @@ const (
 	DevState
 )
 
+// String returns a string explaining the device status
+func (e EnumDevState) String() string {
+	switch e {
+	case DevStateUndefined:
+		return "Undefined"
+	case DevStateReady:
+		return "Ready"
+	default:
+		return "Unknown"
+	}
+}
+
 // Device prompt codes
 const (
 	DevPromptNone EnumDevPrompt = iota
@@ -115,11 +157,35 @@ const (
 	DevPrompt
 )
 
+// String returns a string explaining the device prompt
+func (e EnumDevPrompt) String() string {
+	switch e {
+	case DevPromptNone:
+		return "Thank you"
+	case DevPromptUnitWait:
+		return "Please, wait while device is working"
+	default:
+		return "Unknown"
+	}
+}
+
 // Device action codes
 const (
 	DevActionNothing EnumDevAction = iota
 	DevAction
 )
+
+// String returns a string explaining the device action
+func (e EnumDevAction) String() string {
+	switch e {
+	case DevActionNothing:
+		return "Nothing"
+	case DevAction:
+		return "Action"
+	default:
+		return "Unknown"
+	}
+}
 
 /*
 // Device error codes

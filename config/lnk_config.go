@@ -1,6 +1,8 @@
 package config
 
-type EnumLinkType int16
+type EnumLinkType uint16
+type StopBits uint16
+type Parity uint16
 
 // Device types
 const (
@@ -9,12 +11,28 @@ const (
 	LinkTypeHidUsb
 )
 
+// Stop bits types
+const (
+	OneStopBit StopBits = iota
+	OneHalfStopBits
+	TwoStopBits
+)
+
+// Port parity types
+const (
+	NoParity Parity = iota
+	OddParity
+	EvenParity
+	MarkParity
+	SpaceParity
+)
+
 type SerialConfig struct {
-	PortName string `yaml:"port_name"`
-	BaudRate uint32 `yaml:"baud_rate"`
-	DataBits uint16 `yaml:"data_bits"`
-	StopBits uint16 `yaml:"stop_bits"`
-	Parity   uint16 `yaml:"parity"`
+	PortName string   `yaml:"port_name"`
+	BaudRate uint32   `yaml:"baud_rate"`
+	DataBits uint16   `yaml:"data_bits"`
+	StopBits StopBits `yaml:"stop_bits"`
+	Parity   Parity   `yaml:"parity"`
 }
 
 type HidUsbConfig struct {
@@ -34,8 +52,14 @@ func GetDefaultLinkerConfig() *LinkerConfig {
 	lnkCfg := &LinkerConfig{
 		LinkType: LinkTypeNone,
 		Timeout:  0,
-		Serial:   &SerialConfig{},
-		HidUsb:   &HidUsbConfig{},
+		Serial: &SerialConfig{
+			PortName: "",
+			BaudRate: 9600,
+			DataBits: 8,
+			StopBits: OneStopBit,
+			Parity:   OddParity,
+		},
+		HidUsb: &HidUsbConfig{},
 	}
 	return lnkCfg
 }
