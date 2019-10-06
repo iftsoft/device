@@ -52,3 +52,4 @@ func GetLinkerPorts(out *core.LogAgent) error {
 	}
 	return err
 }
+

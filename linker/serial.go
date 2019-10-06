@@ -27,6 +27,7 @@ func NewSerialLink(cfg *config.SerialConfig, call PortReader) *SerialLink {
 }
 
 func EnumerateSerialPorts(out *core.LogAgent) (list []string, err error) {
+	defer core.PanicRecover(&err, out)
 	out.Debug("Serial port enumeration")
 	list, err = serial.GetPortsList()
 	for i, ser := range list {
@@ -36,6 +37,7 @@ func EnumerateSerialPorts(out *core.LogAgent) (list []string, err error) {
 }
 
 func (s *SerialLink) Open() (err error) {
+	defer core.PanicRecover(&err, s.log)
 	if s.config == nil {
 		return errors.New("serial config is not set")
 	}
@@ -57,6 +59,7 @@ func (s *SerialLink) Open() (err error) {
 }
 
 func (s *SerialLink) Close() (err error) {
+	defer core.PanicRecover(&err, s.log)
 	if s.port == nil {
 		return err
 	}
@@ -68,8 +71,8 @@ func (s *SerialLink) Close() (err error) {
 	return err
 }
 
-func (s *SerialLink) Flash() error {
-	var err error
+func (s *SerialLink) Flash() (err error) {
+	defer core.PanicRecover(&err, s.log)
 	if s.port == nil {
 		err = errPortNotOpen
 	}
@@ -88,6 +91,7 @@ func (s *SerialLink) IsOpen() bool {
 }
 
 func (s *SerialLink) Write(data []byte) (n int, err error) {
+	defer core.PanicRecover(&err, s.log)
 	if s.port == nil {
 		return 0, errPortNotOpen
 	}
@@ -98,6 +102,7 @@ func (s *SerialLink) Write(data []byte) (n int, err error) {
 }
 
 func (s *SerialLink) readData(data []byte) (n int, err error) {
+	defer core.PanicRecover(&err, s.log)
 	if s.port == nil {
 		return 0, errPortNotOpen
 	}

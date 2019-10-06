@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"runtime"
 )
@@ -35,4 +36,16 @@ func TraceCallStack(text string, i int) string {
 		i++
 	}
 	return text
+}
+
+func PanicRecover(err *error, log *LogAgent) {
+	if r := recover(); r != nil {
+		if log != nil {
+			log.Panic("Panic happens: %+v", r)
+		}
+		if err != nil {
+			str := fmt.Sprintf("panic is recovered: %+v", r)
+			*err = errors.New(str)
+		}
+	}
 }

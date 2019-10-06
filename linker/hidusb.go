@@ -27,6 +27,7 @@ func NewDummyLinker(cfg *config.HidUsbConfig, call PortReader) *HidUsbLink {
 }
 
 func EnumerateHidUsbPorts(out *core.LogAgent) (list []*config.HidUsbConfig, err error) {
+	defer core.PanicRecover(&err, out)
 	out.Debug("HidUsb port enumeration")
 	units := hid.Enumerate(0, 0)
 	if units == nil {
@@ -46,6 +47,7 @@ func EnumerateHidUsbPorts(out *core.LogAgent) (list []*config.HidUsbConfig, err 
 }
 
 func (h *HidUsbLink) Open() (err error) {
+	defer core.PanicRecover(&err, h.log)
 	if h.config == nil {
 		return errors.New("HidUsb config is not set")
 	}
@@ -62,6 +64,7 @@ func (h *HidUsbLink) Open() (err error) {
 }
 
 func (h *HidUsbLink) Close() (err error) {
+	defer core.PanicRecover(&err, h.log)
 	if h.link == nil {
 		return err
 	}
@@ -84,6 +87,7 @@ func (h *HidUsbLink) IsOpen() bool {
 }
 
 func (h *HidUsbLink) Write(data []byte) (n int, err error) {
+	defer core.PanicRecover(&err, h.log)
 	if h.link == nil {
 		return 0, errPortNotOpen
 	}
@@ -94,6 +98,7 @@ func (h *HidUsbLink) Write(data []byte) (n int, err error) {
 }
 
 func (h *HidUsbLink) readData(data []byte) (n int, err error) {
+	defer core.PanicRecover(&err, h.log)
 	if h.link == nil {
 		return 0, errPortNotOpen
 	}
