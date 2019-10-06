@@ -8,6 +8,8 @@ import (
 
 var (
 	errPortNotOpen   = errors.New("port is not open")
+)
+const (
 	linkerBufferSize = 1024
 )
 
