@@ -1,8 +1,5 @@
 package common
 
-type DevAmount float32
-type DevCounter int32
-type DevCurrency uint16
 type EnumDevType uint16
 type EnumDevError uint16
 type EnumDevState uint16
