@@ -25,7 +25,8 @@ func (cfg *LogConfig) PrintData() {
 	fmt.Println("Source   ", cfg.Source)
 }
 func (cfg *LogConfig) String() string {
-	str := fmt.Sprintf("Logging config: "+
+	if cfg == nil { return "" }
+	str := fmt.Sprintf("\nLogging config: "+
 		"LogPath = %s, LogFile = %s, LogLevel = %s, ConsLevel = %s, MaxFiles = %d, MaxSize = %d, Source = %v.",
 		cfg.LogPath, cfg.LogFile, GetLogLevelText(cfg.LogLevel), GetLogLevelText(cfg.ConsLevel), cfg.MaxFiles, cfg.MaxSize, cfg.Source)
 	return str

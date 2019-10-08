@@ -13,22 +13,22 @@ type AppConfig struct {
 }
 
 func (cfg *AppConfig) String() string {
-	str := fmt.Sprintf("Duplex app config: \n%s\n%s\nDevice config: %v",
-		cfg.Logger.String(), cfg.Duplex.String(), cfg.Device)
+	str := fmt.Sprintf("Client app config: %s %s %s",
+		cfg.Logger.String(), cfg.Duplex.String(), cfg.Device.String())
 	return str
 }
 
-func GetDefaultAppConfig() *AppConfig {
+func GetDefaultAppConfig(devCfg *DeviceConfig) *AppConfig {
 	appCfg := &AppConfig{
 		Logger: core.GetDefaultConfig(""),
 		Duplex: duplex.GetDefaultClientConfig(),
-		Device: GetDefaultDeviceConfig(),
+		Device: devCfg,
 	}
 	return appCfg
 }
 
-func GetAppConfig(appPar *AppParams) (error, *AppConfig) {
-	appCfg := GetDefaultAppConfig()
+func GetAppConfig(appPar *AppParams, devCfg *DeviceConfig) (error, *AppConfig) {
+	appCfg := GetDefaultAppConfig(devCfg)
 	err := core.ReadYamlFile(appPar.Config, appCfg)
 	if err != nil {
 		return err, nil

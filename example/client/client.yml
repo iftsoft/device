@@ -14,15 +14,15 @@ logger:
 
 device:
   linker:
-    link_type: 0
+    link_type: 1
     timeout: 250
     serial:
       # port_name: /dev/ttyUSB2
-      port_name: COM3
+      port_name: COM4
       baud_rate: 9600
       data_bits: 8
       stop_bits: 0
-      parity: 1
+      parity: 0
     hidusb:
       vendor_id: 0
       product_id: 0

@@ -23,7 +23,8 @@ func GetDefaultClientConfig() *ClientConfig {
 }
 
 func (cfg *ClientConfig) String() string {
-	str := fmt.Sprintf("Duplex client config: "+
+	if cfg == nil { return "" }
+	str := fmt.Sprintf("\nDuplex client config: "+
 		"Port = %d, DevName = %s.",
 		cfg.Port, cfg.DevName)
 	return str

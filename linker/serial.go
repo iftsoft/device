@@ -18,7 +18,7 @@ type SerialLink struct {
 func NewSerialLink(cfg *config.SerialConfig, call PortReader) *SerialLink {
 	s := SerialLink{
 		config: cfg,
-		log:    core.GetLogAgent(core.LogLevelTrace, "Serial"),
+		log:    core.GetLogAgent(core.LogLevelDebug, "Serial"),
 		port:   nil,
 		reader: call,
 		isOpen: false,
@@ -31,7 +31,7 @@ func EnumerateSerialPorts(out *core.LogAgent) (list []string, err error) {
 	out.Debug("Serial port enumeration")
 	list, err = serial.GetPortsList()
 	for i, ser := range list {
-		out.Dump("   Port#%d - %s", i, ser)
+		out.Debug("   Port#%d - %s", i, ser)
 	}
 	return list, err
 }
@@ -95,7 +95,7 @@ func (s *SerialLink) Write(data []byte) (n int, err error) {
 	if s.port == nil {
 		return 0, errPortNotOpen
 	}
-	s.log.Dump("Serial write data : %v", data)
+	s.log.Dump("Serial write data : %s", core.GetBinaryDump(data))
 	n, err = s.port.Write(data)
 	s.log.Trace("Write to serial port %s return %s", s.config.PortName, core.GetErrorText(err))
 	return n, err
@@ -107,7 +107,7 @@ func (s *SerialLink) readData(data []byte) (n int, err error) {
 		return 0, errPortNotOpen
 	}
 	n, err = s.port.Read(data)
-	s.log.Dump("Serial read data : %v", data[0:n])
+	s.log.Dump("Serial read data : %s", core.GetBinaryDump(data[0:n]))
 	s.log.Trace("Read from serial port %s of %d bytes return %s",
 		s.config.PortName, n, core.GetErrorText(err))
 	return n, err
@@ -136,7 +136,7 @@ func (s *SerialLink) readingLoop() {
 }
 
 func (s *SerialLink) processData(data []byte) (out []byte) {
-	s.log.Dump("Process reply data : %v", data)
+	s.log.Dump("Process reply data : %s", core.GetBinaryDump(data))
 	if s.reader == nil {
 		return nil
 	}

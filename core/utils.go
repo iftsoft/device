@@ -24,6 +24,24 @@ func GetErrorText(err error) string {
 	return "Success"
 }
 
+func GetBinaryDump(data []byte) string {
+	str := ""
+	size := len(data)
+	if size == 0   { return str }
+	if size > 512  { return str }
+
+	for i:=0; i<size; i++ {
+		if size > 16 && i%16 == 0 {
+			str += "\n"
+		}
+		if i%16 == 8 {
+			str += " "
+		}
+		str += fmt.Sprintf(" %2X", data[i])
+	}
+	return str
+}
+
 // Get Call Stack Trace as a string
 func TraceCallStack(text string, i int) string {
 	//	i := 2

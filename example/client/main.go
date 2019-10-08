@@ -14,7 +14,9 @@ func main() {
 	fmt.Println("-------BEGIN------------")
 
 	appPar := config.GetAppParams()
-	err, appCfg := config.GetAppConfig(appPar)
+	lnkCfg := config.GetDefaultLinkerConfig()
+	devCfg := config.GetDefaultDeviceConfig(lnkCfg)
+	err, appCfg := config.GetAppConfig(appPar, devCfg)
 	if err != nil {
 		fmt.Println(err)
 		return

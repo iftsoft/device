@@ -23,7 +23,8 @@ func GetDefaultServerConfig() *ServerConfig {
 }
 
 func (cfg *ServerConfig) String() string {
-	str := fmt.Sprintf("Duplex server config: "+
+	if cfg == nil { return "" }
+	str := fmt.Sprintf("\nDuplex server config: "+
 		"Port = %d.",
 		cfg.Port)
 	return str

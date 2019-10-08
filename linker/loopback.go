@@ -31,7 +31,7 @@ func GetLoopback(cfg *config.DeviceConfig, log *core.LogAgent) *Loopback {
 }
 
 func (lb *Loopback) OnRead(data []byte) int {
-	lb.log.Dump("Loopback OnRead data : %v", data)
+	lb.log.Dump("Loopback OnRead data : %s", core.GetBinaryDump(data))
 	if len(data) < 4 {
 		return 0
 	}
@@ -85,7 +85,7 @@ func (lb *Loopback) CheckLink() error {
 		}
 	}
 StopWait:
-	lb.log.Dump("Loopback check data : %v", dump)
+	lb.log.Dump("Loopback check data : %s", core.GetBinaryDump(dump))
 
 	if n != len(dump) {
 		return errors.New("wrong byte count")
