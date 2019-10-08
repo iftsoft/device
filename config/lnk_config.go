@@ -76,16 +76,16 @@ func (cfg *SerialConfig) String() string {
 }
 
 type HidUsbConfig struct {
-	VendorID  uint16 `yaml:"vendor_id"`  // Device Vendor ID
-	ProductID uint16 `yaml:"product_id"` // Device Product ID
-	Serial    string `yaml:"serial"`     // Serial Number
+	VendorID  uint16 `yaml:"vendor_id"`  	// Device Vendor ID
+	ProductID uint16 `yaml:"product_id"` 	// Device Product ID
+	SerialNo  string `yaml:"serial_no"`     // Serial Number
 }
 
 func (cfg *HidUsbConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tHID/USB config: " +
-		"VendorID = %X, ProductID = %X, Serial = %s.",
-		cfg.VendorID, cfg.ProductID, cfg.Serial)
+		"VendorID = %X, ProductID = %X, SerialNo = %s.",
+		cfg.VendorID, cfg.ProductID, cfg.SerialNo)
 	return str
 }
 

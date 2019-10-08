@@ -39,7 +39,7 @@ func EnumerateHidUsbPorts(out *core.LogAgent) (list []*config.HidUsbConfig, err 
 		item := &config.HidUsbConfig{
 			VendorID:  unit.VendorID,
 			ProductID: unit.ProductID,
-			Serial:    unit.Serial,
+			SerialNo:  unit.Serial,
 		}
 		list = append(list, item)
 	}
@@ -54,7 +54,7 @@ func (h *HidUsbLink) Open() (err error) {
 	info := hid.DeviceInfo{
 		VendorID:  h.config.VendorID,
 		ProductID: h.config.ProductID,
-		Serial:    h.config.Serial,
+		Serial:    h.config.SerialNo,
 	}
 	h.link, err = info.Open()
 	if err == nil {

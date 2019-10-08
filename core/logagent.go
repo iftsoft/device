@@ -6,9 +6,11 @@ import (
 	"time"
 )
 
+type EnumLogLevel uint16
+
 // log level
 const (
-	LogLevelEmpty int = iota
+	LogLevelEmpty EnumLogLevel = iota
 	LogLevelPanic
 	LogLevelError
 	LogLevelWarn
@@ -16,40 +18,54 @@ const (
 	LogLevelDebug
 	LogLevelDump
 	LogLevelTrace
-	LogLevelMax
+//	LogLevelMax
 )
 
-var logLevelNames = [LogLevelMax]string{
-	"EMPTY", "PANIC", "ERROR", "WARN ", "INFO ", "DEBUG", "DUMP ", "TRACE",
-}
-
-func GetLogLevelText(level int) string {
-	if level >= 0 && level < LogLevelMax {
-		return logLevelNames[level]
+func (e EnumLogLevel) String() string {
+	switch e {
+	case LogLevelEmpty:			return "EMPTY"
+	case LogLevelPanic:			return "PANIC"
+	case LogLevelError:			return "ERROR"
+	case LogLevelWarn:			return "WARN"
+	case LogLevelInfo:			return "INFO"
+	case LogLevelDebug:			return "DEBUG"
+	case LogLevelDump:			return "DUMP"
+	case LogLevelTrace:			return "TRACE"
+	default:					return "UNDEF"
 	}
-	return "UNDEF"
 }
 
-func GetLogAgent(level int, title string) *LogAgent {
-	if level >= LogLevelMax {
+//var logLevelNames = [LogLevelMax]string{
+//	"EMPTY", "PANIC", "ERROR", "WARN ", "INFO ", "DEBUG", "DUMP ", "TRACE",
+//}
+
+//func GetLogLevelText(level EnumLogLevel) string {
+//	if level >= 0 && level < LogLevelMax {
+//		return logLevelNames[level]
+//	}
+//	return "UNDEF"
+//}
+
+func GetLogAgent(level EnumLogLevel, title string) *LogAgent {
+	if level > LogLevelTrace {
 		level = LogLevelEmpty
 	}
 	return &LogAgent{level, title, getLogSource()}
 }
 
 type LogAgent struct {
-	logLevel int
+	logLevel EnumLogLevel
 	modTitle string
 	source   bool
 }
 
-func (log *LogAgent) Init(level int, title string, src bool) {
+func (log *LogAgent) Init(level EnumLogLevel, title string, src bool) {
 	log.logLevel = level
 	log.modTitle = title
 	log.source = src
 }
 
-func (log *LogAgent) SetLevel(level int) {
+func (log *LogAgent) SetLevel(level EnumLogLevel) {
 	log.logLevel = level
 }
 
@@ -115,7 +131,7 @@ func (log *LogAgent) Panic(format string, args ...interface{}) {
 	}
 }
 
-func (log *LogAgent) formatLine(level int, text string) {
+func (log *LogAgent) formatLine(level EnumLogLevel, text string) {
 	t := time.Now()
 	moment := t.Format("2006-01-02 15:04:05.999999")
 	for size := len(moment); size < 26; size++ {
@@ -127,12 +143,12 @@ func (log *LogAgent) formatLine(level int, text string) {
 		pc, file, line, ok := runtime.Caller(2)
 		if ok {
 			mesg = fmt.Sprintf("%s [%s %s %s] %s:%d %s() %s\n",
-				moment, logLevelNames[level], gid, log.modTitle, file, line, runtime.FuncForPC(pc).Name(), text)
+				moment, level.String(), gid, log.modTitle, file, line, runtime.FuncForPC(pc).Name(), text)
 		} else {
-			mesg = fmt.Sprintf("%s [%s %s %s] %s\n", moment, logLevelNames[level], gid, log.modTitle, text)
+			mesg = fmt.Sprintf("%s [%s %s %s] %s\n", moment, level.String(), gid, log.modTitle, text)
 		}
 	} else {
-		mesg = fmt.Sprintf("%s [%s %s %s] %s\n", moment, logLevelNames[level], gid, log.modTitle, text)
+		mesg = fmt.Sprintf("%s [%s %s %s] %s\n", moment, level.String(), gid, log.modTitle, text)
 	}
 	LogToFile(level, mesg)
 }

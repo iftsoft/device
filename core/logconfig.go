@@ -8,8 +8,8 @@ import (
 type LogConfig struct {
 	LogPath   string `yaml:"log_path"`
 	LogFile   string `yaml:"log_file"`
-	LogLevel  int    `yaml:"log_level"`
-	ConsLevel int    `yaml:"cons_level"`
+	LogLevel  EnumLogLevel    `yaml:"log_level"`
+	ConsLevel EnumLogLevel    `yaml:"cons_level"`
 	MaxFiles  int    `yaml:"max_files"` // limit the number of log files under `logPath`
 	MaxSize   int64  `yaml:"max_size"`  // limit size of a log file (KByte)
 	Source    bool   `yaml:"source"`
@@ -18,8 +18,8 @@ type LogConfig struct {
 func (cfg *LogConfig) PrintData() {
 	fmt.Println("LogPath  ", cfg.LogPath)
 	fmt.Println("LogFile  ", cfg.LogFile)
-	fmt.Println("LogLevel ", GetLogLevelText(cfg.LogLevel))
-	fmt.Println("ConsLevel", GetLogLevelText(cfg.ConsLevel))
+	fmt.Println("LogLevel ", cfg.LogLevel.String())
+	fmt.Println("ConsLevel", cfg.ConsLevel.String())
 	fmt.Println("MaxFiles ", cfg.MaxFiles)
 	fmt.Println("MaxSize  ", cfg.MaxSize)
 	fmt.Println("Source   ", cfg.Source)
@@ -28,7 +28,7 @@ func (cfg *LogConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\nLogging config: "+
 		"LogPath = %s, LogFile = %s, LogLevel = %s, ConsLevel = %s, MaxFiles = %d, MaxSize = %d, Source = %v.",
-		cfg.LogPath, cfg.LogFile, GetLogLevelText(cfg.LogLevel), GetLogLevelText(cfg.ConsLevel), cfg.MaxFiles, cfg.MaxSize, cfg.Source)
+		cfg.LogPath, cfg.LogFile, cfg.LogLevel.String(), cfg.ConsLevel.String(), cfg.MaxFiles, cfg.MaxSize, cfg.Source)
 	return str
 }
 
@@ -55,10 +55,10 @@ func checkLogConfig(cfg *LogConfig) (err error) {
 	if cfg.LogPath == "" {
 		cfg.LogPath = "."
 	}
-	if cfg.LogLevel < LogLevelEmpty || cfg.LogLevel >= LogLevelMax {
+	if cfg.LogLevel < LogLevelEmpty || cfg.LogLevel > LogLevelTrace {
 		cfg.LogLevel = LogLevelInfo
 	}
-	if cfg.ConsLevel < LogLevelEmpty || cfg.ConsLevel >= LogLevelMax {
+	if cfg.ConsLevel < LogLevelEmpty || cfg.ConsLevel > LogLevelTrace {
 		cfg.ConsLevel = LogLevelError
 	}
 	if cfg.MaxFiles < 0 || cfg.MaxFiles >= 1024 {

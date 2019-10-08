@@ -23,10 +23,6 @@ device:
       data_bits: 8
       stop_bits: 0
       parity: 0
-    hidusb:
-      vendor_id: 0
-      product_id: 0
-      serial:
   common:
     model: screen
     version: 0.1.0

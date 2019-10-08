@@ -59,7 +59,7 @@ func getLogSource() bool {
 	return false
 }
 
-func LogToFile(level int, mesg string) {
+func LogToFile(level EnumLogLevel, mesg string) {
 	if len(mesg) > 0 && gLogger.config != nil && level > LogLevelEmpty {
 		if level <= gLogger.config.LogLevel {
 			gLogger.read <- []byte(mesg)

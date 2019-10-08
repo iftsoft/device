@@ -53,6 +53,8 @@ func (s *SerialLink) Open() (err error) {
 	}
 	if err == nil {
 		go s.readingLoop()
+	} else {
+		s.port = nil
 	}
 	s.log.Trace("Open serial port %s return %s", s.config.PortName, core.GetErrorText(err))
 	return err
