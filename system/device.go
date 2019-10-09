@@ -193,14 +193,14 @@ func (sd *SystemDevice) Terminate(name string, query *common.SystemQuery) error 
 	return sd.SystemReply(name, reply)
 }
 
-func (sd *SystemDevice) Inform(name string, query *common.SystemQuery) error {
+func (sd *SystemDevice) SysInform(name string, query *common.SystemQuery) error {
 	reply := &common.SystemReply{}
 	reply.Command = common.CmdSystemInform
 	reply.State = sd.state
 	return sd.SystemReply(name, reply)
 }
 
-func (sd *SystemDevice) Start(name string, query *common.SystemQuery) error {
+func (sd *SystemDevice) SysStart(name string, query *common.SystemQuery) error {
 	sd.state = common.SysStateUndefined
 	err := sd.driver.StartDevice()
 	if err == nil {
@@ -215,7 +215,7 @@ func (sd *SystemDevice) Start(name string, query *common.SystemQuery) error {
 	return sd.SystemReply(name, reply)
 }
 
-func (sd *SystemDevice) Stop(name string, query *common.SystemQuery) error {
+func (sd *SystemDevice) SysStop(name string, query *common.SystemQuery) error {
 	sd.state = common.SysStateUndefined
 	var err error
 	if sd.driver != nil {
@@ -233,7 +233,7 @@ func (sd *SystemDevice) Stop(name string, query *common.SystemQuery) error {
 	return sd.SystemReply(name, reply)
 }
 
-func (sd *SystemDevice) Restart(name string, query *common.SystemQuery) error {
+func (sd *SystemDevice) SysRestart(name string, query *common.SystemQuery) error {
 	sd.state = common.SysStateUndefined
 	var err error
 	if sd.driver != nil {

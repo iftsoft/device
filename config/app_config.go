@@ -14,7 +14,7 @@ type AppConfig struct {
 
 func (cfg *AppConfig) String() string {
 	str := fmt.Sprintf("Client app config: %s %s %s",
-		cfg.Logger.String(), cfg.Duplex.String(), cfg.Device.String())
+		cfg.Logger, cfg.Duplex, cfg.Device)
 	return str
 }
 

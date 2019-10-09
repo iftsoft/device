@@ -13,7 +13,7 @@ type SrvConfig struct {
 
 func (cfg *SrvConfig) String() string {
 	str := fmt.Sprintf("Server app config: %s %s",
-		cfg.Logger.String(), cfg.Duplex.String())
+		cfg.Logger, cfg.Duplex)
 	return str
 }
 

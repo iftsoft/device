@@ -22,7 +22,7 @@ func main() {
 		core.StartFileLogger(appCfg.Logger)
 	}
 	log := core.GetLogAgent(core.LogLevelTrace, "APP")
-	log.Info("Start server application")
+	log.Info("SysStart server application")
 	log.Info(appPar.String())
 	log.Info(appCfg.String())
 
@@ -39,7 +39,7 @@ func main() {
 
 		srv.StopListen()
 	}
-	log.Info("Stop server application")
+	log.Info("SysStop server application")
 	obj.Cleanup()
 	time.Sleep(time.Second)
 	core.StopFileLogger()

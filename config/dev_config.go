@@ -2,20 +2,6 @@ package config
 
 import "fmt"
 
-type EnumDevRole int32
-
-// Device types
-const (
-	DevRolePrinter EnumDevRole = 1 << iota
-	DevRoleBarScanner
-	DevRoleCardReader
-	DevRoleValidator
-	DevRoleItemVendor
-	DevRoleDispenser
-	DevRoleTerminal
-	DevRoleCustom
-)
-
 // Device error codes
 const (
 	CardAcceptAnyCard int16 = iota
@@ -138,8 +124,8 @@ type DeviceConfig struct {
 func (cfg *DeviceConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\nDevice config: %s %s %s %s %s %s %s %s",
-		cfg.Linker.String(), cfg.Common.String(), cfg.Printer.String(), cfg.Reader.String(),
-		cfg.Pinpad.String(), cfg.Validator.String(), cfg.Dispenser.String(),cfg.Vendor.String())
+		cfg.Linker, cfg.Common, cfg.Printer, cfg.Reader,
+		cfg.Pinpad, cfg.Validator, cfg.Dispenser, cfg.Vendor)
 	return str
 }
 

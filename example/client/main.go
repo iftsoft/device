@@ -23,7 +23,7 @@ func main() {
 	}
 	core.StartFileLogger(appCfg.Logger)
 	log := core.GetLogAgent(core.LogLevelTrace, "APP")
-	log.Info("Start application")
+	log.Info("SysStart application")
 	log.Info(appPar.String())
 	log.Info(appCfg.String())
 
@@ -41,7 +41,7 @@ func main() {
 	} else {
 		log.Error("Can't start device: %s", err)
 	}
-	log.Info("Stop application")
+	log.Info("SysStop application")
 	time.Sleep(time.Second)
 	core.StopFileLogger()
 	fmt.Println("-------END------------")

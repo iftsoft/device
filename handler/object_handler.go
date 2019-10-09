@@ -114,10 +114,10 @@ func (oh *ObjectHandler) OnClientStopped(name string) {
 
 func (oh *ObjectHandler) fillTestList() {
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
-		return hnd.system.Inform(hnd.devName, &common.SystemQuery{})
+		return hnd.system.SysInform(hnd.devName, &common.SystemQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
-		return hnd.system.Start(hnd.devName, &common.SystemQuery{})
+		return hnd.system.SysStart(hnd.devName, &common.SystemQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
 		return hnd.device.Reset(hnd.devName, &common.DeviceQuery{})
@@ -135,7 +135,7 @@ func (oh *ObjectHandler) fillTestList() {
 		return hnd.device.StopAction(hnd.devName, &common.DeviceQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
-		return hnd.system.Stop(hnd.devName, &common.SystemQuery{})
+		return hnd.system.SysStop(hnd.devName, &common.SystemQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
 		return hnd.system.Terminate(hnd.devName, &common.SystemQuery{})
@@ -162,36 +162,36 @@ func (oh *ObjectHandler) SystemHealth(name string, reply *common.SystemHealth) e
 // Implementation of common.DeviceCallback
 func (oh *ObjectHandler) DeviceReply(name string, reply *common.DeviceReply) error {
 	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.DeviceReply dev:%s, cmd:%s, state:%s",
-			name, reply.Command, reply.DevState.String())
+		oh.log.Debug("ObjectHandler.DeviceReply dev:%s, cmd:%s, state:%s, error:%d - %s",
+			name, reply.Command, reply.DevState, reply.ErrCode, reply.ErrText)
 	}
 	return nil
 }
 func (oh *ObjectHandler) ExecuteError(name string, reply *common.DeviceError) error {
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.ExecuteError dev:%s, action:%s, error:%d - %s",
-			name, reply.Action.String(), reply.ErrCode, reply.ErrText)
+			name, reply.DevState, reply.ErrCode, reply.ErrText)
 	}
 	return nil
 }
 func (oh *ObjectHandler) StateChanged(name string, reply *common.DeviceState) error {
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.StateChanged dev:%s, old state:%s, new state:%s",
-			name, reply.OldState.String(), reply.NewState.String())
+			name, reply.OldState, reply.NewState)
 	}
 	return nil
 }
 func (oh *ObjectHandler) ActionPrompt(name string, reply *common.DevicePrompt) error {
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.ActionPrompt dev:%s, action:%s, prompt:%s",
-			name, reply.Action.String(), reply.Prompt.String())
+			name, reply.Action, reply.Prompt)
 	}
 	return nil
 }
 func (oh *ObjectHandler) ReaderReturn(name string, reply *common.DeviceInform) error {
 	if oh.log != nil {
 		oh.log.Debug("ObjectHandler.ReaderReturn dev:%s, action:%s, info:%s",
-			name, reply.Action.String(), reply.Inform)
+			name, reply.Action, reply.Inform)
 	}
 	return nil
 }

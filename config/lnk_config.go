@@ -13,7 +13,7 @@ const (
 	LinkTypeHidUsb
 )
 
-// Stop bits types
+// SysStop bits types
 const (
 	OneStopBit EnumStopBits = iota
 	OneHalfStopBits
@@ -71,7 +71,7 @@ func (cfg *SerialConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tSerial config: " +
 		"PortName = %s, BaudRate = %d, DataBits = %d, StopBits = %s, Parity = %s.",
-		cfg.PortName, cfg.BaudRate, cfg.DataBits, cfg.StopBits.String(), cfg.Parity.String())
+		cfg.PortName, cfg.BaudRate, cfg.DataBits, cfg.StopBits, cfg.Parity)
 	return str
 }
 
@@ -100,7 +100,7 @@ func (cfg *LinkerConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tLinker config: " +
 		"LinkType = %s, Timeout = %d, %s %s",
-		cfg.LinkType.String(), cfg.Timeout, cfg.Serial.String(), cfg.HidUsb.String())
+		cfg.LinkType, cfg.Timeout, cfg.Serial, cfg.HidUsb)
 	return str
 }
 

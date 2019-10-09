@@ -3,12 +3,31 @@ package common
 type EnumSystemError int16
 type EnumSystemState int16
 
+const (
+	CmdSystemReply     = "SystemReply"
+	CmdSystemHealth    = "SystemHealth"
+	CmdSystemTerminate = "Terminate"
+	CmdSystemInform    = "SysInform"
+	CmdSystemStart     = "SysStart"
+	CmdSystemStop      = "SysStop"
+	CmdSystemRestart   = "SysRestart"
+)
+
 // System state codes
 const (
 	SysErrSuccess EnumSystemError = iota
 	SysErrSystemFail
 	SysErrDeviceFail
 )
+func (e EnumSystemError) String() string {
+	switch e {
+	case SysErrSuccess:			return "Success"
+	case SysErrSystemFail:		return "System fail"
+	case SysErrDeviceFail:		return "Device fail"
+	default:					return "Undefined"
+	}
+}
+
 
 // System state codes
 const (
@@ -16,16 +35,15 @@ const (
 	SysStateRunning
 	SysStateStopped
 )
+func (e EnumSystemState) String() string {
+	switch e {
+	case SysStateUndefined:		return "Undefined"
+	case SysStateRunning:		return "Running"
+	case SysStateStopped:		return "Stopped"
+	default:					return "Unknown"
+	}
+}
 
-const (
-	CmdSystemReply     = "SystemReply"
-	CmdSystemHealth    = "SystemHealth"
-	CmdSystemTerminate = "Terminate"
-	CmdSystemInform    = "Inform"
-	CmdSystemStart     = "Start"
-	CmdSystemStop      = "Stop"
-	CmdSystemRestart   = "Restart"
-)
 
 type SystemQuery struct {
 }
@@ -38,10 +56,12 @@ type SystemReply struct {
 }
 
 type SystemMetrics struct {
-	Uptime int64
-	Counts map[string]uint32
-	Totals map[string]float32
-	Topics map[string]string
+	Uptime   int64
+	DevError EnumDevError
+	DevState EnumDevState
+	Counts   map[string]uint32
+	Totals   map[string]float32
+	Topics   map[string]string
 }
 
 type SystemHealth struct {
@@ -53,13 +73,16 @@ type SystemHealth struct {
 
 func NewSystemHealth() *SystemHealth {
 	sh := &SystemHealth{
+		Moment: 0,
 		Error: 0,
 		State: 0,
 		Metrics: SystemMetrics{
-			Uptime: 0,
-			Counts: make(map[string]uint32),
-			Totals: make(map[string]float32),
-			Topics: make(map[string]string),
+			Uptime:   0,
+			DevError: 0,
+			DevState: 0,
+			Counts:   make(map[string]uint32),
+			Totals:   make(map[string]float32),
+			Topics:   make(map[string]string),
 		},
 	}
 	return sh
@@ -72,8 +95,8 @@ type SystemCallback interface {
 
 type SystemManager interface {
 	Terminate(name string, query *SystemQuery) error
-	Inform(name string, query *SystemQuery) error
-	Start(name string, query *SystemQuery) error
-	Stop(name string, query *SystemQuery) error
-	Restart(name string, query *SystemQuery) error
+	SysInform(name string, query *SystemQuery) error
+	SysStart(name string, query *SystemQuery) error
+	SysStop(name string, query *SystemQuery) error
+	SysRestart(name string, query *SystemQuery) error
 }

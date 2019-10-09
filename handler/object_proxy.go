@@ -57,16 +57,16 @@ func (op *ObjectProxy) GetClientManager() duplex.ClientManager {
 func (op *ObjectProxy) Terminate(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemTerminate, query)
 }
-func (op *ObjectProxy) Inform(name string, query *common.SystemQuery) error {
+func (op *ObjectProxy) SysInform(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemInform, query)
 }
-func (op *ObjectProxy) Start(name string, query *common.SystemQuery) error {
+func (op *ObjectProxy) SysStart(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemStart, query)
 }
-func (op *ObjectProxy) Stop(name string, query *common.SystemQuery) error {
+func (op *ObjectProxy) SysStop(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemStop, query)
 }
-func (op *ObjectProxy) Restart(name string, query *common.SystemQuery) error {
+func (op *ObjectProxy) SysRestart(name string, query *common.SystemQuery) error {
 	return op.system.SendSystemCommand(name, common.CmdSystemRestart, query)
 }
 

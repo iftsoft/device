@@ -36,6 +36,24 @@ const (
 	DevTypeCustom
 )
 
+func (e EnumDevType) String() string {
+	switch e {
+	case DevTypeDefault:		return "Default"
+	case DevTypePrinter:		return "Printer"
+	case DevTypeCardReader:		return "CardReader"
+	case DevTypeBarScanner:		return "BarScanner"
+	case DevTypeCashValidator:	return "Cash Validator"
+	case DevTypeCoinValidator:	return "Coin Validator"
+	case DevTypeCashDispenser:	return "Cash Dispenser"
+	case DevTypeCoinDispenser:	return "Coin Dispenser"
+	case DevTypeVending:		return "Vending"
+	case DevTypePINEntry:		return "PINEntry"
+	case DevTypeCustom:			return "Custom"
+	default:					return "Other error"
+	}
+}
+
+
 // Device error codes
 const (
 	DevErrorSuccess EnumDevError = iota

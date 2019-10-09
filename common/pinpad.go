@@ -24,7 +24,7 @@ type ReaderPinReply struct {
 }
 
 type PinPadCallback interface {
-	PinPadReply(name string, query *ReaderPinReply) error
+	PinPadReply(name string, reply *ReaderPinReply) error
 }
 
 type PinPadManager interface {

@@ -19,16 +19,13 @@ type DeviceQuery struct {
 
 type DeviceReply struct {
 	Command string
-	//	DevType  EnumDevType
-	DevState EnumDevState
-	ErrCode  EnumDevError
-	ErrText  string
+	DeviceError
 }
 
 type DeviceError struct {
-	Action  EnumDevAction
-	ErrCode EnumDevError
-	ErrText string
+	DevState EnumDevState
+	ErrCode  EnumDevError
+	ErrText  string
 }
 type DeviceState struct {
 	NewState EnumDevState

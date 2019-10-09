@@ -36,25 +36,25 @@ func (sc *SystemClient) Init(command common.SystemManager, log *core.LogAgent) {
 		sc.scopeItem.SetScopeFunc(common.CmdSystemInform, func(name string, dump []byte) {
 			query, err := sc.decodeQuery(name, common.CmdSystemInform, dump)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Inform(name, query)
+				err = sc.commands.SysInform(name, query)
 			}
 		})
 		sc.scopeItem.SetScopeFunc(common.CmdSystemStart, func(name string, dump []byte) {
 			query, err := sc.decodeQuery(name, common.CmdSystemStart, dump)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Start(name, query)
+				err = sc.commands.SysStart(name, query)
 			}
 		})
 		sc.scopeItem.SetScopeFunc(common.CmdSystemStop, func(name string, dump []byte) {
 			query, err := sc.decodeQuery(name, common.CmdSystemStop, dump)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Stop(name, query)
+				err = sc.commands.SysStop(name, query)
 			}
 		})
 		sc.scopeItem.SetScopeFunc(common.CmdSystemRestart, func(name string, dump []byte) {
 			query, err := sc.decodeQuery(name, common.CmdSystemRestart, dump)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Restart(name, query)
+				err = sc.commands.SysRestart(name, query)
 			}
 		})
 	}

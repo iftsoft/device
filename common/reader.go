@@ -39,9 +39,9 @@ type ReaderChipReply struct {
 }
 
 type ReaderCallback interface {
-	CardPosition(name string, query *ReaderCardPos) error
-	CardDescription(name string, query *ReaderCardInfo) error
-	ChipResponse(name string, query *ReaderChipReply) error
+	CardPosition(name string, value *ReaderCardPos) error
+	CardDescription(name string, value *ReaderCardInfo) error
+	ChipResponse(name string, reply *ReaderChipReply) error
 }
 
 type ReaderManager interface {

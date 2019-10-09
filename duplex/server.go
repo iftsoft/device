@@ -84,7 +84,7 @@ func (ds *DuplexServer) StartListen() error {
 }
 
 func (ds *DuplexServer) StopListen() {
-	ds.log.Info("Stop listening on server.")
+	ds.log.Info("SysStop listening on server.")
 	ds.exit = true
 	_ = ds.listener.Close()
 	ds.log.Trace("Closing all connections...")
@@ -96,10 +96,9 @@ func (ds *DuplexServer) listenLoop() {
 	if ds.listener == nil {
 		return
 	}
-	ds.log.Info("Start listen on %s", ds.listener.Addr().String())
+	ds.log.Info("SysStart listen on %s", ds.listener.Addr().String())
 	for {
 		conn, err := ds.listener.AcceptTCP()
-		ds.log.Debug("Accept a connection request.")
 		if err != nil {
 			if ds.exit == true {
 				break
@@ -108,10 +107,10 @@ func (ds *DuplexServer) listenLoop() {
 				continue
 			}
 		}
-		ds.log.Trace("Handle incoming messages.")
+		ds.log.Debug("Accept a connection request.")
 		go ds.handleMessages(conn)
 	}
-	ds.log.Info("Stop listen on %s", ds.listener.Addr().String())
+	ds.log.Info("SysStop listen on %s", ds.listener.Addr().String())
 }
 
 func (ds *DuplexServer) handleMessages(conn *net.TCPConn) {
