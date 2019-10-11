@@ -135,22 +135,18 @@ func (e EnumDevError) String() string {
 
 // DevError is an implementation of error interface for device
 type DevError struct {
-	code   EnumDevError
-	reason error
+	Code   EnumDevError
+	Reason error
 }
 
 // Error returns the full description of the error
 func (e DevError) Error() string {
-	if e.reason != nil {
-		return e.code.String() + ": " + e.reason.Error()
+	if e.Reason != nil {
+		return e.Code.String() + ": " + e.Reason.Error()
 	}
-	return e.code.String()
+	return e.Code.String()
 }
 
-// Code returns an identifier for the kind of error occurred
-func (e DevError) Code() EnumDevError {
-	return e.code
-}
 
 // Device status codes
 const (

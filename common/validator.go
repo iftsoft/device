@@ -22,6 +22,7 @@ type ValidatorBill struct {
 }
 
 type ValidatorStore struct {
+	DeviceReply
 	Note []*ValidatorBill
 }
 

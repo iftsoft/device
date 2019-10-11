@@ -1,4 +1,4 @@
-package driver
+package core
 
 func CheckCardPan(card string) bool {
 	size := len(card)
@@ -140,37 +140,3 @@ func CheckPersonalTaxNumber(inn string) bool {
 }
 
 
-
-
-/*
-
-
-//////////////////////////////////////////////////////////////////////
-// При вводе ИНН осуществляется проверка корректности номера по следующему правилу:
-// ABCDEFGHIZ – ИНН
-// Вычисляем контрольную сумму = A2*(-1)+B2*5+C2*7+D2*9+E2*4+F2*6+G2*10+H2*5+I2*7
-// Вычисляем остаток от деления контрольной суммы на 11.
-// Если остаток = Z, ИНН – верный. В другом случае – не верный
-
-bool IftCheckPersonalTaxNumber(LPCTSTR inn)
-{
-	unsigned char buff[10]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-	if( _tcslen(inn) != 10 )	return false;
-	for(int i=0; i<10; i++)		buff[i] = inn[i] - '0';
-
-	int sum  = 0;
-	sum += buff[0] * -1;	// A2*(-1)
-	sum += buff[1] * 5;		// B2*5
-	sum += buff[2] * 7;		// C2*7
-	sum += buff[3] * 9;		// D2*9
-	sum += buff[4] * 4;		// E2*4
-	sum += buff[5] * 6;		// F2*6
-	sum += buff[6] * 10;	// G2*10
-	sum += buff[7] * 5;		// H2*5
-	sum += buff[8] * 7;		// I2*7
-	if( (sum%11)%10 == buff[9] )	return true;
-	return false;
-}
-
-*/

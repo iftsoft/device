@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
-	"github.com/iftsoft/device/driver"
+	"github.com/iftsoft/device/driver/loopback"
 	"github.com/iftsoft/device/linker"
 	"github.com/iftsoft/device/system"
 	"time"
@@ -30,7 +30,7 @@ func main() {
 	err = linker.GetLinkerPorts(log)
 
 	dev := system.NewSystemDevice(appCfg)
-	drv := driver.NewDummyDriver()
+	drv := loopback.NewDummyDriver()
 	err = dev.InitDevice(drv)
 	if err == nil {
 		dev.StartDevice()
