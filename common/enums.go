@@ -133,20 +133,37 @@ func (e EnumDevError) String() string {
 	}
 }
 
-// DevError is an implementation of error interface for device
-type DevError struct {
-	Code   EnumDevError
-	Reason error
+// DevReply is an implementation of error interface for device reply
+type DevReply struct {
+	code   EnumDevError
+	reason error
 }
 
-// Error returns the full description of the error
-func (e DevError) Error() string {
-	if e.Reason != nil {
-		return e.Code.String() + ": " + e.Reason.Error()
+func (e DevReply) Init(code EnumDevError, err error) {
+	e.code   = code
+	e.reason = err
+}
+
+func (e DevReply) Clear() {
+	e.code   = DevErrorSuccess
+	e.reason = nil
+}
+
+func (e DevReply) IsOk() bool {
+	return e.code == DevErrorSuccess
+}
+
+func (e DevReply) Code() EnumDevError {
+	return e.code
+}
+
+// Error returns the full description of the device reply
+func (e DevReply) Error() string {
+	if e.reason != nil {
+		return e.code.String() + ": " + e.reason.Error()
 	}
-	return e.Code.String()
+	return e.code.String()
 }
-
 
 // Device status codes
 const (

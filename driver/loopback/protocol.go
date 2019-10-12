@@ -36,8 +36,8 @@ func GetLoopbackProtocol(linker *LoopbackLinker, cfg *config.DeviceConfig, log *
 
 ////////////////////////////////////////////////////////////////
 
-func (lb *LoopbackProtocol) CheckLink() common.DevError {
-	devErr := common.DevError {}
+func (lb *LoopbackProtocol) CheckLink() common.DevReply {
+	devErr := common.DevReply{}
 	data := []byte{0xAA, 0x55, 0x00, 0xFF}
 	back, err := lb.exchange(data)
 	if err == nil {

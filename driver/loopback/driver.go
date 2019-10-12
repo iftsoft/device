@@ -17,7 +17,7 @@ type LoopbackDriver struct {
 	protocol  *LoopbackProtocol
 	log       *core.LogAgent
 	devState  common.EnumDevState
-	devError  common.DevError
+	devError  common.DevReply
 }
 
 func NewDummyDriver() *LoopbackDriver {
