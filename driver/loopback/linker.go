@@ -14,15 +14,11 @@ type LoopbackLinker struct {
 	reply   chan []byte
 }
 
-func GetLoopbackLinker(cfg *config.LinkerConfig, log *core.LogAgent) *LoopbackLinker {
-	lb := &LoopbackLinker{
-		config:  cfg,
-		log:     log,
-		port:    nil,
-		reply:   make(chan []byte),
-	}
-	lb.port = linker.GetPortLinker(cfg, lb)
-	return lb
+func (lbl *LoopbackLinker) InitLinker(cfg *config.LinkerConfig) {
+	lbl.config = cfg
+	lbl.port   = linker.GetPortLinker(cfg, lbl)
+	lbl.reply  = make(chan []byte)
+	lbl.log    = core.GetLogAgent(core.LogLevelDump, "Linker")
 }
 
 func (lb *LoopbackLinker) GetReplyChan() chan []byte {
@@ -32,35 +28,38 @@ func (lb *LoopbackLinker) GetReplyChan() chan []byte {
 	return lb.reply
 }
 
-func (lb *LoopbackLinker) OpenLink() error {
-	if lb.port == nil {
+func (lbl *LoopbackLinker) OpenLink() error {
+	if lbl.port == nil {
 		return errors.New("port not set")
 	}
-	err := lb.port.Open()
-	lb.log.Trace("LoopbackLinker OpenLink return : %s", core.GetErrorText(err))
+	err := lbl.port.Open()
+	lbl.log.Trace("LoopbackLinker OpenLink return : %s", core.GetErrorText(err))
 	return err
 }
 
-func (lb *LoopbackLinker) CloseLink() error {
-	if lb.port == nil {
+func (lbl *LoopbackLinker) CloseLink() error {
+	if lbl.port == nil {
 		return errors.New("port not set")
 	}
-	err := lb.port.Close()
-	lb.log.Trace("LoopbackLinker CloseLink return : %s", core.GetErrorText(err))
+	err := lbl.port.Close()
+	lbl.log.Trace("LoopbackLinker CloseLink return : %s", core.GetErrorText(err))
 	return err
 }
 
 ////////////////////////////////////////////////////////////////
 // Data flow:  STX, LEN, []DATA, LRC, ETX
 
-func (lb *LoopbackLinker) Write(data []byte) error {
+func (lbl *LoopbackLinker) writeToPort(data []byte) error {
+	if lbl.port == nil {
+		return errors.New("port not set")
+	}
 	pack := []byte{linker.STX, 0}
 	pack[1] = byte(len(data))
 	pack = append(pack, data...)
 	pack = append(pack, linker.CalcLRC(pack), linker.ETX)
 
-	lb.log.Dump("LoopbackLinker Write data : %s", core.GetBinaryDump(pack))
-	n, err := lb.port.Write(pack)
+	lbl.log.Dump("LoopbackLinker writeToPort data : %s", core.GetBinaryDump(pack))
+	n, err := lbl.port.Write(pack)
 	if n != len(pack) {
 		return errors.New("wrong byte count")
 	}
@@ -69,8 +68,8 @@ func (lb *LoopbackLinker) Write(data []byte) error {
 
 // implementation of PotReader interface
 
-func (lb *LoopbackLinker) OnRead(dump []byte) int {
-	lb.log.Dump("LoopbackLinker OnRead data : %s", core.GetBinaryDump(dump))
+func (lbl *LoopbackLinker) OnRead(dump []byte) int {
+	lbl.log.Dump("LoopbackLinker OnRead data : %s", core.GetBinaryDump(dump))
 	// Checking header size
 	size := len(dump)
 	if size < 4 {
@@ -94,9 +93,9 @@ func (lb *LoopbackLinker) OnRead(dump []byte) int {
 	lrc1 := linker.CalcLRC(dump[0 : sz+2])
 	lrc2 := dump[sz+2]
 	if lrc1 != lrc2 {
-		lb.log.Warn("LoopbackLinker OnRead CRC mismatch - come:%Xd, calc:%xd", lrc1, lrc2)
+		lbl.log.Warn("LoopbackLinker OnRead CRC mismatch - come:%Xd, calc:%xd", lrc1, lrc2)
 	}
-	lb.reply <- dump[2 : sz+2]
+	lbl.reply <- dump[2 : sz+2]
 	return sz
 }
 

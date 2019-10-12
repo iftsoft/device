@@ -10,58 +10,52 @@ import (
 
 
 type LoopbackProtocol struct {
-	config  *config.DeviceConfig
-	log     *core.LogAgent
-	linker  *LoopbackLinker
-	reply   chan []byte
+	LoopbackLinker
 	timeout uint16
 	DevState   common.EnumDevState
 }
 
-func GetLoopbackProtocol(linker *LoopbackLinker, cfg *config.DeviceConfig, log *core.LogAgent) *LoopbackProtocol {
-	lb := &LoopbackProtocol{
-		config:     cfg,
-		log:        log,
-		linker:     linker,
-		reply:      linker.GetReplyChan(),
-		timeout:    cfg.Linker.Timeout,
+func GetLoopbackProtocol(cfg *config.LinkerConfig) *LoopbackProtocol {
+	lbp := &LoopbackProtocol{
+		LoopbackLinker: LoopbackLinker{},
+		timeout:    cfg.Timeout,
 		DevState:   0,
 	}
-	if lb.timeout == 0 {
-		lb.timeout = 250
+	lbp.InitLinker(cfg)
+	if lbp.timeout == 0 {
+		lbp.timeout = 250
 	}
-	return lb
+	return lbp
 }
 
 
 ////////////////////////////////////////////////////////////////
 
-func (lb *LoopbackProtocol) CheckLink() common.DevReply {
-	devErr := common.DevReply{}
+func (lbp *LoopbackProtocol) CheckLink() common.DevReply {
+	reply := common.DevReply{}
 	data := []byte{0xAA, 0x55, 0x00, 0xFF}
-	back, err := lb.exchange(data)
+	back, err := lbp.exchange(data)
 	if err == nil {
-		err = lb.checkReply(data, back)
+		err = lbp.checkReply(data, back)
 	}
 	if err != nil {
-		devErr.Code   = common.DevErrorLinkerFault
-		devErr.Reason = err
+		reply.Init(common.DevErrorLinkerFault, err)
 	}
-	lb.logError("CheckLink", err)
-	return devErr
+	lbp.logError("CheckLink", err)
+	return reply
 }
 
 ////////////////////////////////////////////////////////////////
 
-func (lb *LoopbackProtocol) logError(cmd string, err error) {
+func (lbp *LoopbackProtocol) logError(cmd string, err error) {
 	if err == nil {
-		lb.log.Trace("LoopbackProtocol.%s return: Success", cmd)
+		lbp.log.Trace("LoopbackProtocol.%s return: Success", cmd)
 	} else {
-		lb.log.Error("LoopbackProtocol.%s return: %s", cmd, core.GetErrorText(err))
+		lbp.log.Error("LoopbackProtocol.%s return: %s", cmd, core.GetErrorText(err))
 	}
 }
 
-func (lb *LoopbackProtocol) checkReply(data, back []byte) error {
+func (lbp *LoopbackProtocol) checkReply(data, back []byte) error {
 	if len(data) != len(back) {
 		return errors.New("length mismatch")
 	}
@@ -73,24 +67,21 @@ func (lb *LoopbackProtocol) checkReply(data, back []byte) error {
 	return nil
 }
 
-func (lb *LoopbackProtocol) exchange(data []byte) ([]byte, error) {
-	err := lb.writeData(data)
+func (lbp *LoopbackProtocol) exchange(data []byte) ([]byte, error) {
+	err := lbp.writeData(data)
 	if err != nil {
 		return nil, err
 	}
-	return lb.readData(lb.timeout)
+	return lbp.readData(lbp.timeout)
 }
 
-func (lb *LoopbackProtocol) writeData(data []byte) error {
-	if lb.linker == nil {
-		return errors.New("linker not set")
-	}
-	lb.log.Dump("LoopbackProtocol write data : %v", data)
-	err := lb.linker.Write(data)
+func (lbp *LoopbackProtocol) writeData(data []byte) error {
+	lbp.log.Dump("LoopbackProtocol writeData data : %s", core.GetBinaryDump(data))
+	err := lbp.writeToPort(data)
 	return err
 }
 
-func (lb *LoopbackProtocol) readData(timeout uint16) ([]byte, error) {
+func (lbp *LoopbackProtocol) readData(timeout uint16) ([]byte, error) {
 	tick := time.NewTicker(time.Millisecond)
 	defer tick.Stop()
 
@@ -98,13 +89,13 @@ func (lb *LoopbackProtocol) readData(timeout uint16) ([]byte, error) {
 	start := time.Now()
 	for {
 		select {
-		case dump = <-lb.reply:
-			lb.log.Dump("LoopbackProtocol check data : %s", core.GetBinaryDump(dump))
+		case dump = <-lbp.reply:
+			lbp.log.Dump("LoopbackProtocol check data : %s", core.GetBinaryDump(dump))
 			return dump, nil
 		case tm := <-tick.C:
 			delta := uint16(tm.Sub(start) / time.Millisecond)
 			if delta > timeout {
-				lb.log.Warn("LoopbackProtocol timeout (ms): %d", delta)
+				lbp.log.Warn("LoopbackProtocol timeout (ms): %d", delta)
 				return nil, errors.New("linker timeout")
 			}
 		}

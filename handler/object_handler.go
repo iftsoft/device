@@ -77,7 +77,7 @@ func (oh *ObjectHandler) objectHandlerLoop(wg *sync.WaitGroup) {
 	oh.log.Debug("Object handler loop for dev:%s is started", oh.devName)
 	defer oh.log.Debug("Object handler loop for dev:%s is stopped", oh.devName)
 
-	tick := time.NewTicker(500 * time.Millisecond)
+	tick := time.NewTicker(5 * time.Second)
 	defer tick.Stop()
 
 	for {
@@ -126,13 +126,25 @@ func (oh *ObjectHandler) fillTestList() {
 		return hnd.device.Status(hnd.devName, &common.DeviceQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.device.Status(hnd.devName, &common.DeviceQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
 		return hnd.device.RunAction(hnd.devName, &common.DeviceQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.device.Status(hnd.devName, &common.DeviceQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
 		return hnd.device.Cancel(hnd.devName, &common.DeviceQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.device.Status(hnd.devName, &common.DeviceQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
 		return hnd.device.StopAction(hnd.devName, &common.DeviceQuery{})
+	})
+	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
+		return hnd.device.Status(hnd.devName, &common.DeviceQuery{})
 	})
 	oh.tests = append(oh.tests, func(hnd *ObjectHandler) error {
 		return hnd.system.SysStop(hnd.devName, &common.SystemQuery{})

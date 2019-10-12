@@ -18,6 +18,7 @@ type SystemDevice struct {
 	unitMask  common.DevScopeMask
 	backMask  common.DevScopeMask
 	state     common.EnumSystemState
+	error     common.EnumSystemError
 	driver    driver.DeviceDriver
 	duplex    *duplex.DuplexClient
 	config    *config.DeviceConfig
@@ -42,6 +43,7 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 		unitMask:  common.ScopeFlagUnknown,
 		backMask:  common.ScopeFlagUnknown,
 		state:     common.SysStateUndefined,
+		error:     common.SysErrSuccess,
 		driver:    nil,
 		duplex:    duplex.NewDuplexClient(cfg.Duplex),
 		config:    cfg.Device,
@@ -168,6 +170,7 @@ func (sd *SystemDevice) sendDeviceMetrics(tm time.Time) {
 	health := common.NewSystemHealth()
 	health.Moment = tm.Unix()
 	health.State = sd.state
+	health.Error = sd.error
 	err := sd.driver.CheckDevice(&health.Metrics)
 	if err != nil {
 		health.Error = common.SysErrDeviceFail

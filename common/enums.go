@@ -1,5 +1,7 @@
 package common
 
+import "errors"
+
 type EnumDevType uint16
 type EnumDevError uint16
 type EnumDevState uint16
@@ -142,6 +144,11 @@ type DevReply struct {
 func (e DevReply) Init(code EnumDevError, err error) {
 	e.code   = code
 	e.reason = err
+}
+
+func (e DevReply) InitTxt(code EnumDevError, text string) {
+	e.code   = code
+	e.reason = errors.New(text)
 }
 
 func (e DevReply) Clear() {

@@ -4,6 +4,7 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
+	"time"
 )
 
 type LoopbackDriver struct {
@@ -13,12 +14,13 @@ type LoopbackDriver struct {
 	reader    common.ReaderCallback
 	validator common.ValidatorCallback
 	pinpad    common.PinPadCallback
-	linker    *LoopbackLinker
 	protocol  *LoopbackProtocol
 	log       *core.LogAgent
 	devState  common.EnumDevState
-	devError  common.DevReply
+	devReply  common.DevReply
+	begTime   int64
 }
+
 
 func NewDummyDriver() *LoopbackDriver {
 	dd := LoopbackDriver{
@@ -28,10 +30,11 @@ func NewDummyDriver() *LoopbackDriver {
 		reader:    nil,
 		validator: nil,
 		pinpad:    nil,
-		linker:    nil,
 		protocol:  nil,
-		log:       core.GetLogAgent(core.LogLevelTrace, "Dummy"),
+		log:       core.GetLogAgent(core.LogLevelTrace, "Driver"),
 		devState:  common.DevStateUndefined,
+		devReply:  common.DevReply{},
+		begTime:   time.Now().Unix(),
 	}
 	return &dd
 }
@@ -40,8 +43,7 @@ func NewDummyDriver() *LoopbackDriver {
 func (dd *LoopbackDriver) InitDevice(manager interface{}, cfg *config.DeviceConfig) common.DevScopeMask {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "InitDevice")
 	dd.config = cfg
-	dd.linker = GetLoopbackLinker(cfg.Linker, dd.log)
-	dd.protocol = GetLoopbackProtocol(dd.linker, cfg, dd.log)
+	dd.protocol = GetLoopbackProtocol(cfg.Linker)
 
 	mask := common.ScopeFlagSystem
 	if device, ok := manager.(common.DeviceCallback); ok {
@@ -69,7 +71,7 @@ func (dd *LoopbackDriver) InitDevice(manager interface{}, cfg *config.DeviceConf
 
 func (dd *LoopbackDriver) StartDevice() error {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "StartDevice")
-	err := dd.linker.OpenLink()
+	err := dd.protocol.OpenLink()
 	return err
 }
 func (dd *LoopbackDriver) DeviceTimer(unix int64) error {
@@ -78,47 +80,52 @@ func (dd *LoopbackDriver) DeviceTimer(unix int64) error {
 }
 func (dd *LoopbackDriver) StopDevice() error {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "StopDevice")
-	err := dd.linker.CloseLink()
+	err := dd.protocol.CloseLink()
 	return err
 }
 func (dd *LoopbackDriver) CheckDevice(metrics *common.SystemMetrics) error {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "CheckDevice")
+	if metrics != nil{
+		metrics.Uptime   = time.Now().Unix() - dd.begTime
+		metrics.DevState = dd.devState
+		metrics.DevError = dd.devReply.Code()
+	}
 	return nil
 }
 
 // Implementation of common.DeviceManager
 //
 func (dd *LoopbackDriver) Cancel(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdDeviceCancel, query)
 }
 func (dd *LoopbackDriver) Reset(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdDeviceReset, query)
 }
 func (dd *LoopbackDriver) Status(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdDeviceStatus, query)
 }
 func (dd *LoopbackDriver) RunAction(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdRunAction, query)
 }
 func (dd *LoopbackDriver) StopAction(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdStopAction, query)
 }
 
 func (dd *LoopbackDriver) dummyDeviceReply(name string, cmd string, query interface{}) error {
 	if dd.log != nil {
 		dd.log.Debug("LoopbackDriver dev:%s run cmd:%s with result:%s",
-			name, cmd, dd.devError.Error())
+			name, cmd, dd.devReply.Error())
 	}
 	reply := &common.DeviceReply{}
 	reply.Command = cmd
 	reply.DevState = dd.devState
-	reply.ErrCode  = dd.devError.Code
-	reply.ErrText  = dd.devError.Error()
+	reply.ErrCode  = dd.devReply.Code()
+	reply.ErrText  = dd.devReply.Error()
 	if dd.device != nil {
 		return dd.device.DeviceReply(name, reply)
 	}
@@ -128,86 +135,86 @@ func (dd *LoopbackDriver) dummyDeviceReply(name string, cmd string, query interf
 // Implementation of common.PrinterManager
 //
 func (dd *LoopbackDriver) InitPrinter(name string, query *common.PrinterSetup) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdInitPrinter, query)
 }
 func (dd *LoopbackDriver) PrintText(name string, query *common.PrinterQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdPrintText, query)
 }
 
 // Implementation of common.ReaderManager
 //
 func (dd *LoopbackDriver) EnterCard(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdEnterCard, query)
 }
 func (dd *LoopbackDriver) EjectCard(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdEjectCard, query)
 }
 func (dd *LoopbackDriver) CaptureCard(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdCaptureCard, query)
 }
 func (dd *LoopbackDriver) ReadCard(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdReadCard, query)
 }
 func (dd *LoopbackDriver) ChipGetATR(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdChipGetATR, query)
 }
 func (dd *LoopbackDriver) ChipPowerOff(name string, query *common.DeviceQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdChipPowerOff, query)
 }
 func (dd *LoopbackDriver) ChipCommand(name string, query *common.ReaderChipQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdChipCommand, query)
 }
 
 // Implementation of common.ValidatorManager
 //
 func (dd *LoopbackDriver) InitValidator(name string, query *common.ValidatorQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyValidatorStore(name, common.CmdInitValidator, query)
 }
 func (dd *LoopbackDriver) DoValidate(name string, query *common.ValidatorQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyValidatorAccept(name, common.CmdDoValidate, query)
 }
 func (dd *LoopbackDriver) NoteAccept(name string, query *common.ValidatorQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyValidatorAccept(name, common.CmdNoteAccept, query)
 }
 func (dd *LoopbackDriver) NoteReject(name string, query *common.ValidatorQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyValidatorAccept(name, common.CmdNoteReject, query)
 }
 func (dd *LoopbackDriver) StopValidate(name string, query *common.ValidatorQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyValidatorStore(name, common.CmdStopValidate, query)
 }
 func (dd *LoopbackDriver) CheckValidator(name string, query *common.ValidatorQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyValidatorStore(name, common.CmdCheckValidator, query)
 }
 func (dd *LoopbackDriver) ClearValidator(name string, query *common.ValidatorQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyValidatorStore(name, common.CmdClearValidator, query)
 }
 
 func (dd *LoopbackDriver) dummyValidatorStore(name string, cmd string, query *common.ValidatorQuery) error {
 	if dd.log != nil {
 		dd.log.Debug("LoopbackDriver dev:%s run cmd:%s with result:%s",
-			name, cmd, dd.devError.Error())
+			name, cmd, dd.devReply.Error())
 	}
 	reply := &common.ValidatorStore{}
 	reply.Command = cmd
 	reply.DevState = dd.devState
-	reply.ErrCode  = dd.devError.Code
-	reply.ErrText  = dd.devError.Error()
+	reply.ErrCode  = dd.devReply.Code()
+	reply.ErrText  = dd.devReply.Error()
 	var err error
 	if dd.validator != nil {
 		err = dd.validator.ValidatorStore(name, reply)
@@ -238,36 +245,36 @@ func (dd *LoopbackDriver) dummyValidatorAccept(name string, cmd string, query *c
 // Implementation of common.PinPadManager
 //
 func (dd *LoopbackDriver) ReadPIN(name string, query *common.ReaderPinQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyDeviceReply(name, common.CmdReadPIN, query)
 }
 func (dd *LoopbackDriver) LoadMasterKey(name string, query *common.ReaderPinQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyPinPadReply(name, common.CmdLoadMasterKey, query)
 }
 func (dd *LoopbackDriver) LoadWorkKey(name string, query *common.ReaderPinQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyPinPadReply(name, common.CmdLoadWorkKey, query)
 }
 func (dd *LoopbackDriver) TestMasterKey(name string, query *common.ReaderPinQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyPinPadReply(name, common.CmdTestMasterKey, query)
 }
 func (dd *LoopbackDriver) TestWorkKey(name string, query *common.ReaderPinQuery) error {
-	dd.devError = dd.protocol.CheckLink()
+	dd.devReply = dd.protocol.CheckLink()
 	return dd.dummyPinPadReply(name, common.CmdTestWorkKey, query)
 }
 
 func (dd *LoopbackDriver) dummyPinPadReply(name string, cmd string, query interface{}) error {
 	if dd.log != nil {
 		dd.log.Debug("LoopbackDriver dev:%s run cmd:%s with result:%s",
-			name, cmd, dd.devError.Error())
+			name, cmd, dd.devReply.Error())
 	}
 	reply := &common.ReaderPinReply{}
 	reply.Command = cmd
 	reply.DevState = dd.devState
-	reply.ErrCode  = dd.devError.Code
-	reply.ErrText  = dd.devError.Error()
+	reply.ErrCode  = dd.devReply.Code()
+	reply.ErrText  = dd.devReply.Error()
 	var err error
 	if dd.reader != nil {
 		err = dd.pinpad.PinPadReply(name, reply)
