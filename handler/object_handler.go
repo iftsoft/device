@@ -243,29 +243,29 @@ func (oh *ObjectHandler) ChipResponse(name string, reply *common.ReaderChipReply
 // Implementation of common.ValidatorCallback
 func (oh *ObjectHandler) NoteAccepted(name string, reply *common.ValidatorAccept) error {
 	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.NoteAccepted dev:%s, Curr:%d, Amount:%f",
-			name, reply.Currency, reply.Amount)
+		oh.log.Debug("ObjectHandler.NoteAccepted dev:%s, Reply: %s",
+			name, reply.String())
 	}
 	return nil
 }
 func (oh *ObjectHandler) CashIsStored(name string, reply *common.ValidatorAccept) error {
 	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.CashIsStored dev:%s, Curr:%d, Amount:%f",
-			name, reply.Currency, reply.Amount)
+		oh.log.Debug("ObjectHandler.CashIsStored dev:%s, Reply: %s",
+			name, reply.String())
 	}
 	return nil
 }
 func (oh *ObjectHandler) CashReturned(name string, reply *common.ValidatorAccept) error {
 	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.CashReturned dev:%s, Curr:%d, Amount:%f",
-			name, reply.Currency, reply.Amount)
+		oh.log.Debug("ObjectHandler.CashReturned dev:%s, Reply: %s",
+			name, reply.String())
 	}
 	return nil
 }
 func (oh *ObjectHandler) ValidatorStore(name string, reply *common.ValidatorStore) error {
 	if oh.log != nil {
-		oh.log.Debug("ObjectHandler.ValidatorStore dev:%s, Size:%d",
-			name, len(reply.Note))
+		oh.log.Debug("ObjectHandler.ValidatorStore dev:%s, Reply: %s",
+			name, reply.String())
 	}
 	return nil
 }

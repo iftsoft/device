@@ -2,13 +2,6 @@ package config
 
 import "fmt"
 
-// Device error codes
-const (
-	CardAcceptAnyCard int16 = iota
-	CardAcceptMagnetic
-	CardAcceptSmart
-)
-
 type CommonConfig struct {
 	Model    string `yaml:"model"`
 	Version  string `yaml:"version"`
@@ -22,41 +15,60 @@ func (cfg *CommonConfig) String() string {
 		cfg.Model, cfg.Version, cfg.Timeout, cfg.AutoLoad)
 	return str
 }
+func GetDefaultCommonConfig() *CommonConfig {
+	cfg := &CommonConfig{
+		Model:    "",
+		Version:  "",
+		Timeout:  60,
+		AutoLoad: false,
+	}
+	return cfg
+}
 
 
 type PrinterConfig struct {
-	PrintName   string `yaml:"print_name"`
-	ImageFile   string `yaml:"image_file"`
-	PaperPath   int32  `yaml:"paper_path"`
-	Landscape   bool   `yaml:"landscape"`
-	ShowImage   int32  `yaml:"show_image"`
-	EjectLength int32  `yaml:"eject_length"`
+	PrintName   string 			`yaml:"print_name"`
+	Landscape   bool			`yaml:"landscape"`
+	PaperPath   EnumPaperPath	`yaml:"paper_path"`
+	ShowImage   EnumShowImage	`yaml:"show_image"`
+	ImageFile   string			`yaml:"image_file"`
+	EjectLength int32			`yaml:"eject_length"`
 }
 func (cfg *PrinterConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tPrinter config: " +
-		"PrintName = %s, ImageFile = %s, PaperPath = %d, Landscape = %t.",
-		cfg.PrintName, cfg.ImageFile, cfg.PaperPath, cfg.Landscape)
+		"PrintName = %s, Landscape = %t, PaperPath = %s, ShowImage = %s, ImageFile = %s.",
+		cfg.PrintName, cfg.Landscape, cfg.PaperPath, cfg.ShowImage, cfg.ImageFile)
 	return str
+}
+func GetDefaultPrinterConfig() *PrinterConfig {
+	cfg := &PrinterConfig{
+	}
+	return cfg
 }
 
 
 type ReaderConfig struct {
-	SkipPrefix int32 `yaml:"skip_prefix"`
-	CardAccept int16 `yaml:"card_accept"`
+	SkipPrefix	EnumSkipPrefix	`yaml:"skip_prefix"`
+	CardAccept	EnumCardAccept	`yaml:"card_accept"`
 }
 func (cfg *ReaderConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tReader config: " +
-		"SkipPrefix = %d, CardAccept = %d.",
+		"SkipPrefix = %s, CardAccept = %s.",
 		cfg.SkipPrefix, cfg.CardAccept)
 	return str
+}
+func GetDefaultReaderConfig() *ReaderConfig {
+	cfg := &ReaderConfig{
+	}
+	return cfg
 }
 
 
 type PinPadConfig struct {
 	NeedEnter bool  `yaml:"need_enter"`
-	PinDigits int32 `yaml:"pin_digits"`
+	PinDigits uint16 `yaml:"pin_digits"`
 }
 func (cfg *PinPadConfig) String() string {
 	if cfg == nil { return "" }
@@ -65,36 +77,51 @@ func (cfg *PinPadConfig) String() string {
 		cfg.NeedEnter, cfg.PinDigits)
 	return str
 }
+func GetDefaultPinPadConfig() *PinPadConfig {
+	cfg := &PinPadConfig{
+	}
+	return cfg
+}
 
 
 type ValidatorConfig struct {
-	NotesMask  int64 `yaml:"notes_mask"`
-	NoteAlert  int32 `yaml:"note_alert"`
-	NoteLimit  int32 `yaml:"note_limit"`
-	ActDefault int32 `yaml:"act_default"`
-	StoreWait  int32 `yaml:"store_wait"`
-	CurrCode   int32 `yaml:"curr_code"`
+	NotesMask	int64 `yaml:"notes_mask"`
+	NoteAlert	int32 `yaml:"note_alert"`
+	NoteLimit	int32 `yaml:"note_limit"`
+	ActDefault	EnumBillAction	`yaml:"act_default"`
+	StoreWait	int32 `yaml:"store_wait"`
+	CurrCode	int32 `yaml:"curr_code"`
 }
 func (cfg *ValidatorConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tValidator config: " +
-		"NotesMask = %d, NoteAlert = %d, NoteLimit = %d, ActDefault = %d, StoreWait = %d, CurrCode = %d.",
+		"NotesMask = %d, NoteAlert = %d, NoteLimit = %d, ActDefault = %s, StoreWait = %d, CurrCode = %d.",
 		cfg.NotesMask, cfg.NoteAlert, cfg.NoteLimit, cfg.ActDefault, cfg.StoreWait, cfg.CurrCode)
 	return str
+}
+func GetDefaultValidatorConfig() *ValidatorConfig {
+	cfg := &ValidatorConfig{
+	}
+	return cfg
 }
 
 
 type DispenserConfig struct {
-	OutputDir int32 `yaml:"output_dir"`
-	UseDivert int32 `yaml:"use_divert"`
-	UseEscrow int32 `yaml:"use_escrow"`
+	OutputDir EnumOutputDir `yaml:"output_dir"`
+	UseDivert EnumUnitUsage `yaml:"use_divert"`
+	UseEscrow EnumUnitUsage `yaml:"use_escrow"`
 }
 func (cfg *DispenserConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tDispenser config: " +
-		"OutputDir = %d, UseDivert = %d, UseEscrow = %d.",
+		"OutputDir = %s, UseDivert = %s, UseEscrow = %s.",
 		cfg.OutputDir, cfg.UseDivert, cfg.UseEscrow)
 	return str
+}
+func GetDefaultDispenserConfig() *DispenserConfig {
+	cfg := &DispenserConfig{
+	}
+	return cfg
 }
 
 
@@ -108,6 +135,11 @@ func (cfg *VendorConfig) String() string {
 		"UnitIndex = %d, ItemAlert = %d.",
 		cfg.UnitIndex, cfg.ItemAlert)
 	return str
+}
+func GetDefaultVendorConfig() *VendorConfig {
+	cfg := &VendorConfig{
+	}
+	return cfg
 }
 
 
@@ -130,16 +162,16 @@ func (cfg *DeviceConfig) String() string {
 }
 
 
-func GetDefaultDeviceConfig(linker *LinkerConfig) *DeviceConfig {
+func GetDefaultDeviceConfig() *DeviceConfig {
 	devCfg := &DeviceConfig{
-		Linker:    linker,
-		Common:    &CommonConfig{},
-		Printer:   &PrinterConfig{},
-		Reader:    &ReaderConfig{},
-		Pinpad:    &PinPadConfig{},
-		Validator: &ValidatorConfig{},
-		Dispenser: &DispenserConfig{},
-		Vendor:    &VendorConfig{},
+		Linker:    GetDefaultLinkerConfig(),
+		Common:    GetDefaultCommonConfig(),
+		Printer:   GetDefaultPrinterConfig(),
+		Reader:    GetDefaultReaderConfig(),
+		Pinpad:    GetDefaultPinPadConfig(),
+		Validator: GetDefaultValidatorConfig(),
+		Dispenser: GetDefaultDispenserConfig(),
+		Vendor:    GetDefaultVendorConfig(),
 	}
 	return devCfg
 }
