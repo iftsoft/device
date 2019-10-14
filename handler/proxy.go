@@ -25,7 +25,7 @@ func NewHandlerProxy(config config.HandlerList) *HandlerProxy {
 			config:    config,
 			proxy:  nil,
 			objMap: make(map[string]*DeviceHandler),
-			log:    core.GetLogAgent(core.LogLevelTrace, "Object"),
+			log:    core.GetLogAgent(core.LogLevelTrace, "Router"),
 		},
 		serverMng:    nil,
 		systemSrv:    proxy.NewSystemServer(),

@@ -33,10 +33,6 @@ func (or *HandlerRouter) GetDeviceHandler(name string) *DeviceHandler {
 		return obj
 	}
 	obj = NewDeviceHandler(name, or.log)
-	err := obj.InitObject(or.proxy)
-	if err != nil {
-		return nil
-	}
 	obj.StartObject(&or.wg)
 	or.objMap[name] = obj
 	return obj
