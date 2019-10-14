@@ -11,3 +11,30 @@ logger:
 #  max_size: 256
   source: false
 
+handlers:
+  - command:
+      device_name: client
+      binary_file: client.exe
+      config_file: cliemt.yml
+      logger_path: ../logs
+      database:
+      auto_load: true
+    plugins:
+      - plugin_name: plugin_1
+        enabled: true
+      - plugin_name: plugin_2
+        enabled: true
+      - plugin_name: plugin_3
+        enabled: false
+  - command:
+      device_name: cashcode
+      binary_file: cashcode.exe
+      config_file: cashcode.yml
+      logger_path: ../logs
+      database:
+      auto_load: false
+    plugins:
+      - plugin_name: plugin_1
+        enabled: true
+
+

@@ -29,9 +29,9 @@ func main() {
 	err = linker.GetLinkerPorts(log)
 
 	srv := duplex.NewDuplexServer(appCfg.Duplex, log)
-	obj := handler.NewObjectProxy()
+	obj := handler.NewHandlerProxy(appCfg.Handlers)
 	obj.Init(srv)
-	srv.SetClientManager(obj.GetClientManager())
+	srv.SetClientManager(obj)
 	err = srv.StartListen()
 	if err == nil {
 

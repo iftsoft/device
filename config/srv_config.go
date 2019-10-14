@@ -7,13 +7,14 @@ import (
 )
 
 type SrvConfig struct {
-	Logger *core.LogConfig      `yaml:"logger"`
-	Duplex *duplex.ServerConfig `yaml:"duplex"`
+	Logger   *core.LogConfig		`yaml:"logger"`
+	Duplex   *duplex.ServerConfig	`yaml:"duplex"`
+	Handlers HandlerList			`yaml:"handlers"`
 }
 
 func (cfg *SrvConfig) String() string {
-	str := fmt.Sprintf("Server app config: %s %s",
-		cfg.Logger, cfg.Duplex)
+	str := fmt.Sprintf("Server app config: %s %s %s",
+		cfg.Logger, cfg.Duplex, cfg.Handlers)
 	return str
 }
 
