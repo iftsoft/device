@@ -1,6 +1,7 @@
 package duplex
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/iftsoft/device/core"
 	"net"
@@ -46,14 +47,15 @@ func (dh *DuplexHandler) Init(conn *net.TCPConn, cfg *ServerConfig, scopes *Scop
 func (dh *DuplexHandler) StartHandler(hs *HandleSet) {
 	defer dh.link.CloseConnect()
 	// Get client greeting info
-	err := dh.readGreeting()
+	info, err := dh.readGreeting()
 	if err != nil {
 		dh.log.Error("DuplexHandler ReadGreeting error: %s", err)
 		return
 	}
-	hs.SetHandlerDevice(dh.HndName, dh.DevName)
+	hs.SetHandlerDevice(dh.HndName, dh.DevName, info)
 	defer hs.DelHandler(dh.HndName, dh.DevName)
-	dh.log.Info("DuplexHandler %s started for device %s", dh.HndName, dh.DevName)
+	dh.log.Info("DuplexHandler %s started for device %s, sup:%X, req:%X",
+		dh.HndName, dh.DevName, info.Supported, info.Required)
 	defer dh.log.Info("DuplexHandler %s stopped for device %s", dh.HndName, dh.DevName)
 
 	dh.wg = &hs.wg
@@ -103,18 +105,22 @@ func (dh *DuplexHandler) SendPacket(pack *Packet) error {
 	return dh.WritePacket(pack)
 }
 
-func (dh *DuplexHandler) readGreeting() error {
+func (dh *DuplexHandler) readGreeting() (*GreetingInfo, error) {
 	conn := dh.link.GetConnect()
 	if conn == nil {
-		return errors.New("duplex DialTCP conn is nil")
+		return nil, errors.New("duplex DialTCP conn is nil")
 	}
 	pack, err := conn.ReadPacket()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if pack.Command != commandGreeting {
-		return errors.New("packet is not Greeting")
+		return nil, errors.New("packet is not Greeting")
 	}
+	info := &GreetingInfo{}
 	dh.DevName = pack.DevName
-	return nil
+	if len(pack.Content) > 0 {
+		err = json.Unmarshal(pack.Content, info)
+	}
+	return info, err
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/duplex"
 	"sync"
 )
 
@@ -49,18 +50,23 @@ func (hr *HandlerRouter) CreateNewHandler(name string) *DeviceHandler {
 	obj := NewDeviceHandler(name, hr.log)
 	obj.StartObject(&hr.wg)
 	hr.handlerMap[name] = obj
+	return obj
+}
+
+func (hr *HandlerRouter) HandlerReflexes(handler *DeviceHandler, greet *duplex.GreetingInfo) {
 	// Attach mandatory reflexes
 	for refName, factory := range hr.reflexMap {
 		info := factory.GetReflexInfo()
 		if info.Mandatory {
-			hr.log.Debug("HandlerProxy.CreateNewHandler is attaching reflex:%s to device:%s", refName, name)
-			err, reflex := factory.CreateReflex(name, hr.proxy, hr.reflexLog)
+			hr.log.Debug("HandlerProxy.CreateNewHandler is attaching reflex:%s to device:%s",
+				refName, handler.devName)
+			err, reflex := factory.CreateReflex(handler.devName, hr.proxy, hr.reflexLog)
 			if err == nil {
-				err = obj.AttachReflex(refName, reflex)
+				err = handler.AttachReflex(refName, reflex)
 			}
 		}
 	}
-	return obj
+	return
 }
 
 func (hr *HandlerRouter) GetDeviceHandler(name string) *DeviceHandler {
@@ -86,15 +92,17 @@ func (hr *HandlerRouter) DelDeviceHandler(name string) {
 }
 
 // Implementation of duplex.ClientManager
-func (hr *HandlerRouter) OnClientStarted(name string) {
+func (hr *HandlerRouter) OnClientStarted(name string, info *duplex.GreetingInfo) {
 	if name == "" {
 		return
 	}
-	hr.log.Trace("HandlerProxy.OnClientStarted dev:%s", name)
+	hr.log.Trace("HandlerProxy.OnClientStarted dev:%s, sup:%X, req:%X",
+		name, info.Supported, info.Required)
 	handler := hr.GetDeviceHandler(name)
 	if handler == nil {
 		handler = hr.CreateNewHandler(name)
 	}
+	hr.HandlerReflexes(handler, info)
 	handler.OnClientStarted(name)
 }
 

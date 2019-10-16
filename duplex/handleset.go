@@ -6,7 +6,7 @@ import (
 )
 
 type ClientManager interface {
-	OnClientStarted(name string)
+	OnClientStarted(name string, info *GreetingInfo)
 	OnClientStopped(name string)
 }
 
@@ -46,12 +46,12 @@ func (hs *HandleSet) AddHandler() *DuplexHandler {
 	return handle
 }
 
-func (hs *HandleSet) SetHandlerDevice(link, name string) {
+func (hs *HandleSet) SetHandlerDevice(link, name string, info *GreetingInfo) {
 	hs.mutex.Lock()
 	hs.names[name] = link
 	hs.mutex.Unlock()
 	if hs.manager != nil {
-		hs.manager.OnClientStarted(name)
+		hs.manager.OnClientStarted(name, info)
 	}
 }
 

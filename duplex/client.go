@@ -1,6 +1,7 @@
 package duplex
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/iftsoft/device/core"
 	"io"
@@ -34,6 +35,7 @@ type DuplexClient struct {
 	Duplex
 	config   *ClientConfig
 	scopeMap *ScopeSet
+	greeting *GreetingInfo
 }
 
 func NewDuplexClient(cfg *ClientConfig) *DuplexClient {
@@ -45,13 +47,15 @@ func NewDuplexClient(cfg *ClientConfig) *DuplexClient {
 		},
 		config:   cfg,
 		scopeMap: NewScopeSet(),
+		greeting: nil,
 	}
 	dc.mngr = dc
 	return dc
 }
 
-func (dc *DuplexClient) StartClient(wg *sync.WaitGroup) {
+func (dc *DuplexClient) StartClient(wg *sync.WaitGroup, info *GreetingInfo) {
 	wg.Add(1)
+	dc.greeting = info
 	dc.log.Info("Starting client engine")
 	go dc.clientLoop(wg, dc.config.Port)
 }
@@ -165,8 +169,15 @@ func (dc *DuplexClient) sendGreeting() error {
 	if dc.config != nil {
 		name = dc.config.DevName
 	}
-	dc.log.Info("DuplexClient SendGreeting for device: %s", name)
 	pack := NewPacket(ScopeSystem, name, commandGreeting, nil)
+	if dc.greeting != nil {
+		dc.log.Info("DuplexClient SendGreeting for device: %s, sup:%X, req:%X",
+			name, dc.greeting.Supported, dc.greeting.Required)
+		dump, er := json.Marshal(dc.greeting)
+		if er == nil {
+			pack.Content = dump
+		}
+	}
 	err := dc.WritePacket(pack)
 	if err != nil {
 		dc.log.Error("DuplexClient WritePacket error: %s", err)

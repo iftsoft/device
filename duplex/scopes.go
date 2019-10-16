@@ -1,6 +1,7 @@
 package duplex
 
 import (
+	"github.com/iftsoft/device/common"
 	"sync"
 )
 
@@ -10,6 +11,11 @@ type ScopeFunc func(name string, dump []byte)
 
 type Transporter interface {
 	SendPacket(pack *Packet) error // , link string
+}
+
+type GreetingInfo struct {
+	Supported common.DevScopeMask
+	Required  common.DevScopeMask
 }
 
 type ScopeItem struct {
