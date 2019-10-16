@@ -3,7 +3,6 @@ package handler
 import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
-	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
 	"github.com/iftsoft/device/proxy"
 )
@@ -20,138 +19,133 @@ type HandlerProxy struct {
 }
 
 func NewHandlerProxy(config config.HandlerList) *HandlerProxy {
-	op := &HandlerProxy{
-		HandlerRouter: HandlerRouter{
-			config:    config,
-			proxy:  nil,
-			objMap: make(map[string]*DeviceHandler),
-			log:    core.GetLogAgent(core.LogLevelTrace, "Router"),
-		},
-		serverMng:    nil,
-		systemSrv:    proxy.NewSystemServer(),
-		deviceSrv:    proxy.NewDeviceServer(),
-		printerSrv:   proxy.NewPrinterServer(),
-		readerSrv:    proxy.NewReaderServer(),
-		validatorSrv: proxy.NewValidatorServer(),
-		pinpadSrv:    proxy.NewPinPadServer(),
+	hp := &HandlerProxy{
+		HandlerRouter: HandlerRouter{},
+		serverMng:     nil,
+		systemSrv:     proxy.NewSystemServer(),
+		deviceSrv:     proxy.NewDeviceServer(),
+		printerSrv:    proxy.NewPrinterServer(),
+		readerSrv:     proxy.NewReaderServer(),
+		validatorSrv:  proxy.NewValidatorServer(),
+		pinpadSrv:     proxy.NewPinPadServer(),
 	}
-	op.HandlerRouter.proxy = op
-	return op
+	hp.HandlerRouter.InitRouter(config, hp)
+	return hp
 }
 
-func (op *HandlerProxy) Init(server duplex.ServerManager) {
-	op.serverMng = server
-	op.systemSrv.Init(server, &op.HandlerRouter, op.log)
-	op.deviceSrv.Init(server, &op.HandlerRouter, op.log)
-	op.printerSrv.Init(server, &op.HandlerRouter, op.log)
-	op.readerSrv.Init(server, &op.HandlerRouter, op.log)
-	op.validatorSrv.Init(server, &op.HandlerRouter, op.log)
-	op.pinpadSrv.Init(server, &op.HandlerRouter, op.log)
+func (hp *HandlerProxy) InitProxy(server duplex.ServerManager) {
+	hp.serverMng = server
+	hp.systemSrv.Init(server, &hp.HandlerRouter, hp.log)
+	hp.deviceSrv.Init(server, &hp.HandlerRouter, hp.log)
+	hp.printerSrv.Init(server, &hp.HandlerRouter, hp.log)
+	hp.readerSrv.Init(server, &hp.HandlerRouter, hp.log)
+	hp.validatorSrv.Init(server, &hp.HandlerRouter, hp.log)
+	hp.pinpadSrv.Init(server, &hp.HandlerRouter, hp.log)
 }
 
 
 
 // Implementation of common.SystemManager
-func (op *HandlerProxy) Terminate(name string, query *common.SystemQuery) error {
-	return op.systemSrv.SendSystemCommand(name, common.CmdSystemTerminate, query)
+func (hp *HandlerProxy) Terminate(name string, query *common.SystemQuery) error {
+	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemTerminate, query)
 }
-func (op *HandlerProxy) SysInform(name string, query *common.SystemQuery) error {
-	return op.systemSrv.SendSystemCommand(name, common.CmdSystemInform, query)
+func (hp *HandlerProxy) SysInform(name string, query *common.SystemQuery) error {
+	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemInform, query)
 }
-func (op *HandlerProxy) SysStart(name string, query *common.SystemQuery) error {
-	return op.systemSrv.SendSystemCommand(name, common.CmdSystemStart, query)
+func (hp *HandlerProxy) SysStart(name string, query *common.SystemQuery) error {
+	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemStart, query)
 }
-func (op *HandlerProxy) SysStop(name string, query *common.SystemQuery) error {
-	return op.systemSrv.SendSystemCommand(name, common.CmdSystemStop, query)
+func (hp *HandlerProxy) SysStop(name string, query *common.SystemQuery) error {
+	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemStop, query)
 }
-func (op *HandlerProxy) SysRestart(name string, query *common.SystemQuery) error {
-	return op.systemSrv.SendSystemCommand(name, common.CmdSystemRestart, query)
+func (hp *HandlerProxy) SysRestart(name string, query *common.SystemQuery) error {
+	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemRestart, query)
 }
 
 // Implementation of common.DeviceManager
-func (op *HandlerProxy) Cancel(name string, query *common.DeviceQuery) error {
-	return op.deviceSrv.SendDeviceCommand(name, common.CmdDeviceCancel, query)
+func (hp *HandlerProxy) Cancel(name string, query *common.DeviceQuery) error {
+	return hp.deviceSrv.SendDeviceCommand(name, common.CmdDeviceCancel, query)
 }
-func (op *HandlerProxy) Reset(name string, query *common.DeviceQuery) error {
-	return op.deviceSrv.SendDeviceCommand(name, common.CmdDeviceReset, query)
+func (hp *HandlerProxy) Reset(name string, query *common.DeviceQuery) error {
+	return hp.deviceSrv.SendDeviceCommand(name, common.CmdDeviceReset, query)
 }
-func (op *HandlerProxy) Status(name string, query *common.DeviceQuery) error {
-	return op.deviceSrv.SendDeviceCommand(name, common.CmdDeviceStatus, query)
+func (hp *HandlerProxy) Status(name string, query *common.DeviceQuery) error {
+	return hp.deviceSrv.SendDeviceCommand(name, common.CmdDeviceStatus, query)
 }
-func (op *HandlerProxy) RunAction(name string, query *common.DeviceQuery) error {
-	return op.deviceSrv.SendDeviceCommand(name, common.CmdRunAction, query)
+func (hp *HandlerProxy) RunAction(name string, query *common.DeviceQuery) error {
+	return hp.deviceSrv.SendDeviceCommand(name, common.CmdRunAction, query)
 }
-func (op *HandlerProxy) StopAction(name string, query *common.DeviceQuery) error {
-	return op.deviceSrv.SendDeviceCommand(name, common.CmdStopAction, query)
+func (hp *HandlerProxy) StopAction(name string, query *common.DeviceQuery) error {
+	return hp.deviceSrv.SendDeviceCommand(name, common.CmdStopAction, query)
 }
 
 // Implementation of common.PrinterManager
-func (op *HandlerProxy) InitPrinter(name string, query *common.PrinterSetup) error {
-	return op.printerSrv.SendPrinterCommand(name, common.CmdInitPrinter, query)
+func (hp *HandlerProxy) InitPrinter(name string, query *common.PrinterSetup) error {
+	return hp.printerSrv.SendPrinterCommand(name, common.CmdInitPrinter, query)
 }
-func (op *HandlerProxy) PrintText(name string, query *common.PrinterQuery) error {
-	return op.printerSrv.SendPrinterCommand(name, common.CmdPrintText, query)
+func (hp *HandlerProxy) PrintText(name string, query *common.PrinterQuery) error {
+	return hp.printerSrv.SendPrinterCommand(name, common.CmdPrintText, query)
 }
 
 // Implementation of common.ReaderManager
-func (op *HandlerProxy) EnterCard(name string, query *common.DeviceQuery) error {
-	return op.readerSrv.SendReaderCommand(name, common.CmdEnterCard, query)
+func (hp *HandlerProxy) EnterCard(name string, query *common.DeviceQuery) error {
+	return hp.readerSrv.SendReaderCommand(name, common.CmdEnterCard, query)
 }
-func (op *HandlerProxy) EjectCard(name string, query *common.DeviceQuery) error {
-	return op.readerSrv.SendReaderCommand(name, common.CmdEjectCard, query)
+func (hp *HandlerProxy) EjectCard(name string, query *common.DeviceQuery) error {
+	return hp.readerSrv.SendReaderCommand(name, common.CmdEjectCard, query)
 }
-func (op *HandlerProxy) CaptureCard(name string, query *common.DeviceQuery) error {
-	return op.readerSrv.SendReaderCommand(name, common.CmdCaptureCard, query)
+func (hp *HandlerProxy) CaptureCard(name string, query *common.DeviceQuery) error {
+	return hp.readerSrv.SendReaderCommand(name, common.CmdCaptureCard, query)
 }
-func (op *HandlerProxy) ReadCard(name string, query *common.DeviceQuery) error {
-	return op.readerSrv.SendReaderCommand(name, common.CmdReadCard, query)
+func (hp *HandlerProxy) ReadCard(name string, query *common.DeviceQuery) error {
+	return hp.readerSrv.SendReaderCommand(name, common.CmdReadCard, query)
 }
-func (op *HandlerProxy) ChipGetATR(name string, query *common.DeviceQuery) error {
-	return op.readerSrv.SendReaderCommand(name, common.CmdChipGetATR, query)
+func (hp *HandlerProxy) ChipGetATR(name string, query *common.DeviceQuery) error {
+	return hp.readerSrv.SendReaderCommand(name, common.CmdChipGetATR, query)
 }
-func (op *HandlerProxy) ChipPowerOff(name string, query *common.DeviceQuery) error {
-	return op.readerSrv.SendReaderCommand(name, common.CmdChipPowerOff, query)
+func (hp *HandlerProxy) ChipPowerOff(name string, query *common.DeviceQuery) error {
+	return hp.readerSrv.SendReaderCommand(name, common.CmdChipPowerOff, query)
 }
-func (op *HandlerProxy) ChipCommand(name string, query *common.ReaderChipQuery) error {
-	return op.readerSrv.SendReaderCommand(name, common.CmdChipCommand, query)
+func (hp *HandlerProxy) ChipCommand(name string, query *common.ReaderChipQuery) error {
+	return hp.readerSrv.SendReaderCommand(name, common.CmdChipCommand, query)
 }
 
 // Implementation of common.ValidatorManager
-func (op *HandlerProxy) InitValidator(name string, query *common.ValidatorQuery) error {
-	return op.validatorSrv.SendValidatorCommand(name, common.CmdInitValidator, query)
+func (hp *HandlerProxy) InitValidator(name string, query *common.ValidatorQuery) error {
+	return hp.validatorSrv.SendValidatorCommand(name, common.CmdInitValidator, query)
 }
-func (op *HandlerProxy) DoValidate(name string, query *common.ValidatorQuery) error {
-	return op.validatorSrv.SendValidatorCommand(name, common.CmdDoValidate, query)
+func (hp *HandlerProxy) DoValidate(name string, query *common.ValidatorQuery) error {
+	return hp.validatorSrv.SendValidatorCommand(name, common.CmdDoValidate, query)
 }
-func (op *HandlerProxy) NoteAccept(name string, query *common.ValidatorQuery) error {
-	return op.validatorSrv.SendValidatorCommand(name, common.CmdNoteAccept, query)
+func (hp *HandlerProxy) NoteAccept(name string, query *common.ValidatorQuery) error {
+	return hp.validatorSrv.SendValidatorCommand(name, common.CmdNoteAccept, query)
 }
-func (op *HandlerProxy) NoteReject(name string, query *common.ValidatorQuery) error {
-	return op.validatorSrv.SendValidatorCommand(name, common.CmdNoteReject, query)
+func (hp *HandlerProxy) NoteReject(name string, query *common.ValidatorQuery) error {
+	return hp.validatorSrv.SendValidatorCommand(name, common.CmdNoteReject, query)
 }
-func (op *HandlerProxy) StopValidate(name string, query *common.ValidatorQuery) error {
-	return op.validatorSrv.SendValidatorCommand(name, common.CmdStopValidate, query)
+func (hp *HandlerProxy) StopValidate(name string, query *common.ValidatorQuery) error {
+	return hp.validatorSrv.SendValidatorCommand(name, common.CmdStopValidate, query)
 }
-func (op *HandlerProxy) CheckValidator(name string, query *common.ValidatorQuery) error {
-	return op.validatorSrv.SendValidatorCommand(name, common.CmdCheckValidator, query)
+func (hp *HandlerProxy) CheckValidator(name string, query *common.ValidatorQuery) error {
+	return hp.validatorSrv.SendValidatorCommand(name, common.CmdCheckValidator, query)
 }
-func (op *HandlerProxy) ClearValidator(name string, query *common.ValidatorQuery) error {
-	return op.validatorSrv.SendValidatorCommand(name, common.CmdClearValidator, query)
+func (hp *HandlerProxy) ClearValidator(name string, query *common.ValidatorQuery) error {
+	return hp.validatorSrv.SendValidatorCommand(name, common.CmdClearValidator, query)
 }
 
 // Implementation of common.PinPadManager
-func (op *HandlerProxy) ReadPIN(name string, query *common.ReaderPinQuery) error {
-	return op.pinpadSrv.SendPinPadCommand(name, common.CmdReadPIN, query)
+func (hp *HandlerProxy) ReadPIN(name string, query *common.ReaderPinQuery) error {
+	return hp.pinpadSrv.SendPinPadCommand(name, common.CmdReadPIN, query)
 }
-func (op *HandlerProxy) LoadMasterKey(name string, query *common.ReaderPinQuery) error {
-	return op.pinpadSrv.SendPinPadCommand(name, common.CmdLoadMasterKey, query)
+func (hp *HandlerProxy) LoadMasterKey(name string, query *common.ReaderPinQuery) error {
+	return hp.pinpadSrv.SendPinPadCommand(name, common.CmdLoadMasterKey, query)
 }
-func (op *HandlerProxy) LoadWorkKey(name string, query *common.ReaderPinQuery) error {
-	return op.pinpadSrv.SendPinPadCommand(name, common.CmdLoadWorkKey, query)
+func (hp *HandlerProxy) LoadWorkKey(name string, query *common.ReaderPinQuery) error {
+	return hp.pinpadSrv.SendPinPadCommand(name, common.CmdLoadWorkKey, query)
 }
-func (op *HandlerProxy) TestMasterKey(name string, query *common.ReaderPinQuery) error {
-	return op.pinpadSrv.SendPinPadCommand(name, common.CmdTestMasterKey, query)
+func (hp *HandlerProxy) TestMasterKey(name string, query *common.ReaderPinQuery) error {
+	return hp.pinpadSrv.SendPinPadCommand(name, common.CmdTestMasterKey, query)
 }
-func (op *HandlerProxy) TestWorkKey(name string, query *common.ReaderPinQuery) error {
-	return op.pinpadSrv.SendPinPadCommand(name, common.CmdTestWorkKey, query)
+func (hp *HandlerProxy) TestWorkKey(name string, query *common.ReaderPinQuery) error {
+	return hp.pinpadSrv.SendPinPadCommand(name, common.CmdTestWorkKey, query)
 }

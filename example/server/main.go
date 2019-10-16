@@ -30,7 +30,8 @@ func main() {
 
 	srv := duplex.NewDuplexServer(appCfg.Duplex, log)
 	obj := handler.NewHandlerProxy(appCfg.Handlers)
-	obj.Init(srv)
+	obj.RegisterReflexFactory(handler.GetDeviceTesterFactory())
+	obj.InitProxy(srv)
 	srv.SetClientManager(obj)
 	err = srv.StartListen()
 	if err == nil {

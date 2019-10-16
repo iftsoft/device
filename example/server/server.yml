@@ -5,10 +5,8 @@ duplex:
 logger:
   log_path: ../logs
   log_file: server
-#  log_level: 7
-#  cons_level: 6
-#  max_files: 2
-#  max_size: 256
+  log_level: 7
+  cons_level: 7
   source: false
 
 handlers:
@@ -19,7 +17,7 @@ handlers:
       logger_path: ../logs
       database:
       auto_load: true
-    plugins:
+    reflexes:
       - plugin_name: plugin_1
         enabled: true
       - plugin_name: plugin_2
@@ -33,7 +31,7 @@ handlers:
       logger_path: ../logs
       database:
       auto_load: false
-    plugins:
+    reflexes:
       - plugin_name: plugin_1
         enabled: true
 

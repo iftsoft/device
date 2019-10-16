@@ -18,20 +18,20 @@ func (cfg *CommandConfig) String() string {
 	return str
 }
 
-type PluginConfig struct {
-	PluginName  string	`yaml:"plugin_name"`
-	Enabled     bool	`yaml:"enabled"`
+type ReflexConfig struct {
+	ReflexName string `yaml:"reflex_name"`
+	Enabled    bool   `yaml:"enabled"`
 }
-func (cfg *PluginConfig) String() string {
+func (cfg *ReflexConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\t\t" +
-		"PluginName = %s, Enabled = %t.",
-		cfg.PluginName, cfg.Enabled)
+		"ReflexName = %s, Enabled = %t.",
+		cfg.ReflexName, cfg.Enabled)
 	return str
 }
 
-type PluginList []*PluginConfig
-func (cfg PluginList) String() string {
+type ReflexList []*ReflexConfig
+func (cfg ReflexList) String() string {
 	if cfg == nil { return "" }
 	str := ""
 	for _, plug := range cfg {
@@ -41,12 +41,12 @@ func (cfg PluginList) String() string {
 }
 
 type HandlerConfig struct {
-	Command  CommandConfig	`yaml:"command"`
-	Plugins  PluginList		`yaml:"plugins"`
+	Command  CommandConfig `yaml:"command"`
+	Reflexes ReflexList    `yaml:"reflexes"`
 }
 func (cfg *HandlerConfig) String() string {
 	str := fmt.Sprintf("\n\tHandler config: %s %s",
-		cfg.Command.String(), cfg.Plugins)
+		cfg.Command.String(), cfg.Reflexes)
 	return str
 }
 

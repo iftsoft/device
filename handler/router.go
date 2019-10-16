@@ -8,186 +8,227 @@ import (
 )
 
 type HandlerRouter struct {
-	config config.HandlerList
-	proxy  interface{}
-	objMap map[string]*DeviceHandler
-	log    *core.LogAgent
-	wg     sync.WaitGroup
+	config     config.HandlerList
+	proxy      interface{}
+	handlerMap map[string]*DeviceHandler
+	reflexMap  map[string]ReflexCreator
+	reflexLog  *core.LogAgent
+	log        *core.LogAgent
+	wg         sync.WaitGroup
 }
 
+func (hr *HandlerRouter) InitRouter(cfg config.HandlerList, proxy interface{}) {
+	hr.config     = cfg
+	hr.proxy      = proxy
+	hr.handlerMap = make(map[string]*DeviceHandler)
+	hr.reflexMap  = make(map[string]ReflexCreator)
+	hr.reflexLog  = core.GetLogAgent(core.LogLevelTrace, "Reflex")
+	hr.log        = core.GetLogAgent(core.LogLevelTrace, "Router")
+}
 
-func (or *HandlerRouter) Cleanup() {
-	for name, obj := range or.objMap {
+func (hr *HandlerRouter) Cleanup() {
+	for name, obj := range hr.handlerMap {
 		obj.StopObject()
-		delete(or.objMap, name)
+		delete(hr.handlerMap, name)
 	}
-	or.wg.Wait()
+	hr.wg.Wait()
 }
 
-func (or *HandlerRouter) GetDeviceHandler(name string) *DeviceHandler {
+func (hr *HandlerRouter) RegisterReflexFactory(fact ReflexCreator) {
+	if fact == nil { return }
+	info := fact.GetReflexInfo()
+	if info == nil { return }
+	hr.log.Debug("HandlerProxy.RegisterReflexFactory for reflex:%s", info.ReflexName)
+	hr.reflexMap[info.ReflexName] = fact
+}
+
+func (hr *HandlerRouter) CreateNewHandler(name string) *DeviceHandler {
 	if name == "" {
 		return nil
 	}
-	obj, ok := or.objMap[name]
-	if ok {
-		return obj
+	obj := NewDeviceHandler(name, hr.log)
+	obj.StartObject(&hr.wg)
+	hr.handlerMap[name] = obj
+	// Attach mandatory reflexes
+	for refName, factory := range hr.reflexMap {
+		info := factory.GetReflexInfo()
+		if info.Mandatory {
+			hr.log.Debug("HandlerProxy.CreateNewHandler is attaching reflex:%s to device:%s", refName, name)
+			err, reflex := factory.CreateReflex(name, hr.proxy, hr.reflexLog)
+			if err == nil {
+				err = obj.AttachReflex(refName, reflex)
+			}
+		}
 	}
-	obj = NewDeviceHandler(name, or.log)
-	obj.StartObject(&or.wg)
-	or.objMap[name] = obj
 	return obj
 }
 
-func (or *HandlerRouter) DelDeviceHandler(name string) {
+func (hr *HandlerRouter) GetDeviceHandler(name string) *DeviceHandler {
 	if name == "" {
-		return
+		return nil
 	}
-	obj, ok := or.objMap[name]
+	obj, ok := hr.handlerMap[name]
 	if ok {
-		obj.StopObject()
-	}
-	delete(or.objMap, name)
-}
-
-// Implementation of duplex.ClientManager
-func (or *HandlerRouter) OnClientStarted(name string) {
-	if name == "" {
-		return
-	}
-	or.log.Trace("HandlerProxy.OnClientStarted dev:%s", name)
-	obj := or.GetDeviceHandler(name)
-	obj.OnClientStarted(name)
-}
-
-func (or *HandlerRouter) OnClientStopped(name string) {
-	if name == "" {
-		return
-	}
-	or.log.Trace("HandlerProxy.OnClientStopped dev:%s", name)
-	obj := or.GetDeviceHandler(name)
-	obj.OnClientStopped(name)
-}
-
-// Implementation of common.SystemCallback
-func (or *HandlerRouter) SystemReply(name string, reply *common.SystemReply) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.SystemReply(name, reply)
+		return obj
 	}
 	return nil
 }
-func (or *HandlerRouter) SystemHealth(name string, reply *common.SystemHealth) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.SystemHealth(name, reply)
+
+func (hr *HandlerRouter) DelDeviceHandler(name string) {
+	if name == "" {
+		return
+	}
+	obj, ok := hr.handlerMap[name]
+	if ok {
+		obj.StopObject()
+	}
+	delete(hr.handlerMap, name)
+}
+
+// Implementation of duplex.ClientManager
+func (hr *HandlerRouter) OnClientStarted(name string) {
+	if name == "" {
+		return
+	}
+	hr.log.Trace("HandlerProxy.OnClientStarted dev:%s", name)
+	handler := hr.GetDeviceHandler(name)
+	if handler == nil {
+		handler = hr.CreateNewHandler(name)
+	}
+	handler.OnClientStarted(name)
+}
+
+func (hr *HandlerRouter) OnClientStopped(name string) {
+	if name == "" {
+		return
+	}
+	hr.log.Trace("HandlerProxy.OnClientStopped dev:%s", name)
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		handler.OnClientStopped(name)
+	}
+}
+
+// Implementation of common.SystemCallback
+func (hr *HandlerRouter) SystemReply(name string, reply *common.SystemReply) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.SystemReply(name, reply)
+	}
+	return nil
+}
+func (hr *HandlerRouter) SystemHealth(name string, reply *common.SystemHealth) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.SystemHealth(name, reply)
 	}
 	return nil
 }
 
 // Implementation of common.DeviceCallback
-func (or *HandlerRouter) DeviceReply(name string, reply *common.DeviceReply) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.DeviceReply(name, reply)
+func (hr *HandlerRouter) DeviceReply(name string, reply *common.DeviceReply) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.DeviceReply(name, reply)
 	}
 	return nil
 }
-func (or *HandlerRouter) ExecuteError(name string, reply *common.DeviceError) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.ExecuteError(name, reply)
+func (hr *HandlerRouter) ExecuteError(name string, reply *common.DeviceError) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.ExecuteError(name, reply)
 	}
 	return nil
 }
-func (or *HandlerRouter) StateChanged(name string, reply *common.DeviceState) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.StateChanged(name, reply)
+func (hr *HandlerRouter) StateChanged(name string, reply *common.DeviceState) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.StateChanged(name, reply)
 	}
 	return nil
 }
-func (or *HandlerRouter) ActionPrompt(name string, reply *common.DevicePrompt) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.ActionPrompt(name, reply)
+func (hr *HandlerRouter) ActionPrompt(name string, reply *common.DevicePrompt) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.ActionPrompt(name, reply)
 	}
 	return nil
 }
-func (or *HandlerRouter) ReaderReturn(name string, reply *common.DeviceInform) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.ReaderReturn(name, reply)
+func (hr *HandlerRouter) ReaderReturn(name string, reply *common.DeviceInform) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.ReaderReturn(name, reply)
 	}
 	return nil
 }
 
 // Implementation of common.PrinterCallback
-func (or *HandlerRouter) PrinterProgress(name string, reply *common.PrinterProgress) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.PrinterProgress(name, reply)
+func (hr *HandlerRouter) PrinterProgress(name string, reply *common.PrinterProgress) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.PrinterProgress(name, reply)
 	}
 	return nil
 }
 
 // Implementation of common.ReaderCallback
-func (or *HandlerRouter) CardPosition(name string, reply *common.ReaderCardPos) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.CardPosition(name, reply)
+func (hr *HandlerRouter) CardPosition(name string, reply *common.ReaderCardPos) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.CardPosition(name, reply)
 	}
 	return nil
 }
-func (or *HandlerRouter) CardDescription(name string, reply *common.ReaderCardInfo) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.CardDescription(name, reply)
+func (hr *HandlerRouter) CardDescription(name string, reply *common.ReaderCardInfo) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.CardDescription(name, reply)
 	}
 	return nil
 }
-func (or *HandlerRouter) ChipResponse(name string, reply *common.ReaderChipReply) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.ChipResponse(name, reply)
+func (hr *HandlerRouter) ChipResponse(name string, reply *common.ReaderChipReply) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.ChipResponse(name, reply)
 	}
 	return nil
 }
 
 // Implementation of common.ValidatorCallback
-func (or *HandlerRouter) NoteAccepted(name string, reply *common.ValidatorAccept) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.NoteAccepted(name, reply)
+func (hr *HandlerRouter) NoteAccepted(name string, reply *common.ValidatorAccept) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.NoteAccepted(name, reply)
 	}
 	return nil
 }
-func (or *HandlerRouter) CashIsStored(name string, reply *common.ValidatorAccept) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.CashIsStored(name, reply)
+func (hr *HandlerRouter) CashIsStored(name string, reply *common.ValidatorAccept) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.CashIsStored(name, reply)
 	}
 	return nil
 }
-func (or *HandlerRouter) CashReturned(name string, reply *common.ValidatorAccept) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.CashReturned(name, reply)
+func (hr *HandlerRouter) CashReturned(name string, reply *common.ValidatorAccept) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.CashReturned(name, reply)
 	}
 	return nil
 }
-func (or *HandlerRouter) ValidatorStore(name string, reply *common.ValidatorStore) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.ValidatorStore(name, reply)
+func (hr *HandlerRouter) ValidatorStore(name string, reply *common.ValidatorStore) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.ValidatorStore(name, reply)
 	}
 	return nil
 }
 
 // Implementation of common.ReaderCallback
-func (or *HandlerRouter) PinPadReply(name string, reply *common.ReaderPinReply) error {
-	object := or.GetDeviceHandler(name)
-	if object != nil {
-		return object.PinPadReply(name, reply)
+func (hr *HandlerRouter) PinPadReply(name string, reply *common.ReaderPinReply) error {
+	handler := hr.GetDeviceHandler(name)
+	if handler != nil {
+		return handler.PinPadReply(name, reply)
 	}
 	return nil
 }

@@ -8,11 +8,19 @@ import (
 type DeviceTesterFactory struct {
 }
 
-func (dtf DeviceTesterFactory) GetPluginName() string {
-	return "DeviceTesterBehavior"
+func GetDeviceTesterFactory() ReflexCreator {
+	return &DeviceTesterFactory{}
 }
 
-func (dtf DeviceTesterFactory) CreatePlugin(devName string, proxy interface{}, log *core.LogAgent) (error, PluginManager) {
+func (dtf DeviceTesterFactory) GetReflexInfo() *ReflexInfo {
+	pi := &ReflexInfo{
+		ReflexName: "DeviceTesterReflex",
+		Mandatory:  true,
+	}
+	return pi
+}
+
+func (dtf DeviceTesterFactory) CreateReflex(devName string, proxy interface{}, log *core.LogAgent) (error, ReflexManager) {
 	dt := &DeviceTester{
 		devName:      devName,
 		enabled:      false,
@@ -78,10 +86,15 @@ func (dt *DeviceTester) Enabled(on bool) {
 
 func (dt *DeviceTester) Connected(on bool){
 	dt.connected = on
+	if dt.connected {
+		dt.fillTestList()
+	} else {
+		dt.tests = nil
+	}
 }
 
 func (dt *DeviceTester) OnTimerTick(){
-	dt.log.Trace("Object handler %s onTimerTick", dt.devName)
+	dt.log.Trace("DeviceTester %s onTimerTick", dt.devName)
 	if len(dt.tests) > 0 {
 		tstFunc := dt.tests[0]
 		dt.tests = dt.tests[1:]
