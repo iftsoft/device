@@ -14,8 +14,8 @@ type Transporter interface {
 }
 
 type GreetingInfo struct {
-	Supported common.DevScopeMask
-	Required  common.DevScopeMask
+	Supported common.DevScopeMask	// Manager interfaces that driver supported
+	Required  common.DevScopeMask	// Callback interfaces that driver required
 }
 
 type ScopeItem struct {

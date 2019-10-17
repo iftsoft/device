@@ -16,6 +16,8 @@ func (dtf DeviceTesterFactory) GetReflexInfo() *ReflexInfo {
 	pi := &ReflexInfo{
 		ReflexName: "DeviceTesterReflex",
 		Mandatory:  true,
+		Supported:  0x7E,
+		Required:   0x7E,
 	}
 	return pi
 }
@@ -33,13 +35,18 @@ func (dtf DeviceTesterFactory) CreateReflex(devName string, proxy interface{}, l
 		pinpadMng:    nil,
 		log:          log,
 		done:         make(chan struct{}),
-		tests:        make([]TestFunc, 0),
+		tests:        make([]*TestItem, 0),
 	}
 	err := dt.InitPlugin(proxy)
 	return err, dt
 }
 
 type TestFunc func(*DeviceTester) error
+
+type TestItem struct {
+	testFunc  TestFunc
+	testWait  int
+}
 
 type DeviceTester struct {
 	devName      string
@@ -53,7 +60,7 @@ type DeviceTester struct {
 	pinpadMng    common.PinPadManager
 	log          *core.LogAgent
 	done         chan struct{}
-	tests        []TestFunc
+	tests        []*TestItem
 }
 
 func (dt *DeviceTester) InitPlugin(proxy interface{}) error {
@@ -96,10 +103,14 @@ func (dt *DeviceTester) Connected(on bool){
 func (dt *DeviceTester) OnTimerTick(){
 	dt.log.Trace("DeviceTester %s onTimerTick", dt.devName)
 	if len(dt.tests) > 0 {
-		tstFunc := dt.tests[0]
-		dt.tests = dt.tests[1:]
-		if tstFunc != nil {
-			_ = tstFunc(dt)
+		testItem := dt.tests[0]
+		if testItem != nil {
+			if testItem.testWait > 0 {
+				testItem.testWait -= 1
+			} else {
+				_ = testItem.testFunc(dt)
+				dt.tests = dt.tests[1:]
+			}
 		}
 	}
 }
@@ -118,44 +129,77 @@ func (oh *DeviceTester) OnClientStopped(name string) {
 }
 
 func (oh *DeviceTester) fillTestList() {
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.systemMng.SysInform(hnd.devName, &common.SystemQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.systemMng.SysInform(hnd.devName, &common.SystemQuery{})
+		},
+		1,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.systemMng.SysStart(hnd.devName, &common.SystemQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.systemMng.SysStart(hnd.devName, &common.SystemQuery{})
+		},
+		1,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.deviceMng.Reset(hnd.devName, &common.DeviceQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.deviceMng.Reset(hnd.devName, &common.DeviceQuery{})
+		},
+		10,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
+		},
+		50,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.deviceMng.RunAction(hnd.devName, &common.DeviceQuery{})
+		},
+		1,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.deviceMng.RunAction(hnd.devName, &common.DeviceQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
+		},
+		10,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.deviceMng.Cancel(hnd.devName, &common.DeviceQuery{})
+		},
+		10,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.deviceMng.Cancel(hnd.devName, &common.DeviceQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
+		},
+		5,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.deviceMng.StopAction(hnd.devName, &common.DeviceQuery{})
+		},
+		5,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.deviceMng.StopAction(hnd.devName, &common.DeviceQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
+		},
+		10,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.systemMng.SysStop(hnd.devName, &common.SystemQuery{})
+		},
+		1,
 	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.systemMng.SysStop(hnd.devName, &common.SystemQuery{})
-	})
-	oh.tests = append(oh.tests, func(hnd *DeviceTester) error {
-		return hnd.systemMng.Terminate(hnd.devName, &common.SystemQuery{})
+	oh.tests = append(oh.tests, &TestItem{
+		func(hnd *DeviceTester) error {
+			return hnd.systemMng.Terminate(hnd.devName, &common.SystemQuery{})
+		},
+		10,
 	})
 }
 

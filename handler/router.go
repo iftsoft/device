@@ -57,7 +57,7 @@ func (hr *HandlerRouter) HandlerReflexes(handler *DeviceHandler, greet *duplex.G
 	// Attach mandatory reflexes
 	for refName, factory := range hr.reflexMap {
 		info := factory.GetReflexInfo()
-		if info.Mandatory {
+		if info.Mandatory && info.IsMatched(greet) {
 			hr.log.Debug("HandlerProxy.CreateNewHandler is attaching reflex:%s to device:%s",
 				refName, handler.devName)
 			err, reflex := factory.CreateReflex(handler.devName, hr.proxy, hr.reflexLog)

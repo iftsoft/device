@@ -54,8 +54,7 @@ func (dh *DuplexHandler) StartHandler(hs *HandleSet) {
 	}
 	hs.SetHandlerDevice(dh.HndName, dh.DevName, info)
 	defer hs.DelHandler(dh.HndName, dh.DevName)
-	dh.log.Info("DuplexHandler %s started for device %s, sup:%X, req:%X",
-		dh.HndName, dh.DevName, info.Supported, info.Required)
+	dh.log.Info("DuplexHandler %s started for device %s", dh.HndName, dh.DevName)
 	defer dh.log.Info("DuplexHandler %s stopped for device %s", dh.HndName, dh.DevName)
 
 	dh.wg = &hs.wg
@@ -122,5 +121,7 @@ func (dh *DuplexHandler) readGreeting() (*GreetingInfo, error) {
 	if len(pack.Content) > 0 {
 		err = json.Unmarshal(pack.Content, info)
 	}
+	dh.log.Info("DuplexHandler readGreeting for device: %s, sup:%X, req:%X",
+		dh.DevName, info.Supported, info.Required)
 	return info, err
 }
