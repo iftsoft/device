@@ -94,7 +94,7 @@ func (dh *DeviceHandler) objectHandlerLoop(wg *sync.WaitGroup) {
 	dh.log.Debug("Device handler loop for dev:%s is started", dh.devName)
 	defer dh.log.Debug("Device handler loop for dev:%s is stopped", dh.devName)
 
-	tick := time.NewTicker(1000 * time.Millisecond)
+	tick := time.NewTicker(100 * time.Millisecond)
 	defer tick.Stop()
 
 	for {

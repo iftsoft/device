@@ -4,6 +4,7 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/duplex"
 	"time"
 )
 
@@ -40,7 +41,7 @@ func NewDummyDriver() *LoopbackDriver {
 }
 
 // Implementation of DeviceDriver interface
-func (dd *LoopbackDriver) InitDevice(manager interface{}, cfg *config.DeviceConfig) common.DevScopeMask {
+func (dd *LoopbackDriver) InitDevice(manager interface{}, cfg *config.DeviceConfig, info *duplex.GreetingInfo) error {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "InitDevice")
 	dd.config = cfg
 	dd.protocol = GetLoopbackProtocol(cfg.Linker)
@@ -66,7 +67,11 @@ func (dd *LoopbackDriver) InitDevice(manager interface{}, cfg *config.DeviceConf
 		dd.pinpad = pinpad
 		mask |= common.ScopeFlagPinPad
 	}
-	return mask
+	if info != nil {
+		info.DevType  = common.DevTypeCommon
+		info.Required = mask
+	}
+	return nil
 }
 
 func (dd *LoopbackDriver) StartDevice() error {

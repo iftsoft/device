@@ -1,4 +1,4 @@
-package system
+package driver
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
-	"github.com/iftsoft/device/driver"
 	"github.com/iftsoft/device/duplex"
 	"github.com/iftsoft/device/proxy"
 	"sync"
@@ -15,11 +14,12 @@ import (
 
 type SystemDevice struct {
 	devName   string
-	supported common.DevScopeMask
-	required  common.DevScopeMask
+	greeting  *duplex.GreetingInfo
+//	supported common.DevScopeMask
+//	required  common.DevScopeMask
 	state     common.EnumSystemState
 	error     common.EnumSystemError
-	driver    driver.DeviceDriver
+	driver    DeviceDriver
 	duplex    *duplex.DuplexClient
 	config    *config.DeviceConfig
 	system    *proxy.SystemClient
@@ -40,8 +40,9 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 	}
 	sd := SystemDevice{
 		devName:   cfg.Duplex.DevName,
-		supported: common.ScopeFlagUnknown,
-		required:  common.ScopeFlagUnknown,
+		greeting:  &duplex.GreetingInfo{},
+//		supported: common.ScopeFlagUnknown,
+//		required:  common.ScopeFlagUnknown,
 		state:     common.SysStateUndefined,
 		error:     common.SysErrSuccess,
 		driver:    nil,
@@ -66,54 +67,49 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	// Setup System scope interface
 	sd.system.Init(sd, sd.log)
 	sd.duplex.AddScopeItem(sd.system.GetScopeItem())
-	sd.supported = common.ScopeFlagSystem
+	sd.greeting.Supported = common.ScopeFlagSystem
 
 	// Setup Device scope interface
 	if device, ok := worker.(common.DeviceManager); ok {
 		sd.device.Init(device, sd.log)
 		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
-		sd.supported |= common.ScopeFlagDevice
+		sd.greeting.Supported |= common.ScopeFlagDevice
 	}
 	// Setup Printer scope interface
 	if printer, ok := worker.(common.PrinterManager); ok {
 		sd.printer.Init(printer, sd.log)
 		sd.duplex.AddScopeItem(sd.printer.GetScopeItem())
-		sd.supported |= common.ScopeFlagPrinter
+		sd.greeting.Supported |= common.ScopeFlagPrinter
 	}
 	// Setup Reader scope interface
 	if reader, ok := worker.(common.ReaderManager); ok {
 		sd.reader.Init(reader, sd.log)
 		sd.duplex.AddScopeItem(sd.reader.GetScopeItem())
-		sd.supported |= common.ScopeFlagReader
+		sd.greeting.Supported |= common.ScopeFlagReader
 	}
 	// Setup Validator scope interface
 	if valid, ok := worker.(common.ValidatorManager); ok {
 		sd.validator.Init(valid, sd.log)
 		sd.duplex.AddScopeItem(sd.validator.GetScopeItem())
-		sd.supported |= common.ScopeFlagValidator
+		sd.greeting.Supported |= common.ScopeFlagValidator
 	}
 	// Setup PinPad scope interface
 	if pinpad, ok := worker.(common.PinPadManager); ok {
 		sd.pinpad.Init(pinpad, sd.log)
 		sd.duplex.AddScopeItem(sd.pinpad.GetScopeItem())
-		sd.supported |= common.ScopeFlagPinPad
+		sd.greeting.Supported |= common.ScopeFlagPinPad
 	}
 	// Setup Device driver interface
-	if drv, ok := worker.(driver.DeviceDriver); ok {
+	if drv, ok := worker.(DeviceDriver); ok {
 		sd.driver = drv
-		sd.required = drv.InitDevice(sd, sd.config)
-		return nil
+		return drv.InitDevice(sd, sd.config, sd.greeting)
 	}
 	return errors.New("device driver is not implemented")
 }
 
 func (sd *SystemDevice) StartDevice() {
 	sd.log.Info("Starting system device")
-	info := &duplex.GreetingInfo{
-		Supported: sd.supported,
-		Required:  sd.required,
-	}
-	sd.duplex.StartClient(&sd.wg, info)
+	sd.duplex.StartClient(&sd.wg, sd.greeting)
 	go sd.deviceLoop(&sd.wg)
 }
 

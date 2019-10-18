@@ -14,6 +14,7 @@ type Transporter interface {
 }
 
 type GreetingInfo struct {
+	DevType   common.DevTypeMask	// Implemented device types
 	Supported common.DevScopeMask	// Manager interfaces that driver supported
 	Required  common.DevScopeMask	// Callback interfaces that driver required
 }

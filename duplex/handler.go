@@ -121,7 +121,7 @@ func (dh *DuplexHandler) readGreeting() (*GreetingInfo, error) {
 	if len(pack.Content) > 0 {
 		err = json.Unmarshal(pack.Content, info)
 	}
-	dh.log.Info("DuplexHandler readGreeting for device: %s, sup:%X, req:%X",
-		dh.DevName, info.Supported, info.Required)
+	dh.log.Info("DuplexHandler readGreeting for device: %s, type:%X, sup:%X, req:%X",
+		dh.DevName, info.DevType, info.Supported, info.Required)
 	return info, err
 }

@@ -16,8 +16,9 @@ func (dtf DeviceTesterFactory) GetReflexInfo() *ReflexInfo {
 	pi := &ReflexInfo{
 		ReflexName: "DeviceTesterReflex",
 		Mandatory:  true,
-		Supported:  0x7E,
-		Required:   0x7E,
+		DevType:    0,
+		Supported:  0x7F,
+		Required:   0x7F,
 	}
 	return pi
 }

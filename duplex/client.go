@@ -171,8 +171,8 @@ func (dc *DuplexClient) sendGreeting() error {
 	}
 	pack := NewPacket(ScopeSystem, name, commandGreeting, nil)
 	if dc.greeting != nil {
-		dc.log.Info("DuplexClient SendGreeting for device: %s, sup:%X, req:%X",
-			name, dc.greeting.Supported, dc.greeting.Required)
+		dc.log.Info("DuplexClient SendGreeting for device: %s, type:%X, sup:%X, req:%X",
+			name, dc.greeting.DevType, dc.greeting.Supported, dc.greeting.Required)
 		dump, er := json.Marshal(dc.greeting)
 		if er == nil {
 			pack.Content = dump

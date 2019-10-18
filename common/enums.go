@@ -1,17 +1,19 @@
 package common
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
-type EnumDevType uint16
 type EnumDevError uint16
 type EnumDevState uint16
 type EnumDevAction uint16
 type EnumDevPrompt uint16
 type DevScopeMask uint64
+type DevTypeMask uint64
 
 // Scope Flags
 const (
-	ScopeFlagUnknown DevScopeMask = 0
 	ScopeFlagSystem  DevScopeMask = 1 << iota
 	ScopeFlagDevice
 	ScopeFlagPrinter
@@ -21,12 +23,12 @@ const (
 	ScopeFlagDispenser
 	ScopeFlagVending
 	ScopeFlagCustom
+	ScopeFlagUnknown = 0
 )
 
 // Device types
 const (
-	DevTypeDefault EnumDevType = iota
-	DevTypePrinter
+	DevTypePrinter DevTypeMask = 1 << iota
 	DevTypeCardReader
 	DevTypeBarScanner
 	DevTypeCashValidator
@@ -36,23 +38,24 @@ const (
 	DevTypeVending
 	DevTypePINEntry
 	DevTypeCustom
+	DevTypeUndefined = 0
+	DevTypeCommon    = 0x0FF
 )
 
-func (e EnumDevType) String() string {
-	switch e {
-	case DevTypeDefault:		return "Default"
-	case DevTypePrinter:		return "Printer"
-	case DevTypeCardReader:		return "CardReader"
-	case DevTypeBarScanner:		return "BarScanner"
-	case DevTypeCashValidator:	return "Cash Validator"
-	case DevTypeCoinValidator:	return "Coin Validator"
-	case DevTypeCashDispenser:	return "Cash Dispenser"
-	case DevTypeCoinDispenser:	return "Coin Dispenser"
-	case DevTypeVending:		return "Vending"
-	case DevTypePINEntry:		return "PINEntry"
-	case DevTypeCustom:			return "Custom"
-	default:					return "Other error"
-	}
+func (e DevTypeMask) ToString() string {
+	if e == DevTypeUndefined {	return "Undefined"	}
+	list := make([]string, 0)
+	if (e & DevTypePrinter) == DevTypePrinter				{	list = append(list, "Printer")	}
+	if (e & DevTypeCardReader) == DevTypeCardReader			{	list = append(list, "CardReader")	}
+	if (e & DevTypeBarScanner) == DevTypeBarScanner			{	list = append(list, "BarScanner")	}
+	if (e & DevTypeCashValidator) == DevTypeCashValidator	{	list = append(list, "CashValidator")	}
+	if (e & DevTypeCoinValidator) == DevTypeCoinValidator	{	list = append(list, "CoinValidator")	}
+	if (e & DevTypeCashDispenser) == DevTypeCashDispenser	{	list = append(list, "CashDispenser")	}
+	if (e & DevTypeCoinDispenser) == DevTypeCoinDispenser	{	list = append(list, "CoinDispenser")	}
+	if (e & DevTypeVending) == DevTypeVending				{	list = append(list, "Vending")	}
+	if (e & DevTypePINEntry) == DevTypePINEntry				{	list = append(list, "PINEntry")	}
+	if (e & DevTypeCustom) == DevTypeCustom					{	list = append(list, "Custom")	}
+	return strings.Join(list,",")
 }
 
 

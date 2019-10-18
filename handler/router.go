@@ -96,8 +96,8 @@ func (hr *HandlerRouter) OnClientStarted(name string, info *duplex.GreetingInfo)
 	if name == "" {
 		return
 	}
-	hr.log.Trace("HandlerProxy.OnClientStarted dev:%s, sup:%X, req:%X",
-		name, info.Supported, info.Required)
+	hr.log.Trace("HandlerProxy.OnClientStarted device:%s, type:%s",
+		name, info.DevType.ToString())
 	handler := hr.GetDeviceHandler(name)
 	if handler == nil {
 		handler = hr.CreateNewHandler(name)
