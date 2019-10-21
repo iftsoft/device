@@ -87,6 +87,5 @@ func (vc *ValidatorClient) decodeQuery(name string, cmd string, dump []byte, que
 	if vc.log != nil {
 		vc.log.Dump("ValidatorClient dev:%s take cmd:%s, pack:%s", name, cmd, string(dump))
 	}
-	query = &common.DeviceQuery{}
 	return json.Unmarshal(dump, query)
 }

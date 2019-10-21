@@ -29,7 +29,7 @@ func (vn *ValidatorNote) String() string {
 	if vn == nil {
 		return ""
 	}
-	str := fmt.Sprintf("Note%5.2f *%3d =%8.2f of %3d (%s) - %s",
+	str := fmt.Sprintf("Note %7.2f * %3d = %9.2f of %3d (%s) - %s",
 		vn.Nominal, vn.Count, vn.Amount, vn.Currency, vn.Currency.IsoCode(), vn.Currency.String())
 	return str
 }
@@ -64,7 +64,7 @@ type ValidatorAccept struct {
 }
 func (dev *ValidatorAccept) String() string {
 	if dev == nil { return "" }
-	str := fmt.Sprintf("Count: %d, Amount: %5.2f, Currency: %d (%s) %s",
+	str := fmt.Sprintf("Count: %d, Amount: %7.2f, Currency: %d (%s) %s",
 		dev.Count, dev.Amount, dev.Currency, dev.Currency.IsoCode(), dev.Currency.String())
 	return str
 }
