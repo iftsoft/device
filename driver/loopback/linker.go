@@ -2,6 +2,7 @@ package loopback
 
 import (
 	"errors"
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/linker"
@@ -30,20 +31,20 @@ func (lb *LoopbackLinker) GetReplyChan() chan []byte {
 
 func (lbl *LoopbackLinker) OpenLink() error {
 	if lbl.port == nil {
-		return errors.New("port not set")
+		return common.NewError(common.DevErrorConfigFault, "port not set")
 	}
 	err := lbl.port.Open()
 	lbl.log.Trace("LoopbackLinker OpenLink return : %s", core.GetErrorText(err))
-	return err
+	return common.ExtendError(common.DevErrorLinkerFault, err)
 }
 
 func (lbl *LoopbackLinker) CloseLink() error {
 	if lbl.port == nil {
-		return errors.New("port not set")
+		return common.NewError(common.DevErrorConfigFault, "port not set")
 	}
 	err := lbl.port.Close()
 	lbl.log.Trace("LoopbackLinker CloseLink return : %s", core.GetErrorText(err))
-	return err
+	return common.ExtendError(common.DevErrorLinkerFault, err)
 }
 
 ////////////////////////////////////////////////////////////////
@@ -61,9 +62,9 @@ func (lbl *LoopbackLinker) writeToPort(data []byte) error {
 	lbl.log.Dump("LoopbackLinker writeToPort data : %s", core.GetBinaryDump(pack))
 	n, err := lbl.port.Write(pack)
 	if n != len(pack) {
-		return errors.New("wrong byte count")
+		return common.NewError(common.DevErrorLinkerFault, "wrong byte count")
 	}
-	return err
+	return common.ExtendError(common.DevErrorLinkerFault, err)
 }
 
 // implementation of PotReader interface

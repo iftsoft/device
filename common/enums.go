@@ -1,11 +1,9 @@
 package common
 
 import (
-	"errors"
 	"strings"
 )
 
-type EnumDevError uint16
 type EnumDevState uint16
 type EnumDevAction uint16
 type EnumDevPrompt uint16
@@ -56,123 +54,6 @@ func (e DevTypeMask) ToString() string {
 	if (e & DevTypePINEntry) == DevTypePINEntry				{	list = append(list, "PINEntry")	}
 	if (e & DevTypeCustom) == DevTypeCustom					{	list = append(list, "Custom")	}
 	return strings.Join(list,",")
-}
-
-
-// Device error codes
-const (
-	DevErrorSuccess EnumDevError = iota
-	DevErrorOutOfMemory
-	DevErrorNullPointer
-	DevErrorBadArgument
-	DevErrorNotImplemented
-	DevErrorNotInitialized
-	DevErrorNotAccepted
-	DevErrorNoAccess
-	DevErrorCanceled
-	DevErrorConfigFault
-	DevErrorSystemFault
-	DevErrorHardwareFault
-	DevErrorSoftwareFault
-	DevErrorNetworkFault
-	DevErrorLinkerFault
-	DevErrorProtocolFault
-	DevErrorSecurityFault
-	DevErrorCommandFault
-	DevErrorExecuteFault
-	DevErrorWaitTimeout
-	DevErrorPaperOut
-	DevErrorPaperJam
-	DevErrorNoCurrency
-	DevErrorBillJammed
-	DevErrorStackerFull
-	DevErrorStackerEmpty
-	DevErrorCantDispense
-	DevErrorCassetteMiss
-	DevErrorCounterFault
-	DevErrorPickFault
-	DevErrorBadCardData
-	DevErrorBadKeyIndex
-	DevErrorBadKeyValue
-	DevErrorUnknown
-)
-
-// String returns a string explaining of the device error
-func (e EnumDevError) String() string {
-	switch e {
-	case DevErrorSuccess:			return "Success"
-	case DevErrorOutOfMemory:		return "Out of memory"
-	case DevErrorNullPointer:		return "Null pointer"
-	case DevErrorBadArgument:		return "Bad argument"
-	case DevErrorNotImplemented:	return "Not implemented"
-	case DevErrorNotInitialized:	return "Not initialized"
-	case DevErrorNotAccepted:		return "Not accepted"
-	case DevErrorNoAccess:			return "No access"
-	case DevErrorCanceled:			return "Canceled"
-	case DevErrorConfigFault:		return "Config fault"
-	case DevErrorSystemFault:		return "System fault"
-	case DevErrorHardwareFault:		return "Hardware fault"
-	case DevErrorSoftwareFault:		return "Software fault"
-	case DevErrorNetworkFault:		return "Network fault"
-	case DevErrorLinkerFault:		return "Linker fault"
-	case DevErrorProtocolFault:		return "Protocol fault"
-	case DevErrorSecurityFault:		return "Scurity fault"
-	case DevErrorCommandFault:		return "Command fault"
-	case DevErrorExecuteFault:		return "Execute fault"
-	case DevErrorWaitTimeout:		return "Wait timeout"
-	case DevErrorPaperOut:			return "Paper out"
-	case DevErrorPaperJam:			return "Paper jam"
-	case DevErrorNoCurrency:		return "No currency"
-	case DevErrorBillJammed:		return "Bill jammed"
-	case DevErrorStackerFull:		return "Stacker full"
-	case DevErrorStackerEmpty:		return "Stacker empty"
-	case DevErrorCantDispense:		return "Can't dispense"
-	case DevErrorCassetteMiss:		return "Cassette mismatch"
-	case DevErrorCounterFault:		return "Counter fault"
-	case DevErrorPickFault:			return "Pick fault"
-	case DevErrorBadCardData:		return "Bad card data"
-	case DevErrorBadKeyIndex:		return "Bad key index"
-	case DevErrorBadKeyValue:		return "Bad key value"
-	case DevErrorUnknown:			return "Unknown error"
-	default:						return "Other error"
-	}
-}
-
-// DevReply is an implementation of error interface for device reply
-type DevReply struct {
-	code   EnumDevError
-	reason error
-}
-
-func (e DevReply) Init(code EnumDevError, err error) {
-	e.code   = code
-	e.reason = err
-}
-
-func (e DevReply) InitTxt(code EnumDevError, text string) {
-	e.code   = code
-	e.reason = errors.New(text)
-}
-
-func (e DevReply) Clear() {
-	e.code   = DevErrorSuccess
-	e.reason = nil
-}
-
-func (e DevReply) IsOk() bool {
-	return e.code == DevErrorSuccess
-}
-
-func (e DevReply) Code() EnumDevError {
-	return e.code
-}
-
-// Error returns the full description of the device reply
-func (e DevReply) Error() string {
-	if e.reason != nil {
-		return e.code.String() + ": " + e.reason.Error()
-	}
-	return e.code.String()
 }
 
 // Device status codes

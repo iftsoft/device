@@ -1,7 +1,6 @@
 package loopback
 
 import (
-	"errors"
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
@@ -31,37 +30,30 @@ func GetLoopbackProtocol(cfg *config.LinkerConfig) *LoopbackProtocol {
 
 ////////////////////////////////////////////////////////////////
 
-func (lbp *LoopbackProtocol) CheckLink() common.DevReply {
-	reply := common.DevReply{}
+func (lbp *LoopbackProtocol) CheckLink() error {
 	data := []byte{0xAA, 0x55, 0x00, 0xFF}
 	back, err := lbp.exchange(data)
 	if err == nil {
 		err = lbp.checkReply(data, back)
 	}
-	if err != nil {
-		reply.Init(common.DevErrorLinkerFault, err)
-	}
 	lbp.logError("CheckLink", err)
-	return reply
+	return err
 }
 
 ////////////////////////////////////////////////////////////////
 
 func (lbp *LoopbackProtocol) logError(cmd string, err error) {
-	if err == nil {
-		lbp.log.Trace("LoopbackProtocol.%s return: Success", cmd)
-	} else {
-		lbp.log.Error("LoopbackProtocol.%s return: %s", cmd, core.GetErrorText(err))
-	}
+	code, text := common.CheckError(err)
+	lbp.log.Trace("LoopbackProtocol.%s return: %d - %s", cmd, code, text)
 }
 
 func (lbp *LoopbackProtocol) checkReply(data, back []byte) error {
 	if len(data) != len(back) {
-		return errors.New("length mismatch")
+		return common.NewError(common.DevErrorLinkerFault, "length mismatch")
 	}
 	for i:=0; i<len(back); i++ {
 		if data[i] != back[i] {
-			return errors.New("data mismatch")
+			return common.NewError(common.DevErrorLinkerFault, "data mismatch")
 		}
 	}
 	return nil
@@ -96,7 +88,7 @@ func (lbp *LoopbackProtocol) readData(timeout uint16) ([]byte, error) {
 			delta := uint16(tm.Sub(start) / time.Millisecond)
 			if delta > timeout {
 				lbp.log.Warn("LoopbackProtocol timeout (ms): %d", delta)
-				return nil, errors.New("linker timeout")
+				return nil, common.NewError(common.DevErrorLinkerTimeout, "linker timeout")
 			}
 		}
 	}
