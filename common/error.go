@@ -21,6 +21,7 @@ const (
 	DevErrorSystemFault
 	DevErrorHardwareFault
 	DevErrorSoftwareFault
+	DevErrorDatabaseFault
 	DevErrorNetworkFault
 	DevErrorLinkerFault
 	DevErrorLinkerTimeout
@@ -62,6 +63,7 @@ func (e EnumDevError) String() string {
 	case DevErrorSystemFault:		return "System fault"
 	case DevErrorHardwareFault:		return "Hardware fault"
 	case DevErrorSoftwareFault:		return "Software fault"
+	case DevErrorDatabaseFault:		return "Database fault"
 	case DevErrorNetworkFault:		return "Network fault"
 	case DevErrorLinkerFault:		return "Linker fault"
 	case DevErrorLinkerTimeout:		return "Linker timeout"

@@ -4,12 +4,14 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
-	"github.com/iftsoft/device/duplex"
+	"github.com/iftsoft/device/driver"
+	"github.com/iftsoft/device/storage"
 	"time"
 )
 
 type LoopbackDriver struct {
 	config    *config.DeviceConfig
+	storage   storage.DBaseLinker
 	device    common.DeviceCallback
 	printer   common.PrinterCallback
 	reader    common.ReaderCallback
@@ -27,6 +29,7 @@ type LoopbackDriver struct {
 func NewDummyDriver() *LoopbackDriver {
 	dd := LoopbackDriver{
 		config:    nil,
+		storage:   nil,
 		device:    nil,
 		printer:   nil,
 		reader:    nil,
@@ -43,35 +46,36 @@ func NewDummyDriver() *LoopbackDriver {
 }
 
 // Implementation of DeviceDriver interface
-func (dd *LoopbackDriver) InitDevice(manager interface{}, cfg *config.DeviceConfig, info *duplex.GreetingInfo) error {
+func (dd *LoopbackDriver) InitDevice(context *driver.Context) error {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "InitDevice")
-	dd.config = cfg
-	dd.protocol = GetLoopbackProtocol(cfg.Linker)
+	dd.config   = context.Config
+	dd.storage  = context.Storage
+	dd.protocol = GetLoopbackProtocol(dd.config.Linker)
 
 	mask := common.ScopeFlagSystem
-	if device, ok := manager.(common.DeviceCallback); ok {
+	if device, ok := context.Manager.(common.DeviceCallback); ok {
 		dd.device = device
 		mask |= common.ScopeFlagDevice
 	}
-	if printer, ok := manager.(common.PrinterCallback); ok {
+	if printer, ok := context.Manager.(common.PrinterCallback); ok {
 		dd.printer = printer
 		mask |= common.ScopeFlagPrinter
 	}
-	if reader, ok := manager.(common.ReaderCallback); ok {
+	if reader, ok := context.Manager.(common.ReaderCallback); ok {
 		dd.reader = reader
 		mask |= common.ScopeFlagReader
 	}
-	if validator, ok := manager.(common.ValidatorCallback); ok {
+	if validator, ok := context.Manager.(common.ValidatorCallback); ok {
 		dd.validator = validator
 		mask |= common.ScopeFlagValidator
 	}
-	if pinpad, ok := manager.(common.PinPadCallback); ok {
+	if pinpad, ok := context.Manager.(common.PinPadCallback); ok {
 		dd.pinpad = pinpad
 		mask |= common.ScopeFlagPinPad
 	}
-	if info != nil {
-		info.DevType  = common.DevTypeCommon
-		info.Required = mask
+	if context.Greeting != nil {
+		context.Greeting.DevType  = common.DevTypeCommon
+		context.Greeting.Required = mask
 	}
 	return nil
 }
@@ -79,6 +83,9 @@ func (dd *LoopbackDriver) InitDevice(manager interface{}, cfg *config.DeviceConf
 func (dd *LoopbackDriver) StartDevice() error {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "StartDevice")
 	err := dd.protocol.OpenLink()
+	if err == nil && dd.storage != nil {
+		err = dd.storage.Open()
+	}
 	return err
 }
 func (dd *LoopbackDriver) DeviceTimer(unix int64) error {
@@ -88,6 +95,9 @@ func (dd *LoopbackDriver) DeviceTimer(unix int64) error {
 func (dd *LoopbackDriver) StopDevice() error {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "StopDevice")
 	err := dd.protocol.CloseLink()
+	if dd.storage != nil {
+		err = dd.storage.Close()
+	}
 	return err
 }
 func (dd *LoopbackDriver) CheckDevice(metrics *common.SystemMetrics) error {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
+	"strings"
 )
 
 // Get go routine ID as a string
@@ -67,3 +68,22 @@ func PanicRecover(err *error, log *LogAgent) {
 		}
 	}
 }
+
+// Format to snake string, XxYy to xx_yy , XxYY to xx_yy
+func FormatSnakeString(s string) string {
+	num := len(s)
+	data := make([]byte, 0, num*2)
+	j := false
+	for i := 0; i < num; i++ {
+		d := s[i]
+		if i > 0 && d >= 'A' && d <= 'Z' && j {
+			data = append(data, '_')
+		}
+		if d != '_' {
+			j = true
+		}
+		data = append(data, d)
+	}
+	return strings.ToLower(string(data[:]))
+}
+

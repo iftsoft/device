@@ -14,6 +14,7 @@ type AppParams struct {
 	Home   string   // Working folder for application
 	Name   string   // Name of application
 	Config string   // Application config file
+	DBase  string   // Path to database file
 	Logs   string   // Path to log files folder
 	Args   []string // Rest of application params
 }
@@ -27,10 +28,12 @@ func GetAppParams() *AppParams {
 	name = strings.TrimSuffix(name, filepath.Ext(name))
 	conf := path + string(os.PathSeparator) + name + ".yml"
 	logs := path + string(os.PathSeparator) + "logs"
+	base := path + string(os.PathSeparator) + name + ".db"
 	appPar := AppParams{}
 	flag.StringVar(&appPar.Home, "home", path, "Working folder for application")
 	flag.StringVar(&appPar.Name, "name", name, "Name of application")
 	flag.StringVar(&appPar.Config, "cfg", conf, "Application config file")
+	flag.StringVar(&appPar.DBase, "base", base, "Path to database file")
 	flag.StringVar(&appPar.Logs, "logs", logs, "Path to log files folder")
 	// Parse command line
 	flag.Parse()
@@ -45,13 +48,14 @@ func (par *AppParams) PrintData() {
 	fmt.Println("App name ", par.Name)
 	fmt.Println("Config   ", par.Config)
 	fmt.Println("Logs dir ", par.Logs)
+	fmt.Println("Database ", par.DBase)
 	fmt.Println("Args     ", par.Args)
 }
 
 func (par *AppParams) String() string {
 	str := fmt.Sprintf("App params: "+
-		"Home = %s, Name = %s, Config = %s, Logs = %s, Args = %v.",
-		par.Home, par.Name, par.Config, par.Logs, par.Args)
+		"Home = %s, Name = %s, Config = %s, DBase = %s, Logs = %s, Args = %v.",
+		par.Home, par.Name, par.Config, par.DBase, par.Logs, par.Args)
 	return str
 }
 
@@ -73,5 +77,14 @@ func (par *AppParams) UpdateClientConfig(cfg *duplex.ClientConfig) {
 	}
 	if cfg.DevName == "" {
 		cfg.DevName = par.Name
+	}
+}
+
+func (par *AppParams) UpdateStorageConfig(cfg *StorageConfig) {
+	if cfg == nil {
+		return
+	}
+	if cfg.FileName == "" {
+		cfg.FileName = par.DBase
 	}
 }

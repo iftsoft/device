@@ -8,6 +8,7 @@ import (
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
 	"github.com/iftsoft/device/proxy"
+	"github.com/iftsoft/device/storage"
 	"sync"
 	"time"
 )
@@ -15,8 +16,6 @@ import (
 type SystemDevice struct {
 	devName   string
 	greeting  *duplex.GreetingInfo
-//	supported common.DevScopeMask
-//	required  common.DevScopeMask
 	state     common.EnumSystemState
 	error     common.EnumSystemError
 	driver    DeviceDriver
@@ -28,6 +27,7 @@ type SystemDevice struct {
 	reader    *proxy.ReaderClient
 	validator *proxy.ValidatorClient
 	pinpad    *proxy.PinPadClient
+	storage   *storage.DBaseStore
 	log       *core.LogAgent
 	done      chan struct{}
 	wg        sync.WaitGroup
@@ -41,8 +41,6 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 	sd := SystemDevice{
 		devName:   cfg.Duplex.DevName,
 		greeting:  &duplex.GreetingInfo{},
-//		supported: common.ScopeFlagUnknown,
-//		required:  common.ScopeFlagUnknown,
 		state:     common.SysStateUndefined,
 		error:     common.SysErrSuccess,
 		driver:    nil,
@@ -54,6 +52,7 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 		reader:    proxy.NewReaderClient(),
 		validator: proxy.NewValidatorClient(),
 		pinpad:    proxy.NewPinPadClient(),
+		storage:   storage.GetNewDBaseStore(cfg.Storage),
 		log:       core.GetLogAgent(core.LogLevelTrace, "Device"),
 		done:      make(chan struct{}),
 	}
@@ -102,7 +101,13 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	// Setup Device driver interface
 	if drv, ok := worker.(DeviceDriver); ok {
 		sd.driver = drv
-		return drv.InitDevice(sd, sd.config, sd.greeting)
+		context := Context{
+			Manager:  sd,
+			Storage:  sd.storage,
+			Config:   sd.config,
+			Greeting: sd.greeting,
+		}
+		return drv.InitDevice(&context)
 	}
 	return errors.New("device driver is not implemented")
 }
@@ -205,9 +210,14 @@ func (sd *SystemDevice) SysInform(name string, query *common.SystemQuery) error 
 
 func (sd *SystemDevice) SysStart(name string, query *common.SystemQuery) error {
 	sd.state = common.SysStateUndefined
-	err := sd.driver.StartDevice()
-	if err == nil {
-		sd.state = common.SysStateRunning
+	var err error
+	if sd.driver != nil {
+		err = sd.driver.StartDevice()
+		if err == nil {
+			sd.state = common.SysStateRunning
+		} else {
+			sd.state = common.SysStateFailed
+		}
 	}
 	reply := &common.SystemReply{}
 	reply.Command = common.CmdSystemStart
@@ -247,6 +257,8 @@ func (sd *SystemDevice) SysRestart(name string, query *common.SystemQuery) error
 		err = sd.driver.StartDevice()
 		if err == nil {
 			sd.state = common.SysStateRunning
+		} else {
+			sd.state = common.SysStateFailed
 		}
 	}
 	reply := &common.SystemReply{}

@@ -34,12 +34,14 @@ const (
 	SysStateUndefined EnumSystemState = iota
 	SysStateRunning
 	SysStateStopped
+	SysStateFailed
 )
 func (e EnumSystemState) String() string {
 	switch e {
 	case SysStateUndefined:		return "Undefined"
 	case SysStateRunning:		return "Running"
 	case SysStateStopped:		return "Stopped"
+	case SysStateFailed:		return "Failed"
 	default:					return "Unknown"
 	}
 }
