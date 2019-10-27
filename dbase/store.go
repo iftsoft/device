@@ -1,10 +1,9 @@
-package storage
+package dbase
 
 import (
 	"database/sql"
 	"errors"
 	"github.com/iftsoft/device/common"
-	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	_ "github.com/mattn/go-sqlite3"
 	"time"
@@ -12,6 +11,8 @@ import (
 
 const (
 	errDBaseNotOpen = "Database is not opened"
+	errLinkerNotSet = "Database linker is not set"
+	errStmtNotReady = "Statement is not prepared"
 )
 
 type DBaseLinker interface {
@@ -36,7 +37,7 @@ type DBaseStore struct {
 	log    *core.LogAgent
 }
 
-func GetNewDBaseStore(cfg *config.StorageConfig) *DBaseStore {
+func GetNewDBaseStore(cfg *StorageConfig) *DBaseStore {
 	s := &DBaseStore{
 		file: cfg.FileName,
 		base: nil,
@@ -52,8 +53,8 @@ func (s *DBaseStore) Open() (err error){
 	s.log.Info("Open database: %s", s.file)
 	s.base, err = sql.Open("sqlite3", s.file)
 	if err == nil {
-		s.base.SetMaxIdleConns(2)
-		s.base.SetMaxOpenConns(5)
+		s.base.SetMaxIdleConns(3)
+		s.base.SetMaxOpenConns(7)
 		s.base.SetConnMaxLifetime(time.Duration(3) * time.Second)
 	} else {
 		s.log.Error("Return error: %s", err.Error())
@@ -63,8 +64,13 @@ func (s *DBaseStore) Open() (err error){
 
 // Close Database store
 func (s *DBaseStore) Close() (err error) {
+	if s.tran != nil {
+		err = s.tran.Commit()
+		s.tran = nil
+	}
 	if s.base != nil {
 		err = s.base.Close()
+		s.base = nil
 	}
 	return common.ExtendError(common.DevErrorDatabaseFault, err)
 }

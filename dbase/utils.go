@@ -1,4 +1,4 @@
-package storage
+package dbase
 
 import (
 	"database/sql"
@@ -10,7 +10,6 @@ import (
 
 const (
 	strErrMakeBuilder	= "Can't create query builder"
-	//	strErrNullBasePtr	= "Invalid pointer to DB connect"
 	strErrNullDaoPtr	= "Invalid pointer to DAO object"
 	strErrNullBldPtr	= "Invalid pointer to SQL builder"
 	strErrNullDataPtr	= "Attempt to load into an invalid pointer"

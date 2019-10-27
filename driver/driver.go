@@ -4,12 +4,12 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/duplex"
-	"github.com/iftsoft/device/storage"
+	"github.com/iftsoft/device/dbase"
 )
 
 type Context struct {
 	Manager  interface{}
-	Storage  storage.DBaseLinker
+	Storage  dbase.DBaseLinker
 	Config   *config.DeviceConfig
 	Greeting *duplex.GreetingInfo
 }

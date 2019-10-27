@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/dbase"
 	"github.com/iftsoft/device/duplex"
 	"os"
 	"path/filepath"
@@ -80,7 +81,7 @@ func (par *AppParams) UpdateClientConfig(cfg *duplex.ClientConfig) {
 	}
 }
 
-func (par *AppParams) UpdateStorageConfig(cfg *StorageConfig) {
+func (par *AppParams) UpdateStorageConfig(cfg *dbase.StorageConfig) {
 	if cfg == nil {
 		return
 	}

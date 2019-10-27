@@ -3,30 +3,14 @@ package config
 import (
 	"fmt"
 	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/dbase"
 	"github.com/iftsoft/device/duplex"
 )
-
-type StorageConfig struct {
-	FileName   string `yaml:"file_name"`
-}
-func (cfg *StorageConfig) String() string {
-	if cfg == nil { return "" }
-	str := fmt.Sprintf("\nStorage config: " +
-		"FileName = %s.",
-		cfg.FileName)
-	return str
-}
-func GetDefaultStorageConfig() *StorageConfig {
-	cfg := &StorageConfig{
-		FileName:    "",
-	}
-	return cfg
-}
 
 type AppConfig struct {
 	Logger  *core.LogConfig      `yaml:"logger"`
 	Duplex  *duplex.ClientConfig `yaml:"duplex"`
-	Storage *StorageConfig       `yaml:"storage"`
+	Storage *dbase.StorageConfig `yaml:"storage"`
 	Device  *DeviceConfig        `yaml:"device"`
 }
 
@@ -40,7 +24,7 @@ func GetDefaultAppConfig(devCfg *DeviceConfig) *AppConfig {
 	appCfg := &AppConfig{
 		Logger:  core.GetDefaultConfig(""),
 		Duplex:  duplex.GetDefaultClientConfig(),
-		Storage: GetDefaultStorageConfig(),
+		Storage: dbase.GetDefaultStorageConfig(),
 		Device:  devCfg,
 	}
 	return appCfg

@@ -261,7 +261,7 @@ func (oh *DeviceTester) ReaderReturn(name string, reply *common.DeviceInform) er
 // Implementation of common.PrinterCallback
 func (oh *DeviceTester) PrinterProgress(name string, reply *common.PrinterProgress) error {
 	if oh.log != nil {
-		oh.log.Debug("DeviceTester.PrinterProgress dev:%s, Done:%d, From:%d",
+		oh.log.Debug("DeviceTester.PrinterProgress dev:%s, done:%d, From:%d",
 			name, reply.PageDone, reply.PagesAll)
 	}
 	return nil

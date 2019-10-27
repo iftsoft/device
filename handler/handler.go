@@ -243,7 +243,7 @@ func (dh *DeviceHandler) ReaderReturn(name string, reply *common.DeviceInform) e
 // Implementation of common.PrinterCallback
 func (dh *DeviceHandler) PrinterProgress(name string, reply *common.PrinterProgress) error {
 	if dh.log != nil {
-		dh.log.Debug("DeviceHandler.PrinterProgress dev:%s, Done:%d, From:%d",
+		dh.log.Debug("DeviceHandler.PrinterProgress dev:%s, done:%d, From:%d",
 			name, reply.PageDone, reply.PagesAll)
 	}
 	for _, callback := range dh.printerCbk {

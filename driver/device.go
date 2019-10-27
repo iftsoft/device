@@ -8,7 +8,7 @@ import (
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
 	"github.com/iftsoft/device/proxy"
-	"github.com/iftsoft/device/storage"
+	"github.com/iftsoft/device/dbase"
 	"sync"
 	"time"
 )
@@ -27,7 +27,7 @@ type SystemDevice struct {
 	reader    *proxy.ReaderClient
 	validator *proxy.ValidatorClient
 	pinpad    *proxy.PinPadClient
-	storage   *storage.DBaseStore
+	storage   *dbase.DBaseStore
 	log       *core.LogAgent
 	done      chan struct{}
 	wg        sync.WaitGroup
@@ -52,7 +52,7 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 		reader:    proxy.NewReaderClient(),
 		validator: proxy.NewValidatorClient(),
 		pinpad:    proxy.NewPinPadClient(),
-		storage:   storage.GetNewDBaseStore(cfg.Storage),
+		storage:   dbase.GetNewDBaseStore(cfg.Storage),
 		log:       core.GetLogAgent(core.LogLevelTrace, "Device"),
 		done:      make(chan struct{}),
 	}

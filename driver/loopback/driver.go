@@ -5,13 +5,13 @@ import (
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/driver"
-	"github.com/iftsoft/device/storage"
+	"github.com/iftsoft/device/dbase"
 	"time"
 )
 
 type LoopbackDriver struct {
 	config    *config.DeviceConfig
-	storage   storage.DBaseLinker
+	storage   dbase.DBaseLinker
 	device    common.DeviceCallback
 	printer   common.PrinterCallback
 	reader    common.ReaderCallback
