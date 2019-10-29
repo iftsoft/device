@@ -1,0 +1,31 @@
+# Test config file
+duplex:
+  port: 9380
+#  dev_name: TestDevice
+
+logger:
+  log_path: ../logs
+  log_file: cashvalidator
+  log_level: 7
+  cons_level: 6
+  source:  false
+
+storage:
+  file_name: cashvalidator.db
+
+device:
+  linker:
+    link_type: 0
+    timeout: 250
+    serial:
+  common:
+    model: screen
+    version: 0.1.0
+    timeout: 30
+    auto_load: False
+  printer:
+  reader:
+  validator:
+  dispenser:
+  vendor:
+

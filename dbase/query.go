@@ -22,12 +22,12 @@ type DBaseQuery struct {
 }
 
 // Set connection to Query object
-func (qry *DBaseQuery) SetConnection(link DBaseLinker) {
+func (qry *DBaseQuery) InitQuery(link DBaseLinker, log *core.LogAgent) {
 	qry.linker = link
 	qry.stmt   = nil
 	qry.res    = nil
 	qry.count  = 0
-	qry.log    = core.GetLogAgent(core.LogLevelTrace, "DBlink")
+	qry.log    = log
 }
 
 func (qry *DBaseQuery)GetCounter() int64 {

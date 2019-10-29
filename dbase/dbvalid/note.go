@@ -1,9 +1,12 @@
 package dbvalid
 
-import "github.com/iftsoft/device/dbase"
+import (
+	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/dbase"
+)
 
 const (
-	sqlNoteCreate = `CREATE TABLE valid_note (
+	sqlNoteCreate = `CREATE TABLE IF NOT EXISTS valid_note (
 	device VARCHAR(64) NOT NULL,
     currency INTEGER NOT NULL DEFAULT 0,
     nominal INTEGER NOT NULL DEFAULT 0,
@@ -25,15 +28,15 @@ type ObjNote struct {
 	Count    uint16
 	Amount   float32
 }
-
+type ObjNoteList []*ObjNote
 
 type QueryNote struct {
 	dbase.DBaseQuery
 }
 
-func NewQueryNote(linker dbase.DBaseLinker) *QueryNote {
+func NewQueryNote(linker dbase.DBaseLinker, log *core.LogAgent) *QueryNote {
 	qry := &QueryNote{}
-	qry.SetConnection(linker)
+	qry.InitQuery(linker, log)
 	return qry
 }
 
@@ -46,8 +49,8 @@ func (dao *QueryNote)Select(note *ObjNote) (error) {
 	return err
 }
 
-func (dao *QueryNote)Search(device string) ([]*ObjNote, error) {
-	notes := make([]*ObjNote, 0)
+func (dao *QueryNote)Search(device string) (ObjNoteList, error) {
+	notes := make(ObjNoteList, 0)
 	param := make(dbase.ParamList, 1)
 	param[0] = &device
 	err := dao.RunSearchSql(sqlNoteSearch, param, &notes)
@@ -61,7 +64,7 @@ func (dao *QueryNote)Delete(device string) (int64, error) {
 	return dao.RowsAffected(), err
 }
 
-func (dao *QueryNote)Insert(note *ObjNote) (error) {
+func (dao *QueryNote)Insert(note *ObjNote) error {
 	param := make(dbase.ParamList, 5)
 	param[0] = &note.Device
 	param[1] = &note.Currency
@@ -72,7 +75,7 @@ func (dao *QueryNote)Insert(note *ObjNote) (error) {
 	return err
 }
 
-func (dao *QueryNote)Update(note *ObjNote) (error) {
+func (dao *QueryNote)Update(note *ObjNote) error {
 	param := make(dbase.ParamList, 5)
 	param[0] = &note.Count
 	param[1] = &note.Amount
@@ -83,7 +86,7 @@ func (dao *QueryNote)Update(note *ObjNote) (error) {
 	return err
 }
 
-func (dao *QueryNote)InsertEx(notes []*ObjNote) (error) {
+func (dao *QueryNote)InsertEx(notes ObjNoteList) error {
 	parList := make([]dbase.ParamList, len(notes))
 	for i, note := range notes {
 		param := make(dbase.ParamList, 5)
@@ -98,7 +101,7 @@ func (dao *QueryNote)InsertEx(notes []*ObjNote) (error) {
 	return err
 }
 
-func (dao *QueryNote)UpdateEx(notes []*ObjNote) (error) {
+func (dao *QueryNote)UpdateEx(notes ObjNoteList) error {
 	parList := make([]dbase.ParamList, len(notes))
 	for i, note := range notes {
 		param := make(dbase.ParamList, 5)
