@@ -27,5 +27,17 @@ func (dao *QueryValidator)CreateTableBatch() error {
 	return err
 }
 
+func (dao *QueryValidator)CreateTableDeposit() error {
+	param := make(dbase.ParamList, 0)
+	err := dao.RunCommandSql(sqlDepositCreate, param)
+	return err
+}
+
+func (dao *QueryValidator)CreateTableBalance() error {
+	param := make(dbase.ParamList, 0)
+	err := dao.RunCommandSql(sqlBalanceCreate, param)
+	return err
+}
+
 
 

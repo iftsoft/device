@@ -12,10 +12,10 @@ const (
     state INTEGER NOT NULL DEFAULT 0,
 	device VARCHAR(64) NOT NULL,
     count INTEGER NOT NULL DEFAULT 0,
-    opened TEXT,
-    closed TEXT
+    opened VARCHAR(40),
+    closed VARCHAR(40)
 );`
-	sqlBatchDelete = `DELETE FROM valid_batch WHERE device = ?;`
+	sqlBatchDelete = `DELETE FROM valid_batch WHERE id = ?;`
 	sqlBatchSelect = `SELECT id, state, device, count, opened, closed FROM valid_batch WHERE device = ? order by id desc;`
 	sqlBatchSearch = `SELECT id, state, device, count, opened, closed FROM valid_batch WHERE device = ? order by id asc;`
 	sqlBatchInsert = `INSERT INTO valid_batch (state, device, count, opened, closed) VALUES (?, ?, ?, ?, ?);`
@@ -23,18 +23,19 @@ const (
 )
 
 const (
-	StateUndefined uint16 = iota
-	StateActive
-	StateClosed
+	StateActive uint16 = iota
+	StateCorrect
+	StateMismatch
 )
 type ObjBatch struct {
-	Id       int
+	Id       int64
 	State    uint16
 	Device   string
 	Count    uint16
 	Opened   time.Time
 	Closed   time.Time
 }
+type ObjBatchList []*ObjBatch
 
 
 type QueryBatch struct {
@@ -45,6 +46,53 @@ func NewQueryBatch(linker dbase.DBaseLinker, log *core.LogAgent) *QueryBatch {
 	qry := &QueryBatch{}
 	qry.InitQuery(linker, log)
 	return qry
+}
+
+
+func (qry *QueryBatch)Select(batch *ObjBatch) (error) {
+	param := make(dbase.ParamList, 1)
+	param[0] = &batch.Device
+	err := qry.RunSelectSql(sqlBatchSelect, param, batch)
+	return err
+}
+
+func (qry *QueryBatch)Search(device string) (ObjBatchList, error) {
+	items := make(ObjBatchList, 0)
+	param := make(dbase.ParamList, 1)
+	param[0] = &device
+	err := qry.RunSearchSql(sqlBatchSearch, param, &items)
+	return items, err
+}
+
+func (qry *QueryBatch)Delete(id int) (int64, error) {
+	param := make(dbase.ParamList, 1)
+	param[0] = &id
+	err := qry.RunCommandSql(sqlBatchDelete, param)
+	return qry.RowsAffected(), err
+}
+
+func (qry *QueryBatch)Insert(batch *ObjBatch) error {
+	param := make(dbase.ParamList, 5)
+	param[0] = &batch.State
+	param[1] = &batch.Device
+	param[2] = &batch.Count
+	param[3] = &batch.Opened
+	param[4] = &batch.Closed
+	err := qry.RunCommandSql(sqlBatchInsert, param)
+	if err == nil {
+		batch.Id = qry.LastInsertId()
+	}
+	return err
+}
+
+func (qry *QueryBatch)Update(batch *ObjBatch) error {
+	param := make(dbase.ParamList, 4)
+	param[0] = &batch.State
+	param[1] = &batch.Count
+	param[2] = &batch.Closed
+	param[3] = &batch.Id
+	err := qry.RunCommandSql(sqlBatchUpdate, param)
+	return err
 }
 
 

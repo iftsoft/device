@@ -40,53 +40,53 @@ func NewQueryNote(linker dbase.DBaseLinker, log *core.LogAgent) *QueryNote {
 	return qry
 }
 
-func (dao *QueryNote)Select(note *ObjNote) (error) {
+func (qry *QueryNote)Select(note *ObjNote) (error) {
 	param := make(dbase.ParamList, 3)
 	param[0] = &note.Device
 	param[1] = &note.Currency
 	param[2] = &note.Nominal
-	err := dao.RunSelectSql(sqlNoteSelect, param, note)
+	err := qry.RunSelectSql(sqlNoteSelect, param, note)
 	return err
 }
 
-func (dao *QueryNote)Search(device string) (ObjNoteList, error) {
-	notes := make(ObjNoteList, 0)
+func (qry *QueryNote)Search(device string) (ObjNoteList, error) {
+	items := make(ObjNoteList, 0)
 	param := make(dbase.ParamList, 1)
 	param[0] = &device
-	err := dao.RunSearchSql(sqlNoteSearch, param, &notes)
-	return notes, err
+	err := qry.RunSearchSql(sqlNoteSearch, param, &items)
+	return items, err
 }
 
-func (dao *QueryNote)Delete(device string) (int64, error) {
+func (qry *QueryNote)Delete(device string) (int64, error) {
 	param := make(dbase.ParamList, 1)
 	param[0] = &device
-	err := dao.RunCommandSql(sqlNoteDelete, param)
-	return dao.RowsAffected(), err
+	err := qry.RunCommandSql(sqlNoteDelete, param)
+	return qry.RowsAffected(), err
 }
 
-func (dao *QueryNote)Insert(note *ObjNote) error {
+func (qry *QueryNote)Insert(note *ObjNote) error {
 	param := make(dbase.ParamList, 5)
 	param[0] = &note.Device
 	param[1] = &note.Currency
 	param[2] = &note.Nominal
 	param[3] = &note.Count
 	param[4] = &note.Amount
-	err := dao.RunCommandSql(sqlNoteInsert, param)
+	err := qry.RunCommandSql(sqlNoteInsert, param)
 	return err
 }
 
-func (dao *QueryNote)Update(note *ObjNote) error {
+func (qry *QueryNote)Update(note *ObjNote) error {
 	param := make(dbase.ParamList, 5)
 	param[0] = &note.Count
 	param[1] = &note.Amount
 	param[2] = &note.Device
 	param[3] = &note.Currency
 	param[4] = &note.Nominal
-	err := dao.RunCommandSql(sqlNoteUpdate, param)
+	err := qry.RunCommandSql(sqlNoteUpdate, param)
 	return err
 }
 
-func (dao *QueryNote)InsertEx(notes ObjNoteList) error {
+func (qry *QueryNote)InsertEx(notes ObjNoteList) error {
 	parList := make([]dbase.ParamList, len(notes))
 	for i, note := range notes {
 		param := make(dbase.ParamList, 5)
@@ -97,11 +97,11 @@ func (dao *QueryNote)InsertEx(notes ObjNoteList) error {
 		param[4] = &note.Amount
 		parList[i] = param
 	}
-	err := dao.RunPreparedSql(sqlNoteInsert, parList)
+	err := qry.RunPreparedSql(sqlNoteInsert, parList)
 	return err
 }
 
-func (dao *QueryNote)UpdateEx(notes ObjNoteList) error {
+func (qry *QueryNote)UpdateEx(notes ObjNoteList) error {
 	parList := make([]dbase.ParamList, len(notes))
 	for i, note := range notes {
 		param := make(dbase.ParamList, 5)
@@ -112,7 +112,7 @@ func (dao *QueryNote)UpdateEx(notes ObjNoteList) error {
 		param[4] = &note.Nominal
 		parList[i] = param
 	}
-	err := dao.RunPreparedSql(sqlNoteUpdate, parList)
+	err := qry.RunPreparedSql(sqlNoteUpdate, parList)
 	return err
 }
 

@@ -47,6 +47,8 @@ func (db *DBaseValidator) CreateAllTables() error {
 	qry := NewQueryValidator(db.linker, db.log)
 	err := qry.CreateTableNote()
 	err = qry.CreateTableBatch()
+	err = qry.CreateTableDeposit()
+	err = qry.CreateTableBalance()
 	return err
 }
 
