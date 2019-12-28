@@ -1,6 +1,7 @@
 package dbvalid
 
 import (
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/dbase"
 	"time"
@@ -15,7 +16,7 @@ const (
     nominal INTEGER NOT NULL DEFAULT 0,
     count INTEGER NOT NULL DEFAULT 0,
     amount INTEGER NOT NULL DEFAULT 0,
-    created VARCHAR(40),
+    created VARCHAR(64),
     FOREIGN KEY (batch_id) REFERENCES valid_batch (id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );`
 	sqlDepositDelete = `DELETE FROM valid_deposit WHERE batch_id = ?;`
@@ -48,29 +49,29 @@ func NewQueryDeposit(linker dbase.DBaseLinker, log *core.LogAgent) *QueryDeposit
 }
 
 
-func (qry *QueryDeposit)Select(depo *ObjDeposit) (error) {
+func (qry *QueryDeposit)doSelect(id int64, depo *ObjDeposit) error {
 	param := make(dbase.ParamList, 1)
-	param[0] = &depo.Id
+	param[0] = &id
 	err := qry.RunSelectSql(sqlDepositSelect, param, depo)
 	return err
 }
 
-func (qry *QueryDeposit)Search(batch_id int) (ObjDepositList, error) {
+func (qry *QueryDeposit)doSearch(batchId int64) (ObjDepositList, error) {
 	items := make(ObjDepositList, 0)
 	param := make(dbase.ParamList, 1)
-	param[0] = &batch_id
+	param[0] = &batchId
 	err := qry.RunSearchSql(sqlDepositSearch, param, &items)
 	return items, err
 }
 
-func (qry *QueryDeposit)Delete(batch_id int) (int64, error) {
+func (qry *QueryDeposit)doDelete(batchId int64) (int64, error) {
 	param := make(dbase.ParamList, 1)
-	param[0] = &batch_id
+	param[0] = &batchId
 	err := qry.RunCommandSql(sqlDepositDelete, param)
 	return qry.RowsAffected(), err
 }
 
-func (qry *QueryDeposit)Insert(depo *ObjDeposit) error {
+func (qry *QueryDeposit)doInsert(depo *ObjDeposit) error {
 	param := make(dbase.ParamList, 7)
 	param[0] = &depo.BatchId
 	param[1] = &depo.ExtraId
@@ -86,7 +87,7 @@ func (qry *QueryDeposit)Insert(depo *ObjDeposit) error {
 	return err
 }
 
-func (qry *QueryDeposit)InsertEx(depos ObjDepositList) error {
+func (qry *QueryDeposit)doInsertEx(depos ObjDepositList) error {
 	parList := make([]dbase.ParamList, len(depos))
 	for i, depo := range depos {
 		param := make(dbase.ParamList, 7)
@@ -103,4 +104,17 @@ func (qry *QueryDeposit)InsertEx(depos ObjDepositList) error {
 	return err
 }
 
+func (qry *QueryDeposit)doInsertAccept(batchId, extraId int64, data common.ValidatorAccept) (*ObjDeposit, error) {
+	depo := &ObjDeposit{
+		BatchId:   batchId,
+		ExtraId:   extraId,
+		Currency:  uint16(data.Currency),
+		Nominal:   float32(data.Nominal),
+		Count:     uint16(data.Count),
+		Amount:    float32(data.Amount),
+		Created:   time.Now(),
+	}
+	err := qry.doInsert(depo)
+	return depo, err
+}
 

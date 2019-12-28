@@ -39,6 +39,7 @@ func main() {
 			if err != nil{
 				log.Error("Can't create tables: %s", err)
 			}
+//			err = dbval.CheckBatch()
 		}
 		err = store.Close()
 	}

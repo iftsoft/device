@@ -40,4 +40,12 @@ func (dao *QueryValidator)CreateTableBalance() error {
 }
 
 
+func checkBatch(notes ObjNoteList, depos ObjDepositList) uint16 {
+	if  len(notes) == 0 &&
+		len(depos) == 0 {
+		return StateEmpty
+	}
+	return StateCorrect
+}
+
 

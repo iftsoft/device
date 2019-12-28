@@ -12,18 +12,19 @@ const (
     state INTEGER NOT NULL DEFAULT 0,
 	device VARCHAR(64) NOT NULL,
     count INTEGER NOT NULL DEFAULT 0,
-    opened VARCHAR(40),
-    closed VARCHAR(40)
+    opened VARCHAR(64),
+    closed VARCHAR(64)
 );`
 	sqlBatchDelete = `DELETE FROM valid_batch WHERE id = ?;`
-	sqlBatchSelect = `SELECT id, state, device, count, opened, closed FROM valid_batch WHERE device = ? order by id desc;`
-	sqlBatchSearch = `SELECT id, state, device, count, opened, closed FROM valid_batch WHERE device = ? order by id asc;`
+	sqlBatchSelect = `SELECT id, state, device, count, opened, closed FROM valid_batch WHERE device = ? ORDER BY id desc LIMIT 1;`
+	sqlBatchSearch = `SELECT id, state, device, count, opened, closed FROM valid_batch WHERE device = ? ORDER BY id asc;`
 	sqlBatchInsert = `INSERT INTO valid_batch (state, device, count, opened, closed) VALUES (?, ?, ?, ?, ?);`
 	sqlBatchUpdate = `UPDATE valid_batch SET state = ?, count = ?, closed = ? WHERE id = ?;`
 )
 
 const (
 	StateActive uint16 = iota
+	StateEmpty
 	StateCorrect
 	StateMismatch
 )
@@ -49,14 +50,14 @@ func NewQueryBatch(linker dbase.DBaseLinker, log *core.LogAgent) *QueryBatch {
 }
 
 
-func (qry *QueryBatch)Select(batch *ObjBatch) (error) {
+func (qry *QueryBatch) doSelect(device string, batch *ObjBatch) error {
 	param := make(dbase.ParamList, 1)
 	param[0] = &batch.Device
 	err := qry.RunSelectSql(sqlBatchSelect, param, batch)
 	return err
 }
 
-func (qry *QueryBatch)Search(device string) (ObjBatchList, error) {
+func (qry *QueryBatch) doSearch(device string) (ObjBatchList, error) {
 	items := make(ObjBatchList, 0)
 	param := make(dbase.ParamList, 1)
 	param[0] = &device
@@ -64,14 +65,14 @@ func (qry *QueryBatch)Search(device string) (ObjBatchList, error) {
 	return items, err
 }
 
-func (qry *QueryBatch)Delete(id int) (int64, error) {
+func (qry *QueryBatch) doDelete(id int) (int64, error) {
 	param := make(dbase.ParamList, 1)
 	param[0] = &id
 	err := qry.RunCommandSql(sqlBatchDelete, param)
 	return qry.RowsAffected(), err
 }
 
-func (qry *QueryBatch)Insert(batch *ObjBatch) error {
+func (qry *QueryBatch)doInsert(batch *ObjBatch) error {
 	param := make(dbase.ParamList, 5)
 	param[0] = &batch.State
 	param[1] = &batch.Device
@@ -85,7 +86,7 @@ func (qry *QueryBatch)Insert(batch *ObjBatch) error {
 	return err
 }
 
-func (qry *QueryBatch)Update(batch *ObjBatch) error {
+func (qry *QueryBatch)doUpdate(batch *ObjBatch) error {
 	param := make(dbase.ParamList, 4)
 	param[0] = &batch.State
 	param[1] = &batch.Count
@@ -93,6 +94,15 @@ func (qry *QueryBatch)Update(batch *ObjBatch) error {
 	param[3] = &batch.Id
 	err := qry.RunCommandSql(sqlBatchUpdate, param)
 	return err
+}
+
+func (qry *QueryBatch)makeNewBranch(device string, batch *ObjBatch) error {
+	batch.Id     = 0
+	batch.State  = StateActive
+	batch.Device = device
+	batch.Count  = 0
+	batch.Opened = time.Now()
+	return qry.doInsert(batch)
 }
 
 

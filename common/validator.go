@@ -59,13 +59,14 @@ func (dev *ValidatorStore) String() string {
 
 type ValidatorAccept struct {
 	Currency DevCurrency
-	Amount   DevAmount
+	Nominal  DevAmount
 	Count    DevCounter
+	Amount   DevAmount
 }
 func (dev *ValidatorAccept) String() string {
 	if dev == nil { return "" }
-	str := fmt.Sprintf("Count: %d, Amount: %7.2f, Currency: %d (%s) %s",
-		dev.Count, dev.Amount, dev.Currency, dev.Currency.IsoCode(), dev.Currency.String())
+	str := fmt.Sprintf("Nominal: %7.2f, Count: %d, Amount: %7.2f, Currency: %d (%s) %s",
+		dev.Nominal, dev.Count, dev.Amount, dev.Currency, dev.Currency.IsoCode(), dev.Currency.String())
 	return str
 }
 

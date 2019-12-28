@@ -1,6 +1,7 @@
 package dbvalid
 
 import (
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/dbase"
 )
@@ -40,7 +41,7 @@ func NewQueryNote(linker dbase.DBaseLinker, log *core.LogAgent) *QueryNote {
 	return qry
 }
 
-func (qry *QueryNote)Select(note *ObjNote) (error) {
+func (qry *QueryNote)doSelect(note *ObjNote) error {
 	param := make(dbase.ParamList, 3)
 	param[0] = &note.Device
 	param[1] = &note.Currency
@@ -49,7 +50,7 @@ func (qry *QueryNote)Select(note *ObjNote) (error) {
 	return err
 }
 
-func (qry *QueryNote)Search(device string) (ObjNoteList, error) {
+func (qry *QueryNote)doSearch(device string) (ObjNoteList, error) {
 	items := make(ObjNoteList, 0)
 	param := make(dbase.ParamList, 1)
 	param[0] = &device
@@ -57,14 +58,14 @@ func (qry *QueryNote)Search(device string) (ObjNoteList, error) {
 	return items, err
 }
 
-func (qry *QueryNote)Delete(device string) (int64, error) {
+func (qry *QueryNote)doDelete(device string) (int64, error) {
 	param := make(dbase.ParamList, 1)
 	param[0] = &device
 	err := qry.RunCommandSql(sqlNoteDelete, param)
 	return qry.RowsAffected(), err
 }
 
-func (qry *QueryNote)Insert(note *ObjNote) error {
+func (qry *QueryNote)doInsert(note *ObjNote) error {
 	param := make(dbase.ParamList, 5)
 	param[0] = &note.Device
 	param[1] = &note.Currency
@@ -75,7 +76,7 @@ func (qry *QueryNote)Insert(note *ObjNote) error {
 	return err
 }
 
-func (qry *QueryNote)Update(note *ObjNote) error {
+func (qry *QueryNote)doUpdate(note *ObjNote) error {
 	param := make(dbase.ParamList, 5)
 	param[0] = &note.Count
 	param[1] = &note.Amount
@@ -86,7 +87,7 @@ func (qry *QueryNote)Update(note *ObjNote) error {
 	return err
 }
 
-func (qry *QueryNote)InsertEx(notes ObjNoteList) error {
+func (qry *QueryNote)doInsertEx(notes ObjNoteList) error {
 	parList := make([]dbase.ParamList, len(notes))
 	for i, note := range notes {
 		param := make(dbase.ParamList, 5)
@@ -101,7 +102,7 @@ func (qry *QueryNote)InsertEx(notes ObjNoteList) error {
 	return err
 }
 
-func (qry *QueryNote)UpdateEx(notes ObjNoteList) error {
+func (qry *QueryNote)doUpdateEx(notes ObjNoteList) error {
 	parList := make([]dbase.ParamList, len(notes))
 	for i, note := range notes {
 		param := make(dbase.ParamList, 5)
@@ -114,6 +115,31 @@ func (qry *QueryNote)UpdateEx(notes ObjNoteList) error {
 	}
 	err := qry.RunPreparedSql(sqlNoteUpdate, parList)
 	return err
+}
+
+func (qry *QueryNote)doUpdateAccept(device string, data common.ValidatorAccept) error {
+	note := &ObjNote{
+		Device:   device,
+		Currency: uint16(data.Currency),
+		Nominal:  float32(data.Nominal),
+		Count:    uint16(data.Count),
+		Amount:   float32(data.Amount),
+	}
+	return qry.doUpdate(note)
+}
+
+func (qry *QueryNote)doInsertNotes(device string, notes common.ValidNoteList) error {
+	objList := make(ObjNoteList, len(notes))
+	for i, note := range notes {
+		objList[i] = &ObjNote {
+			Device:   device,
+			Currency: uint16(note.Currency),
+			Nominal:  float32(note.Nominal),
+			Count:    uint16(note.Count),
+			Amount:   float32(note.Amount),
+		}
+	}
+	return qry.doInsertEx(objList)
 }
 
 

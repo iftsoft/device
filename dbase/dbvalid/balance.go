@@ -14,7 +14,7 @@ const (
     nominal INTEGER NOT NULL DEFAULT 0,
     count INTEGER NOT NULL DEFAULT 0,
     amount INTEGER NOT NULL DEFAULT 0,
-    created VARCHAR(40),
+    created VARCHAR(64),
     FOREIGN KEY (batch_id) REFERENCES valid_batch (id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );`
 	sqlBalanceDelete = `DELETE FROM valid_balance WHERE batch_id = ?;`
@@ -45,29 +45,29 @@ func NewQueryBalance(linker dbase.DBaseLinker, log *core.LogAgent) *QueryBalance
 }
 
 
-func (qry *QueryBalance)Select(bal *ObjBalance) (error) {
+func (qry *QueryBalance)doSelect(id int64, bal *ObjBalance) error {
 	param := make(dbase.ParamList, 1)
-	param[0] = &bal.Id
+	param[0] = &id
 	err := qry.RunSelectSql(sqlBalanceSelect, param, bal)
 	return err
 }
 
-func (qry *QueryBalance)Search(batch_id int) (ObjBalanceList, error) {
+func (qry *QueryBalance)doSearch(batchId int) (ObjBalanceList, error) {
 	items := make(ObjBalanceList, 0)
 	param := make(dbase.ParamList, 1)
-	param[0] = &batch_id
+	param[0] = &batchId
 	err := qry.RunSearchSql(sqlBalanceSearch, param, &items)
 	return items, err
 }
 
-func (qry *QueryBalance)Delete(batch_id int) (int64, error) {
+func (qry *QueryBalance)doDelete(batchId int) (int64, error) {
 	param := make(dbase.ParamList, 1)
-	param[0] = &batch_id
+	param[0] = &batchId
 	err := qry.RunCommandSql(sqlBalanceDelete, param)
 	return qry.RowsAffected(), err
 }
 
-func (qry *QueryBalance)Insert(bal *ObjBalance) error {
+func (qry *QueryBalance)doInsert(bal *ObjBalance) error {
 	param := make(dbase.ParamList, 6)
 	param[0] = &bal.BatchId
 	param[1] = &bal.Currency
@@ -82,7 +82,7 @@ func (qry *QueryBalance)Insert(bal *ObjBalance) error {
 	return err
 }
 
-func (qry *QueryBalance)InsertEx(bals ObjBalanceList) error {
+func (qry *QueryBalance)doInsertEx(bals ObjBalanceList) error {
 	parList := make([]dbase.ParamList, len(bals))
 	for i, bal := range bals {
 		param := make(dbase.ParamList, 6)
@@ -92,6 +92,24 @@ func (qry *QueryBalance)InsertEx(bals ObjBalanceList) error {
 		param[3] = &bal.Count
 		param[4] = &bal.Amount
 		param[5] = &bal.Created
+		parList[i] = param
+	}
+	err := qry.RunPreparedSql(sqlBalanceInsert, parList)
+	return err
+}
+
+
+func (qry *QueryBalance)doInsertNotes(batchId int64, notes ObjNoteList) error {
+	created := time.Now()
+	parList := make([]dbase.ParamList, len(notes))
+	for i, note := range notes {
+		param := make(dbase.ParamList, 6)
+		param[0] = &batchId
+		param[1] = &note.Currency
+		param[2] = &note.Nominal
+		param[3] = &note.Count
+		param[4] = &note.Amount
+		param[5] = &created
 		parList[i] = param
 	}
 	err := qry.RunPreparedSql(sqlBalanceInsert, parList)

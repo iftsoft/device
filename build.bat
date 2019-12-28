@@ -5,3 +5,6 @@ cd ..\..
 cd example\server
 go build .
 cd ..\..
+cd example\cashvalidator
+go build .
+cd ..\..
