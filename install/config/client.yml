@@ -1,0 +1,36 @@
+# Test config file
+duplex:
+  port: 9380
+#  dev_name: TestDevice
+
+logger:
+  log_path: ../logs
+  log_file: client
+  log_level: 7
+  cons_level: 6
+#  max_files: 2
+#  max_size: 256
+  source:  false
+
+device:
+  linker:
+    link_type: 1
+    timeout: 250
+    serial:
+      # port_name: /dev/ttyUSB2
+      port_name: COM4
+      baud_rate: 9600
+      data_bits: 8
+      stop_bits: 0
+      parity: 0
+  common:
+    model: screen
+    version: 0.1.0
+    timeout: 30
+    auto_load: False
+  printer:
+  reader:
+  validator:
+  dispenser:
+  vendor:
+
