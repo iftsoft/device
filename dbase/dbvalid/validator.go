@@ -1,6 +1,7 @@
 package dbvalid
 
 import (
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/dbase"
 )
@@ -40,7 +41,7 @@ func (dao *QueryValidator)CreateTableBalance() error {
 }
 
 
-func checkBatch(notes ObjNoteList, depos ObjDepositList) uint16 {
+func checkBatch(notes common.ValidNoteList, depos ObjDepositList) BatchState {
 	if  len(notes) == 0 &&
 		len(depos) == 0 {
 		return StateEmpty

@@ -13,9 +13,9 @@ const (
 	batch_id INTEGER NOT NULL,
 	extra_id INTEGER NOT NULL DEFAULT 0,
     currency INTEGER NOT NULL DEFAULT 0,
-    nominal INTEGER NOT NULL DEFAULT 0,
+    nominal REAL NOT NULL DEFAULT 0,
     count INTEGER NOT NULL DEFAULT 0,
-    amount INTEGER NOT NULL DEFAULT 0,
+    amount REAL NOT NULL DEFAULT 0,
     created VARCHAR(64),
     FOREIGN KEY (batch_id) REFERENCES valid_batch (id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );`
@@ -29,10 +29,10 @@ type ObjDeposit struct {
 	Id       int64
 	BatchId  int64
 	ExtraId  int64
-	Currency uint16
-	Nominal  float32
-	Count    uint16
-	Amount   float32
+	Currency common.DevCurrency
+	Nominal  common.DevAmount
+	Count    common.DevCounter
+	Amount   common.DevAmount
 	Created  time.Time
 }
 type ObjDepositList []*ObjDeposit
@@ -104,14 +104,14 @@ func (qry *QueryDeposit)doInsertEx(depos ObjDepositList) error {
 	return err
 }
 
-func (qry *QueryDeposit)doInsertAccept(batchId, extraId int64, data common.ValidatorAccept) (*ObjDeposit, error) {
+func (qry *QueryDeposit)doInsertAccept(batchId, extraId int64, data *common.ValidatorAccept) (*ObjDeposit, error) {
 	depo := &ObjDeposit{
 		BatchId:   batchId,
 		ExtraId:   extraId,
-		Currency:  uint16(data.Currency),
-		Nominal:   float32(data.Nominal),
-		Count:     uint16(data.Count),
-		Amount:    float32(data.Amount),
+		Currency:  data.Currency,
+		Nominal:   data.Nominal,
+		Count:     data.Count,
+		Amount:    data.Amount,
 		Created:   time.Now(),
 	}
 	err := qry.doInsert(depo)

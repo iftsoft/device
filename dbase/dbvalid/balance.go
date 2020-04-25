@@ -1,6 +1,7 @@
 package dbvalid
 
 import (
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/dbase"
 	"time"
@@ -11,9 +12,9 @@ const (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	batch_id INTEGER NOT NULL,
     currency INTEGER NOT NULL DEFAULT 0,
-    nominal INTEGER NOT NULL DEFAULT 0,
+    nominal REAL NOT NULL DEFAULT 0,
     count INTEGER NOT NULL DEFAULT 0,
-    amount INTEGER NOT NULL DEFAULT 0,
+    amount REAL NOT NULL DEFAULT 0,
     created VARCHAR(64),
     FOREIGN KEY (batch_id) REFERENCES valid_batch (id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );`
@@ -26,10 +27,10 @@ const (
 type ObjBalance struct {
 	Id       int64
 	BatchId  int64
-	Currency uint16
-	Nominal  float32
-	Count    uint16
-	Amount   float32
+	Currency common.DevCurrency
+	Nominal  common.DevAmount
+	Count    common.DevCounter
+	Amount   common.DevAmount
 	Created  time.Time
 }
 type ObjBalanceList []*ObjBalance
@@ -99,7 +100,7 @@ func (qry *QueryBalance)doInsertEx(bals ObjBalanceList) error {
 }
 
 
-func (qry *QueryBalance)doInsertNotes(batchId int64, notes ObjNoteList) error {
+func (qry *QueryBalance)doInsertNotes(batchId int64, notes common.ValidNoteList) error {
 	created := time.Now()
 	parList := make([]dbase.ParamList, len(notes))
 	for i, note := range notes {

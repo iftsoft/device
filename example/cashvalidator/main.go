@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/dbase"
@@ -39,7 +40,27 @@ func main() {
 			if err != nil{
 				log.Error("Can't create tables: %s", err)
 			}
-//			err = dbval.CheckBatch()
+			batch := &dbvalid.ObjBatch{}
+			batch.Device = "cashvalidator"
+			err = dbval.GetLastBatch(batch)
+			if err != nil{
+				log.Error("Can't read batch: %s", err)
+			}
+			log.Info("Batch ID: %d, device: %s, time: %v", batch.Id, batch.Device, batch.Opened)
+			defNoteList := common.ValidNoteList {
+				{appCfg.Duplex.DevName, 980, 10, 1.0, 10.0, },
+				{appCfg.Duplex.DevName, 980, 10, 2.0, 20.0, },
+				{appCfg.Duplex.DevName, 980, 10, 5.0, 50.0, },
+			}
+			err = dbval.InitNoteList(defNoteList)
+			if err != nil{
+				log.Error("Can't init notes: %s", err)
+			}
+			list, err := dbval.ReadNoteList()
+			if err != nil{
+				log.Error("Can't init notes: %s", err)
+			}
+			log.Info(list.String())
 		}
 		err = store.Close()
 	}

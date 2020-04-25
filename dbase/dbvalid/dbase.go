@@ -54,7 +54,7 @@ func (db *DBaseValidator) CreateAllTables() error {
 
 
 
-func (db *DBaseValidator) getLastBatch(batch *ObjBatch) error {
+func (db *DBaseValidator) GetLastBatch(batch *ObjBatch) error {
 //	batch := ObjBatch{}
 	qry := NewQueryBatch(db.linker, db.log)
 	err := qry.doSelect(db.device, batch)
@@ -101,12 +101,12 @@ func (db *DBaseValidator) closeLastBatch() error {
 }
 
 func (db *DBaseValidator) InitNoteList(list common.ValidNoteList) error {
-	err := db.closeLastBatch()
-	if err != nil {
-		return err
-	}
+//	err := db.closeLastBatch()
+//	if err != nil {
+//		return err
+//	}
 	qryNt := NewQueryNote(db.linker, db.log)
-	_, err = qryNt.doDelete(db.device)
+	_, err := qryNt.doDelete(db.device)
 	if err == nil {
 		err = qryNt.doInsertNotes(db.device, list)
 	}
@@ -115,23 +115,11 @@ func (db *DBaseValidator) InitNoteList(list common.ValidNoteList) error {
 
 func (db *DBaseValidator) ReadNoteList()(common.ValidNoteList, error) {
 	qry := NewQueryNote(db.linker, db.log)
-	items, err := qry.doSearch(db.device)
-	if err != nil {
-		return nil, err
-	}
-	notes := make(common.ValidNoteList, len(items))
-	for i, item := range items {
-		notes[i] = &common.ValidatorNote {
-			Currency: common.DevCurrency(item.Currency),
-			Nominal:  common.DevAmount(item.Nominal),
-			Count:    common.DevCounter(item.Count),
-			Amount:   common.DevAmount(item.Amount),
-		}
-	}
+	notes, err := qry.doSearch(db.device)
 	return notes, err
 }
 
-func (db *DBaseValidator) DepositNote(extraId int64, data common.ValidatorAccept) error {
+func (db *DBaseValidator) DepositNote(extraId int64, data *common.ValidatorAccept) error {
 	qryBt := NewQueryBatch(db.linker, db.log)
 	qryNt := NewQueryNote(db.linker, db.log)
 	qryDp := NewQueryDeposit(db.linker, db.log)
@@ -154,18 +142,18 @@ func (db *DBaseValidator) DepositNote(extraId int64, data common.ValidatorAccept
 }
 
 func (db *DBaseValidator) SaveNoteList(list common.ValidNoteList) error {
-	objList := make(ObjNoteList, len(list))
-	for i, note := range list {
-		objList[i] = &ObjNote {
-			Device:   db.device,
-			Currency: uint16(note.Currency),
-			Nominal:  float32(note.Nominal),
-			Count:    uint16(note.Count),
-			Amount:   float32(note.Amount),
-		}
-	}
+//	objList := make(ObjNoteList, len(list))
+//	for i, note := range list {
+//		objList[i] = &ObjNote {
+//			Device:   db.device,
+//			Currency: uint16(note.Currency),
+//			Nominal:  float32(note.Nominal),
+//			Count:    uint16(note.Count),
+//			Amount:   float32(note.Amount),
+//		}
+//	}
 	qry := NewQueryNote(db.linker, db.log)
-	err := qry.doUpdateEx(objList)
+	err := qry.doUpdateEx(list)
 	return err
 }
 

@@ -1,6 +1,7 @@
 package dbvalid
 
 import (
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/dbase"
 	"time"
@@ -22,17 +23,18 @@ const (
 	sqlBatchUpdate = `UPDATE valid_batch SET state = ?, count = ?, closed = ? WHERE id = ?;`
 )
 
+type BatchState int16
 const (
-	StateActive uint16 = iota
+	StateActive BatchState = iota
 	StateEmpty
 	StateCorrect
 	StateMismatch
 )
 type ObjBatch struct {
 	Id       int64
-	State    uint16
+	State    BatchState
 	Device   string
-	Count    uint16
+	Count    common.DevCounter
 	Opened   time.Time
 	Closed   time.Time
 }

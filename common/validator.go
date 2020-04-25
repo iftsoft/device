@@ -19,6 +19,7 @@ const (
 type ValidNoteList []*ValidatorNote
 
 type ValidatorNote struct {
+	Device   string
 	Currency DevCurrency
 	Count    DevCounter
 	Nominal  DevAmount
@@ -29,8 +30,8 @@ func (vn *ValidatorNote) String() string {
 	if vn == nil {
 		return ""
 	}
-	str := fmt.Sprintf("Note %7.2f * %3d = %9.2f of %3d (%s) - %s",
-		vn.Nominal, vn.Count, vn.Amount, vn.Currency, vn.Currency.IsoCode(), vn.Currency.String())
+	str := fmt.Sprintf("%s Note %7.2f * %3d = %9.2f of %3d (%s) - %s",
+		vn.Device, vn.Nominal, vn.Count, vn.Amount, vn.Currency, vn.Currency.IsoCode(), vn.Currency.String())
 	return str
 }
 

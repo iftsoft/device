@@ -2,7 +2,7 @@ package common
 
 type DevAmount   float32
 type DevCounter  int32
-type DevCurrency uint16
+type DevCurrency int16
 
 const (
 	CurrencyNOT	DevCurrency = 0		// Currency not used - Валюта не используется
