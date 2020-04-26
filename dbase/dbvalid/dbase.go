@@ -5,12 +5,14 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/dbase"
+	"time"
 )
 
 const (
-	errDBaseNotOpen = "Database is not opened"
-	errLinkerNotSet = "Database linker is not set"
-	errStmtNotReady = "Statement is not prepared"
+	errParamIsNil   = "parameter is nil pointer"
+	errDBaseNotOpen = "database is not opened"
+	errLinkerNotSet = "database linker is not set"
+//	errStmtNotReady = "statement is not prepared"
 )
 
 type DBaseValidator struct{
@@ -65,7 +67,10 @@ func (db *DBaseValidator) GetLastBatch(batch *ObjBatch) error {
 	return err
 }
 
-func (db *DBaseValidator) closeLastBatch() error {
+func (db *DBaseValidator) CloseBatch(data *common.ValidatorBatch) error {
+	if data == nil {
+		return errors.New(errParamIsNil)
+	}
 	qryBt := NewQueryBatch(db.linker, db.log)
 	qryNt := NewQueryNote(db.linker, db.log)
 	qryDp := NewQueryDeposit(db.linker, db.log)
@@ -78,21 +83,30 @@ func (db *DBaseValidator) closeLastBatch() error {
 	}
 	if batch.Id == 0 {
 		err = qryBt.makeNewBranch(db.device, batch)
+	}
+	if err != nil {
 		return err
 	}
-	notes, err := qryNt.doSearch(db.device)
+	data.BatchId = batch.Id
+	data.State   = batch.State
+	data.Notes, err = qryNt.doSearch(db.device)
 	if err != nil {
+		return err
+	}
+	if batch.State == common.StateEmpty {
 		return err
 	}
 	depos, err := qryDp.doSearch(batch.Id)
 	if err != nil {
 		return err
 	}
-	batch.State = checkBatch(notes, depos)
-	if len(notes) > 0 {
-		err = qryBl.doInsertNotes(batch.Id, notes)
-	}
+	batch.State  = checkBatch(data.Notes, depos)
+	batch.Closed = time.Now().String()
 	err = qryBt.doUpdate(batch)
+	if err != nil {
+		return err
+	}
+	err = qryBl.doInsertNotes(batch.Id, data.Notes)
 	if err != nil {
 		return err
 	}
@@ -101,25 +115,46 @@ func (db *DBaseValidator) closeLastBatch() error {
 }
 
 func (db *DBaseValidator) InitNoteList(list common.ValidNoteList) error {
-//	err := db.closeLastBatch()
-//	if err != nil {
-//		return err
-//	}
+	qryBt := NewQueryBatch(db.linker, db.log)
 	qryNt := NewQueryNote(db.linker, db.log)
-	_, err := qryNt.doDelete(db.device)
+	batch := &ObjBatch{}
+
+	err := qryBt.doSelect(db.device, batch)
+	if err != nil {
+		return err
+	}
+	if batch.State != common.StateEmpty {
+		err = errors.New("batch is not empty")
+	}
+	_, err = qryNt.doDelete(db.device)
 	if err == nil {
 		err = qryNt.doInsertNotes(db.device, list)
 	}
 	return err
 }
 
-func (db *DBaseValidator) ReadNoteList()(common.ValidNoteList, error) {
-	qry := NewQueryNote(db.linker, db.log)
-	notes, err := qry.doSearch(db.device)
-	return notes, err
+func (db *DBaseValidator) ReadNoteList(data *common.ValidatorBatch) error {
+	if data == nil {
+		return errors.New(errParamIsNil)
+	}
+	qryBt := NewQueryBatch(db.linker, db.log)
+	qryNt := NewQueryNote(db.linker, db.log)
+	batch := &ObjBatch{}
+
+	err := qryBt.doSelect(db.device, batch)
+	if err != nil {
+		return err
+	}
+	data.BatchId = batch.Id
+	data.State   = batch.State
+	data.Notes, err = qryNt.doSearch(db.device)
+	return err
 }
 
 func (db *DBaseValidator) DepositNote(extraId int64, data *common.ValidatorAccept) error {
+	if data == nil {
+		return errors.New(errParamIsNil)
+	}
 	qryBt := NewQueryBatch(db.linker, db.log)
 	qryNt := NewQueryNote(db.linker, db.log)
 	qryDp := NewQueryDeposit(db.linker, db.log)
@@ -138,22 +173,12 @@ func (db *DBaseValidator) DepositNote(extraId int64, data *common.ValidatorAccep
 		return err
 	}
 	_, err = qryDp.doInsertAccept(batch.Id, extraId, data)
-	return err
-}
-
-func (db *DBaseValidator) SaveNoteList(list common.ValidNoteList) error {
-//	objList := make(ObjNoteList, len(list))
-//	for i, note := range list {
-//		objList[i] = &ObjNote {
-//			Device:   db.device,
-//			Currency: uint16(note.Currency),
-//			Nominal:  float32(note.Nominal),
-//			Count:    uint16(note.Count),
-//			Amount:   float32(note.Amount),
-//		}
-//	}
-	qry := NewQueryNote(db.linker, db.log)
-	err := qry.doUpdateEx(list)
+	if err != nil {
+		return err
+	}
+	batch.State = common.StateActive
+	batch.Count += data.Count
+	err = qryBt.doUpdate(batch)
 	return err
 }
 

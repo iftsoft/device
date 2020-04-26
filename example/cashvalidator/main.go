@@ -52,15 +52,20 @@ func main() {
 				{appCfg.Duplex.DevName, 980, 10, 2.0, 20.0, },
 				{appCfg.Duplex.DevName, 980, 10, 5.0, 50.0, },
 			}
+			data := &common.ValidatorBatch{}
+			err = dbval.CloseBatch(data)
+			if err != nil{
+				log.Error("Can't close batch: %s", err)
+			}
 			err = dbval.InitNoteList(defNoteList)
 			if err != nil{
 				log.Error("Can't init notes: %s", err)
 			}
-			list, err := dbval.ReadNoteList()
+			err := dbval.ReadNoteList(data)
 			if err != nil{
 				log.Error("Can't init notes: %s", err)
 			}
-			log.Info(list.String())
+			log.Info(data.String())
 		}
 		err = store.Close()
 	}

@@ -33,7 +33,7 @@ type ObjDeposit struct {
 	Nominal  common.DevAmount
 	Count    common.DevCounter
 	Amount   common.DevAmount
-	Created  time.Time
+	Created  string
 }
 type ObjDepositList []*ObjDeposit
 
@@ -112,7 +112,7 @@ func (qry *QueryDeposit)doInsertAccept(batchId, extraId int64, data *common.Vali
 		Nominal:   data.Nominal,
 		Count:     data.Count,
 		Amount:    data.Amount,
-		Created:   time.Now(),
+		Created:   time.Now().String(),
 	}
 	err := qry.doInsert(depo)
 	return depo, err

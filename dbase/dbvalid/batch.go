@@ -23,20 +23,13 @@ const (
 	sqlBatchUpdate = `UPDATE valid_batch SET state = ?, count = ?, closed = ? WHERE id = ?;`
 )
 
-type BatchState int16
-const (
-	StateActive BatchState = iota
-	StateEmpty
-	StateCorrect
-	StateMismatch
-)
 type ObjBatch struct {
 	Id       int64
-	State    BatchState
 	Device   string
+	State    common.BatchState
 	Count    common.DevCounter
-	Opened   time.Time
-	Closed   time.Time
+	Opened   string
+	Closed   string
 }
 type ObjBatchList []*ObjBatch
 
@@ -100,10 +93,10 @@ func (qry *QueryBatch)doUpdate(batch *ObjBatch) error {
 
 func (qry *QueryBatch)makeNewBranch(device string, batch *ObjBatch) error {
 	batch.Id     = 0
-	batch.State  = StateActive
+	batch.State  = common.StateEmpty
 	batch.Device = device
 	batch.Count  = 0
-	batch.Opened = time.Now()
+	batch.Opened = time.Now().String()
 	return qry.doInsert(batch)
 }
 

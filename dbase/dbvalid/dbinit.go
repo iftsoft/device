@@ -41,12 +41,12 @@ func (dao *QueryValidator)CreateTableBalance() error {
 }
 
 
-func checkBatch(notes common.ValidNoteList, depos ObjDepositList) BatchState {
+func checkBatch(notes common.ValidNoteList, depos ObjDepositList) common.BatchState {
 	if  len(notes) == 0 &&
 		len(depos) == 0 {
-		return StateEmpty
+		return common.StateEmpty
 	}
-	return StateCorrect
+	return common.StateCorrect
 }
 
 

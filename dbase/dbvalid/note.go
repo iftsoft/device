@@ -20,6 +20,7 @@ const (
 	sqlNoteSearch = `SELECT device, currency, nominal, count, amount FROM valid_note WHERE device = ?;`
 	sqlNoteInsert = `INSERT INTO valid_note (device, currency, nominal, count, amount) VALUES (?, ?, ?, ?, ?);`
 	sqlNoteUpdate = `UPDATE valid_note SET count = count + ?, amount = amount + ? WHERE device = ?, currency = ?, nominal = ?;`
+	sqlNoteReset  = `UPDATE valid_note SET count = 0, amount = 0 WHERE device = ?;`
 )
 
 
@@ -57,6 +58,13 @@ func (qry *QueryNote)doDelete(device string) (int64, error) {
 	return qry.RowsAffected(), err
 }
 
+func (qry *QueryNote)doReset(device string) (int64, error) {
+	param := make(dbase.ParamList, 1)
+	param[0] = &device
+	err := qry.RunCommandSql(sqlNoteReset, param)
+	return qry.RowsAffected(), err
+}
+
 func (qry *QueryNote)doInsert(note *common.ValidatorNote) error {
 	param := make(dbase.ParamList, 5)
 	param[0] = &note.Device
@@ -79,11 +87,12 @@ func (qry *QueryNote)doUpdate(note *common.ValidatorNote) error {
 	return err
 }
 
-func (qry *QueryNote)doInsertEx(notes common.ValidNoteList) error {
+//func (qry *QueryNote)doInsertEx(notes common.ValidNoteList) error {
+func (qry *QueryNote)doInsertNotes(device string, notes common.ValidNoteList) error {
 	parList := make([]dbase.ParamList, len(notes))
 	for i, note := range notes {
 		param := make(dbase.ParamList, 5)
-		param[0] = &note.Device
+		param[0] = device
 		param[1] = &note.Currency
 		param[2] = &note.Nominal
 		param[3] = &note.Count
@@ -94,20 +103,20 @@ func (qry *QueryNote)doInsertEx(notes common.ValidNoteList) error {
 	return err
 }
 
-func (qry *QueryNote)doUpdateEx(notes common.ValidNoteList) error {
-	parList := make([]dbase.ParamList, len(notes))
-	for i, note := range notes {
-		param := make(dbase.ParamList, 5)
-		param[0] = &note.Count
-		param[1] = &note.Amount
-		param[2] = &note.Device
-		param[3] = &note.Currency
-		param[4] = &note.Nominal
-		parList[i] = param
-	}
-	err := qry.RunPreparedSql(sqlNoteUpdate, parList)
-	return err
-}
+//func (qry *QueryNote)doUpdateEx(notes common.ValidNoteList) error {
+//	parList := make([]dbase.ParamList, len(notes))
+//	for i, note := range notes {
+//		param := make(dbase.ParamList, 5)
+//		param[0] = &note.Count
+//		param[1] = &note.Amount
+//		param[2] = &note.Device
+//		param[3] = &note.Currency
+//		param[4] = &note.Nominal
+//		parList[i] = param
+//	}
+//	err := qry.RunPreparedSql(sqlNoteUpdate, parList)
+//	return err
+//}
 
 func (qry *QueryNote)doUpdateAccept(device string, data *common.ValidatorAccept) error {
 	note := &common.ValidatorNote{
@@ -120,13 +129,5 @@ func (qry *QueryNote)doUpdateAccept(device string, data *common.ValidatorAccept)
 	return qry.doUpdate(note)
 }
 
-func (qry *QueryNote)doInsertNotes(device string, notes common.ValidNoteList) error {
-	for _, note := range notes {
-		if note.Device == "" {
-			note.Device = device
-		}
-	}
-	return qry.doInsertEx(notes)
-}
 
 

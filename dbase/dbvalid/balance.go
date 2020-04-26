@@ -21,7 +21,7 @@ const (
 	sqlBalanceDelete = `DELETE FROM valid_balance WHERE batch_id = ?;`
 	sqlBalanceSelect = `SELECT id, batch_id, currency, nominal, count, amount, created FROM valid_balance WHERE id = ?;`
 	sqlBalanceSearch = `SELECT id, batch_id, currency, nominal, count, amount, created FROM valid_balance WHERE batch_id = ?;`
-	sqlBalanceInsert = `INSERT INTO valid_balance (batch_id, extra_id, currency, nominal, count, amount, created) VALUES (?, ?, ?, ?, ?, ?, ?);`
+	sqlBalanceInsert = `INSERT INTO valid_balance (batch_id, currency, nominal, count, amount, created) VALUES (?, ?, ?, ?, ?, ?);`
 )
 
 type ObjBalance struct {
@@ -31,7 +31,7 @@ type ObjBalance struct {
 	Nominal  common.DevAmount
 	Count    common.DevCounter
 	Amount   common.DevAmount
-	Created  time.Time
+	Created  string
 }
 type ObjBalanceList []*ObjBalance
 

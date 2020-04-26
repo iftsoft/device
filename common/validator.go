@@ -26,6 +26,36 @@ type ValidatorNote struct {
 	Amount   DevAmount
 }
 
+type BatchState int16
+const (
+	StateEmpty BatchState = iota
+	StateActive
+	StateCorrect
+	StateMismatch
+)
+func (e BatchState) String() string {
+	switch e {
+	case StateEmpty:			return "Empty"
+	case StateActive:			return "Active"
+	case StateCorrect:			return "Correct"
+	case StateMismatch:			return "Mismatch"
+	default:					return "Unknown"
+	}
+}
+
+type ValidatorBatch struct {
+	Notes    ValidNoteList
+	BatchId  int64
+	State    BatchState
+}
+func (dev *ValidatorBatch) String() string {
+	if dev == nil { return "" }
+	str := fmt.Sprintf("Batch Id=%d, State-%s, %s",
+		dev.BatchId, dev.State.String(), dev.Notes.String())
+	return str
+}
+
+
 func (vn *ValidatorNote) String() string {
 	if vn == nil {
 		return ""
@@ -49,12 +79,12 @@ func (vl ValidNoteList) String() string {
 
 type ValidatorStore struct {
 	DeviceReply
-	List ValidNoteList
+	ValidatorBatch
 }
 func (dev *ValidatorStore) String() string {
 	if dev == nil { return "" }
 	str := fmt.Sprintf("%s, %s",
-		dev.DeviceReply.String(), dev.List.String())
+		dev.DeviceReply.String(), dev.ValidatorBatch.String())
 	return str
 }
 
@@ -100,4 +130,11 @@ type ValidatorManager interface {
 	StopValidate(name string, query *ValidatorQuery) error
 	CheckValidator(name string, query *ValidatorQuery) error
 	ClearValidator(name string, query *ValidatorQuery) error
+}
+
+type ValidatorBooker interface {
+	InitNoteList(list ValidNoteList) error
+	ReadNoteList(data *ValidatorBatch) error
+	DepositNote(extraId int64, value *ValidatorAccept) error
+	CloseBatch(data *ValidatorBatch) error
 }
