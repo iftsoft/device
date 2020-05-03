@@ -1,6 +1,7 @@
 package dbvalid
 
 import (
+	"fmt"
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/dbase"
@@ -36,6 +37,15 @@ type ObjDeposit struct {
 	Created  string
 }
 type ObjDepositList []*ObjDeposit
+
+func (d *ObjDeposit) String() string {
+	if d == nil {
+		return ""
+	}
+	str := fmt.Sprintf("Deposit Id:%d, Batch:%d, Extra:%d, Note %7.2f * %3d = %9.2f of %3d (%s) - %s, Created:%s",
+		d.Id, d.BatchId, d.ExtraId, d.Nominal, d.Count, d.Amount, d.Currency, d.Currency.IsoCode(), d.Currency.String(), d.Created)
+	return str
+}
 
 
 type QueryDeposit struct {
@@ -105,6 +115,7 @@ func (qry *QueryDeposit)doInsertEx(depos ObjDepositList) error {
 }
 
 func (qry *QueryDeposit)doInsertAccept(batchId, extraId int64, data *common.ValidatorAccept) (*ObjDeposit, error) {
+	created := time.Now().Format(timeFormat)
 	depo := &ObjDeposit{
 		BatchId:   batchId,
 		ExtraId:   extraId,
@@ -112,7 +123,7 @@ func (qry *QueryDeposit)doInsertAccept(batchId, extraId int64, data *common.Vali
 		Nominal:   data.Nominal,
 		Count:     data.Count,
 		Amount:    data.Amount,
-		Created:   time.Now().String(),
+		Created:   created,
 	}
 	err := qry.doInsert(depo)
 	return depo, err

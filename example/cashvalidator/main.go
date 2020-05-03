@@ -41,37 +41,62 @@ func main() {
 				log.Error("Can't create tables: %s", err)
 			}
 			batch := &dbvalid.ObjBatch{}
-			batch.Device = "cashvalidator"
 			err = dbval.GetLastBatch(batch)
 			if err != nil{
 				log.Error("Can't read batch: %s", err)
 			}
-			log.Info("Batch ID: %d, device: %s, time: %v", batch.Id, batch.Device, batch.Opened)
+			log.Info("Get last batch - %s", batch.String())
+
 			defNoteList := common.ValidNoteList {
-				{appCfg.Duplex.DevName, 980, 10, 1.0, 10.0, },
-				{appCfg.Duplex.DevName, 980, 10, 2.0, 20.0, },
-				{appCfg.Duplex.DevName, 980, 10, 5.0, 50.0, },
+				{appCfg.Duplex.DevName, 980, 0, 1.0, 0.0, },
+				{appCfg.Duplex.DevName, 980, 0, 2.0, 0.0, },
+				{appCfg.Duplex.DevName, 980, 0, 5.0, 0.0, },
 			}
 			data := &common.ValidatorBatch{}
 			err = dbval.CloseBatch(data)
 			if err != nil{
 				log.Error("Can't close batch: %s", err)
 			}
+			log.Info("Close batch - %s", data.String())
+
 			err = dbval.InitNoteList(defNoteList)
 			if err != nil{
 				log.Error("Can't init notes: %s", err)
 			}
+
+			err = dbval.GetLastBatch(batch)
+			if err != nil{
+				log.Error("Can't read batch: %s", err)
+			}
+			log.Info("Get last batch - %s", batch.String())
+
+			accept1 := common.ValidatorAccept{ 980, 1.0,1, 1.0}
+			accept2 := common.ValidatorAccept{ 980, 2.0,1, 2.0}
+			accept5 := common.ValidatorAccept{ 980, 5.0,1, 5.0}
+			err = dbval.DepositNote(123, &accept1)
+			if err != nil{
+				log.Error("Can't deposit notes: %s", err)
+			}
+			err = dbval.DepositNote(124, &accept2)
+			if err != nil{
+				log.Error("Can't deposit notes: %s", err)
+			}
+			err = dbval.DepositNote(125, &accept5)
+			if err != nil{
+				log.Error("Can't deposit notes: %s", err)
+			}
+
 			err := dbval.ReadNoteList(data)
 			if err != nil{
-				log.Error("Can't init notes: %s", err)
+				log.Error("Can't read notes: %s", err)
 			}
 			log.Info(data.String())
 		}
 		err = store.Close()
 	}
 
-//	err = linker.GetLinkerPorts(log)
-
+	//err = linker.GetLinkerPorts(log)
+	//
 	//dev := driver.NewSystemDevice(appCfg)
 	//drv := loopback.NewDummyDriver()
 	//err = dev.InitDevice(drv)

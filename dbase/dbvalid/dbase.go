@@ -57,7 +57,6 @@ func (db *DBaseValidator) CreateAllTables() error {
 
 
 func (db *DBaseValidator) GetLastBatch(batch *ObjBatch) error {
-//	batch := ObjBatch{}
 	qry := NewQueryBatch(db.linker, db.log)
 	err := qry.doSelect(db.device, batch)
 	if err != nil {
@@ -96,12 +95,12 @@ func (db *DBaseValidator) CloseBatch(data *common.ValidatorBatch) error {
 	if batch.State == common.StateEmpty {
 		return err
 	}
-	depos, err := qryDp.doSearch(batch.Id)
-	if err != nil {
-		return err
+	depos, er := qryDp.doSearch(batch.Id)
+	if er != nil {
+		return er
 	}
-	batch.State  = checkBatch(data.Notes, depos)
-	batch.Closed = time.Now().String()
+	batch.State, batch.Detail = checkBatch(data.Notes, depos)
+	batch.Closed = time.Now().Format(timeFormat)
 	err = qryBt.doUpdate(batch)
 	if err != nil {
 		return err
@@ -164,6 +163,7 @@ func (db *DBaseValidator) DepositNote(extraId int64, data *common.ValidatorAccep
 	if err != nil {
 		return err
 	}
+//	db.log.Info("Deposit batch - %s", batch.String())
 	if batch.Id == 0 {
 		err = errors.New("no active batch")
 		return err
@@ -172,10 +172,11 @@ func (db *DBaseValidator) DepositNote(extraId int64, data *common.ValidatorAccep
 	if err != nil {
 		return err
 	}
-	_, err = qryDp.doInsertAccept(batch.Id, extraId, data)
-	if err != nil {
-		return err
+	depo, er := qryDp.doInsertAccept(batch.Id, extraId, data)
+	if er != nil {
+		return er
 	}
+	db.log.Info("Deposit note - %s", depo.String())
 	batch.State = common.StateActive
 	batch.Count += data.Count
 	err = qryBt.doUpdate(batch)

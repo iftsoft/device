@@ -16,10 +16,11 @@ const (
     UNIQUE (device, currency, nominal)
 );`
 	sqlNoteDelete = `DELETE FROM valid_note WHERE device = ?;`
-	sqlNoteSelect = `SELECT device, currency, nominal, count, amount FROM valid_note WHERE device = ?, currency = ?, nominal = ?;`
+	sqlNoteSelect = `SELECT device, currency, nominal, count, amount FROM valid_note WHERE device = ? AND currency = ? AND nominal = ?;`
 	sqlNoteSearch = `SELECT device, currency, nominal, count, amount FROM valid_note WHERE device = ?;`
 	sqlNoteInsert = `INSERT INTO valid_note (device, currency, nominal, count, amount) VALUES (?, ?, ?, ?, ?);`
-	sqlNoteUpdate = `UPDATE valid_note SET count = count + ?, amount = amount + ? WHERE device = ?, currency = ?, nominal = ?;`
+	sqlNoteUpdate = `UPDATE valid_note SET count = count + ?, amount = amount + ? WHERE device = ? AND currency = ? AND nominal = ?;`
+//	sqlNoteUpdate = `UPDATE valid_note SET count = ?, amount = ? WHERE device = ? AND currency = ? AND nominal = ?;`
 	sqlNoteReset  = `UPDATE valid_note SET count = 0, amount = 0 WHERE device = ?;`
 )
 
@@ -103,20 +104,6 @@ func (qry *QueryNote)doInsertNotes(device string, notes common.ValidNoteList) er
 	return err
 }
 
-//func (qry *QueryNote)doUpdateEx(notes common.ValidNoteList) error {
-//	parList := make([]dbase.ParamList, len(notes))
-//	for i, note := range notes {
-//		param := make(dbase.ParamList, 5)
-//		param[0] = &note.Count
-//		param[1] = &note.Amount
-//		param[2] = &note.Device
-//		param[3] = &note.Currency
-//		param[4] = &note.Nominal
-//		parList[i] = param
-//	}
-//	err := qry.RunPreparedSql(sqlNoteUpdate, parList)
-//	return err
-//}
 
 func (qry *QueryNote)doUpdateAccept(device string, data *common.ValidatorAccept) error {
 	note := &common.ValidatorNote{

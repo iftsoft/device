@@ -1,6 +1,7 @@
 package dbvalid
 
 import (
+	"fmt"
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/dbase"
@@ -34,6 +35,16 @@ type ObjBalance struct {
 	Created  string
 }
 type ObjBalanceList []*ObjBalance
+
+func (d *ObjBalance) String() string {
+	if d == nil {
+		return ""
+	}
+	str := fmt.Sprintf("Deposit Id:%d, Batch:%d, Note %7.2f * %3d = %9.2f of %3d (%s) - %s, Created:%s",
+		d.Id, d.BatchId, d.Nominal, d.Count, d.Amount, d.Currency, d.Currency.IsoCode(), d.Currency.String(), d.Created)
+	return str
+}
+
 
 type QueryBalance struct {
 	dbase.DBaseQuery
@@ -101,7 +112,7 @@ func (qry *QueryBalance)doInsertEx(bals ObjBalanceList) error {
 
 
 func (qry *QueryBalance)doInsertNotes(batchId int64, notes common.ValidNoteList) error {
-	created := time.Now()
+	created := time.Now().Format(timeFormat)
 	parList := make([]dbase.ParamList, len(notes))
 	for i, note := range notes {
 		param := make(dbase.ParamList, 6)
