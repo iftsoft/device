@@ -47,11 +47,12 @@ type ValidatorBatch struct {
 	Notes    ValidNoteList
 	BatchId  int64
 	State    BatchState
+	Detail   string
 }
 func (dev *ValidatorBatch) String() string {
 	if dev == nil { return "" }
-	str := fmt.Sprintf("Batch Id=%d, State-%s, %s",
-		dev.BatchId, dev.State.String(), dev.Notes.String())
+	str := fmt.Sprintf("Batch Id=%d, State=%s, Detail=%s, %s",
+		dev.BatchId, dev.State.String(), dev.Detail, dev.Notes.String())
 	return str
 }
 

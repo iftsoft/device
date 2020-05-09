@@ -52,7 +52,7 @@ func GetNewDBaseStore(cfg *StorageConfig) *DBaseStore {
 // Open Database store from config data
 func (s *DBaseStore) Open() (err error){
 	err = s.Close()
-	s.log.Info("Open database: %s", s.file)
+	s.log.Debug("Open database: %s", s.file)
 	s.base, err = sql.Open("sqlite3", s.file)
 	if err == nil {
 		s.base.SetMaxIdleConns(3)
@@ -89,7 +89,7 @@ func (s *DBaseStore) Begin() (err error) {
 		s.log.Warn("Transaction is already started")
 		return err
 	}
-	s.log.Debug("Transaction begin")
+	s.log.Trace("Transaction begin")
 	if s.base != nil {
 		s.tran, err = s.base.Begin()
 	} else {
@@ -103,7 +103,7 @@ func (s *DBaseStore) Begin() (err error) {
 
 // Commit database transaction
 func (s *DBaseStore) Commit() (err error) {
-	s.log.Debug("Transaction commit")
+	s.log.Trace("Transaction commit")
 	if s.tran != nil {
 		err = s.tran.Commit()
 		if err != nil {
@@ -118,7 +118,7 @@ func (s *DBaseStore) Commit() (err error) {
 
 // Rollback database transaction
 func (s *DBaseStore) Rollback() (err error) {
-	s.log.Debug("Transaction rollback")
+	s.log.Trace("Transaction rollback")
 	if s.tran != nil {
 		err = s.tran.Rollback()
 		if err != nil {

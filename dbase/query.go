@@ -69,7 +69,7 @@ func (qry *DBaseQuery) RunSelectSql(sqlText string, params ParamList, unit inter
 	if err == nil {
 		qry.count, err = fetchSelectedRow(row, unit)
 	}
-	qry.log.Debug("SQL SelectOne return %s", core.GetErrorText(err))
+	qry.log.Trace("SQL SelectOne return %s", core.GetErrorText(err))
 	return err
 }
 
@@ -84,7 +84,7 @@ func (qry *DBaseQuery) RunSearchSql(sqlText string, params ParamList, list inter
 	if err == nil {
 		qry.count, err = fetchSearchedRows(row, list)
 	}
-	qry.log.Debug("SQL SelectAll return %s", core.GetErrorText(err))
+	qry.log.Trace("SQL SelectAll return %s", core.GetErrorText(err))
 	return err
 }
 
@@ -99,7 +99,7 @@ func (qry *DBaseQuery) RunReturnSql(sqlText string, params ParamList, m map[stri
 	if err == nil {
 		qry.count, err = fetchReturnedRow(row, m)
 	}
-	qry.log.Debug("SQL ReturnRow return %s", core.GetErrorText(err))
+	qry.log.Trace("SQL ReturnRow return %s", core.GetErrorText(err))
 	return err
 }
 
@@ -111,7 +111,7 @@ func (qry *DBaseQuery) RunCommandSql(sqlText string, params ParamList) (err erro
 	}
 	qry.count = 0
 	qry.res, err = qry.linker.DoExec(sqlText, params...)
-	qry.log.Debug("SQL ExecQuery return %s", core.GetErrorText(err))
+	qry.log.Trace("SQL ExecQuery return %s", core.GetErrorText(err))
 	return err
 }
 
@@ -140,7 +140,7 @@ func (qry *DBaseQuery) RunPreparedSql(sqlText string, list []ParamList) (err err
 			break
 		}
 	}
-	qry.log.Debug("SQL ExecPrepared return %s", core.GetErrorText(err))
+	qry.log.Trace("SQL ExecPrepared return %s", core.GetErrorText(err))
 	return err
 }
 
