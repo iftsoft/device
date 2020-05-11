@@ -10,7 +10,7 @@ const (
 	CmdInitValidator  = "InitValidator"
 	CmdDoValidate     = "DoValidate"
 	CmdNoteAccept     = "NoteAccept"
-	CmdNoteReject     = "NoteReject"
+	CmdNoteReturn     = "NoteReturn"
 	CmdStopValidate   = "StopValidate"
 	CmdCheckValidator = "CheckValidator"
 	CmdClearValidator = "ClearValidator"
@@ -127,7 +127,7 @@ type ValidatorManager interface {
 	InitValidator(name string, query *ValidatorQuery) error
 	DoValidate(name string, query *ValidatorQuery) error
 	NoteAccept(name string, query *ValidatorQuery) error
-	NoteReject(name string, query *ValidatorQuery) error
+	NoteReturn(name string, query *ValidatorQuery) error
 	StopValidate(name string, query *ValidatorQuery) error
 	CheckValidator(name string, query *ValidatorQuery) error
 	ClearValidator(name string, query *ValidatorQuery) error

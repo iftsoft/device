@@ -52,11 +52,11 @@ func (vc *ValidatorClient) Init(command common.ValidatorManager, log *core.LogAg
 				err = vc.commands.NoteAccept(name, query)
 			}
 		})
-		vc.scopeItem.SetScopeFunc(common.CmdNoteReject, func(name string, dump []byte) {
+		vc.scopeItem.SetScopeFunc(common.CmdNoteReturn, func(name string, dump []byte) {
 			query := &common.ValidatorQuery{}
-			err := vc.decodeQuery(name, common.CmdNoteReject, dump, query)
+			err := vc.decodeQuery(name, common.CmdNoteReturn, dump, query)
 			if err == nil && vc.commands != nil {
-				err = vc.commands.NoteReject(name, query)
+				err = vc.commands.NoteReturn(name, query)
 			}
 		})
 		vc.scopeItem.SetScopeFunc(common.CmdStopValidate, func(name string, dump []byte) {

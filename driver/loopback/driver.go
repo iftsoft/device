@@ -222,10 +222,10 @@ func (dd *LoopbackDriver) NoteAccept(name string, query *common.ValidatorQuery) 
 	dd.devError, dd.errorText = common.CheckError(err)
 	return dd.dummyValidatorAccept(name, common.CmdNoteAccept, query)
 }
-func (dd *LoopbackDriver) NoteReject(name string, query *common.ValidatorQuery) error {
+func (dd *LoopbackDriver) NoteReturn(name string, query *common.ValidatorQuery) error {
 	err := dd.protocol.CheckLink()
 	dd.devError, dd.errorText = common.CheckError(err)
-	return dd.dummyValidatorAccept(name, common.CmdNoteReject, query)
+	return dd.dummyValidatorAccept(name, common.CmdNoteReturn, query)
 }
 func (dd *LoopbackDriver) StopValidate(name string, query *common.ValidatorQuery) error {
 	err := dd.protocol.CheckLink()
@@ -273,7 +273,7 @@ func (dd *LoopbackDriver) dummyValidatorAccept(name string, cmd string, query *c
 			err = dd.validator.NoteAccepted(name, reply)
 		case common.CmdNoteAccept:
 			err = dd.validator.CashIsStored(name, reply)
-		case common.CmdNoteReject:
+		case common.CmdNoteReturn:
 			err = dd.validator.CashReturned(name, reply)
 		}
 	}

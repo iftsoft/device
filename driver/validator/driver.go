@@ -161,10 +161,10 @@ func (vd *ValidatorDriver) NoteAccept(name string, query *common.ValidatorQuery)
 	vd.DevError, vd.DevReply = common.CheckError(err)
 	return vd.dummyValidatorAccept(name, common.CmdNoteAccept, query)
 }
-func (vd *ValidatorDriver) NoteReject(name string, query *common.ValidatorQuery) error {
+func (vd *ValidatorDriver) NoteReturn(name string, query *common.ValidatorQuery) error {
 	err := vd.DevNoteReturn()
 	vd.DevError, vd.DevReply = common.CheckError(err)
-	return vd.dummyValidatorAccept(name, common.CmdNoteReject, query)
+	return vd.dummyValidatorAccept(name, common.CmdNoteReturn, query)
 }
 func (vd *ValidatorDriver) StopValidate(name string, query *common.ValidatorQuery) error {
 	err := vd.DevDisableBills()
@@ -222,7 +222,7 @@ func (vd *ValidatorDriver) dummyValidatorAccept(name string, cmd string, query *
 			err = vd.validator.NoteAccepted(name, reply)
 		case common.CmdNoteAccept:
 			err = vd.validator.CashIsStored(name, reply)
-		case common.CmdNoteReject:
+		case common.CmdNoteReturn:
 			err = vd.validator.CashReturned(name, reply)
 		}
 	}

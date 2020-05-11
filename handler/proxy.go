@@ -120,8 +120,8 @@ func (hp *HandlerProxy) DoValidate(name string, query *common.ValidatorQuery) er
 func (hp *HandlerProxy) NoteAccept(name string, query *common.ValidatorQuery) error {
 	return hp.validatorSrv.SendValidatorCommand(name, common.CmdNoteAccept, query)
 }
-func (hp *HandlerProxy) NoteReject(name string, query *common.ValidatorQuery) error {
-	return hp.validatorSrv.SendValidatorCommand(name, common.CmdNoteReject, query)
+func (hp *HandlerProxy) NoteReturn(name string, query *common.ValidatorQuery) error {
+	return hp.validatorSrv.SendValidatorCommand(name, common.CmdNoteReturn, query)
 }
 func (hp *HandlerProxy) StopValidate(name string, query *common.ValidatorQuery) error {
 	return hp.validatorSrv.SendValidatorCommand(name, common.CmdStopValidate, query)
