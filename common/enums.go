@@ -134,7 +134,7 @@ func (e EnumDevState) String() string {
 // Device prompt codes
 const (
 	DevPromptNone EnumDevPrompt = iota
-	DevPromptUnitWait
+	DevPromptUnitWork
 	DevPromptUnitDone
 	DevPromptUnitError
 	DevPromptCardSwipe
@@ -166,7 +166,7 @@ const (
 func (e EnumDevPrompt) String() string {
 	switch e {
 	case DevPromptNone:				return "Thank you."
-	case DevPromptUnitWait:			return "Please, wait while device is working."
+	case DevPromptUnitWork:			return "Please, wait while device is working."
 	case DevPromptUnitDone:			return "All done. Thank you."
 	case DevPromptUnitError:		return "Device error has occurred."
 	case DevPromptCardSwipe:		return "Swipe your card through card reader"
