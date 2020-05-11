@@ -108,7 +108,10 @@ func ExtendError(code EnumDevError, err error) error {
 func NewError(code EnumDevError, text string) error {
 	out := &Error{
 		code:   code,
-		reason: errors.New(text),
+		reason: nil,
+	}
+	if text != "" {
+		out.reason = errors.New(text)
 	}
 	return out
 }

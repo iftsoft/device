@@ -102,6 +102,7 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	if drv, ok := worker.(DeviceDriver); ok {
 		sd.driver = drv
 		context := Context{
+			DevName:  sd.devName,
 			Manager:  sd,
 			Storage:  sd.storage,
 			Config:   sd.config,

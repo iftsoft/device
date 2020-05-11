@@ -8,6 +8,7 @@ import (
 )
 
 type Context struct {
+	DevName  string
 	Manager  interface{}
 	Storage  dbase.DBaseLinker
 	Config   *config.DeviceConfig
