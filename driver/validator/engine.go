@@ -9,22 +9,44 @@ import (
 )
 
 type ValidatorEngine struct {
+	generic.BaseValidator
 	generic.Simulator
-	Batch       common.ValidatorBatch
-	Accept      common.ValidatorAccept
-	SerialNo    string
-	// internal data
-	CbValidator common.ValidatorCallback
 	booker      common.ValidatorBooker
 	config      *config.DeviceConfig
+	billIndex   int
 }
 
 func (ve *ValidatorEngine) initEngine(cfg *config.DeviceConfig) *ValidatorEngine {
-	ve.config = cfg
-//	ve.protocol = GetValidatorProtocol(cfg.Linker)
-	ve.Log = core.GetLogAgent(core.LogLevelTrace, "Engine")
+	ve.config    = cfg
+	ve.Log       = core.GetLogAgent(core.LogLevelTrace, "Engine")
+	ve.billIndex = 0
 	return ve
 }
+
+func (ve *ValidatorEngine) enterNote() {
+	size := len(ve.Batch.Notes)
+	if size <= 0 { return }
+	for i:=0; i<size; i++ {
+		index := ve.billIndex
+		ve.billIndex ++
+		if ve.billIndex >= size {
+			ve.billIndex = 0
+		}
+		if ve.Accept.Currency == ve.Batch.Notes[index].Currency {
+			ve.Accept.Nominal = ve.Batch.Notes[index].Nominal
+			ve.Accept.Count   = 1
+			ve.Accept.Amount  = ve.Accept.Nominal
+			break
+		}
+	}
+}
+
+func (ve *ValidatorEngine) clearNote() {
+	ve.Accept.Nominal = 0
+	ve.Accept.Count   = 0
+	ve.Accept.Amount  = 0
+}
+
 
 ////////////////////////////////////////////////////////////////
 
@@ -33,6 +55,7 @@ func (ve *ValidatorEngine) DevStartup() error {
 	if ve.booker != nil {
 		err = ve.booker.ReadNoteList(&ve.Batch)
 	}
+	ve.Accept.Currency = 980
 	return err
 }
 
@@ -55,13 +78,6 @@ func (ve *ValidatorEngine) DevReset() error {
 
 func (ve *ValidatorEngine) DevStatus() error {
 	var err error
-	return err
-}
-
-func (ve *ValidatorEngine) DevIdent() error {
-	var err error
-	ve.SerialNo = "Emul01234567"
-	ve.Log.Debug("CashCode serial no is :%s", ve.SerialNo)
 	return err
 }
 
@@ -89,6 +105,7 @@ func (ve *ValidatorEngine) DevInitBillList() error {
 			err = ve.booker.ReadNoteList(&ve.Batch)
 		}
 	}
+	ve.Accept.Currency = 980
 //	ve.Log.Debug(ve.Batch.String())
 	return err
 }
@@ -131,7 +148,7 @@ func (ve *ValidatorEngine) DevClearBatch() error {
 func (ve *ValidatorEngine) NextMimicStage() {
 	stage := ve.GetMimicStep()
 	if stage != nil {
-		ve.ProcessStage(stage)
+		_ = ve.ProcessStage(&ve.BaseEngine, stage)
 		switch stage.Value {
 		case StepWaitNoteDone:
 			ve.StepWaitNoteDone()
@@ -156,22 +173,22 @@ func (ve *ValidatorEngine) StepWaitNoteDone() {
 }
 func (ve *ValidatorEngine) StepAcceptingDone() {
 	ve.SetupMimic(valEscrowedSteps)
-	ve.Accept.Currency = 980
-	ve.Accept.Nominal  = 2.0
-	ve.Accept.Count    = 1
-	ve.Accept.Amount   = 2.0
+	ve.enterNote()
 	_ = ve.RunNoteAccepted(&ve.Accept)
 }
 func (ve *ValidatorEngine) StepEscrowedDone() {
 	ve.SetupMimic(valRejectingSteps)
+	ve.clearNote()
 }
 func (ve *ValidatorEngine) StepStackingDone() {
 	ve.SetupMimic(valWaitNoteSteps)
 	_ = ve.RunCashIsStored(&ve.Accept)
+	ve.clearNote()
 }
 func (ve *ValidatorEngine) StepReturningDone() {
 	ve.SetupMimic(valWaitNoteSteps)
 	_ = ve.RunCashReturned(&ve.Accept)
+	ve.clearNote()
 }
 func (ve *ValidatorEngine) StepRejectingDone() {
 	ve.SetupMimic(valWaitNoteSteps)
@@ -179,57 +196,3 @@ func (ve *ValidatorEngine) StepRejectingDone() {
 
 
 ////////////////////////////////////////////////////////////////
-
-
-func (ve *ValidatorEngine) RunValidatorStore(cmd string) error {
-	var err error
-	reply := &common.ValidatorStore{}
-	reply.Command  = cmd
-	reply.DevState = ve.DevState
-	reply.ErrCode  = ve.DevError
-	reply.ErrText  = ve.DevReply
-	reply.Notes    = ve.Batch.Notes
-	reply.BatchId  = ve.Batch.BatchId
-	reply.State    = ve.Batch.State
-	reply.Detail   = ve.Batch.Detail
-	if ve.CbValidator != nil {
-		err = ve.CbValidator.ValidatorStore(ve.DevName, reply)
-	}
-	if ve.Log != nil {
-		ve.Log.Debug("ValidatorStore: %s", reply.String())
-	}
-	return err
-}
-
-func (ve *ValidatorEngine) RunNoteAccepted(value *common.ValidatorAccept) error {
-	var err error
-	if ve.CbValidator != nil {
-		err = ve.CbValidator.NoteAccepted(ve.DevName, value)
-	}
-	if ve.Log != nil {
-		ve.Log.Debug("NoteAccepted: %s", value.String())
-	}
-	return err
-}
-
-func (ve *ValidatorEngine) RunCashIsStored(value *common.ValidatorAccept) error {
-	var err error
-	if ve.CbValidator != nil {
-		err = ve.CbValidator.CashIsStored(ve.DevName, value)
-	}
-	if ve.Log != nil {
-		ve.Log.Debug("CashIsStored: %s", value.String())
-	}
-	return err
-}
-
-func (ve *ValidatorEngine) RunCashReturned(value *common.ValidatorAccept) error {
-	var err error
-	if ve.CbValidator != nil {
-		err = ve.CbValidator.CashReturned(ve.DevName, value)
-	}
-	if ve.Log != nil {
-		ve.Log.Debug("CashReturned: %s", value.String())
-	}
-	return err
-}

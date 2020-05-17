@@ -18,6 +18,15 @@ type BaseEngine struct {
 }
 
 
+func (be *BaseEngine) ClearDevice() {
+	be.DevState  = common.DevStateUndefined
+	be.DevError  = common.DevErrorSuccess
+	be.DevPrompt = common.DevPromptNone
+	be.DevAction = common.DevActionDoNothing
+	be.DevInform = ""
+	be.DevReply  = ""
+}
+
 
 func (be *BaseEngine) RunDeviceReply(cmd string) error {
 	// StateChanged processing
@@ -32,7 +41,7 @@ func (be *BaseEngine) RunDeviceReply(cmd string) error {
 		err = be.CbDevice.DeviceReply(be.DevName, reply)
 	}
 	if be.Log != nil {
-		be.Log.Debug("DeviceReply: %s", reply.String())
+		be.Log.Debug("Callback DeviceReply: %s", reply.String())
 	}
 	return err
 }
@@ -50,7 +59,7 @@ func (be *BaseEngine) RunStateChanged(state common.EnumDevState) error {
 			err = be.CbDevice.StateChanged(be.DevName, query)
 		}
 		if be.Log != nil {
-			be.Log.Debug("StateChanged: %s", query.String())
+			be.Log.Debug("Callback StateChanged: %s", query.String())
 		}
 		be.DevState = state
 	}
@@ -73,7 +82,7 @@ func (be *BaseEngine) RunExecuteError(errCode common.EnumDevError, reason string
 			err = be.CbDevice.ExecuteError(be.DevName, query)
 		}
 		if be.Log != nil {
-			be.Log.Debug("ExecuteError: %s", query.String())
+			be.Log.Debug("Callback ExecuteError: %s", query.String())
 		}
 	}
 	return err
@@ -92,7 +101,7 @@ func (be *BaseEngine) RunActionPrompt(prompt common.EnumDevPrompt) error {
 			err = be.CbDevice.ActionPrompt(be.DevName, query)
 		}
 		if be.Log != nil {
-			be.Log.Debug("ActionPrompt: %s", query.String())
+			be.Log.Debug("Callback ActionPrompt: %s", query.String())
 		}
 	}
 	return err
@@ -111,7 +120,7 @@ func (be *BaseEngine) RunReaderReturn(inform string) error {
 			err = be.CbDevice.ReaderReturn(be.DevName, query)
 		}
 		if be.Log != nil {
-			be.Log.Debug("ReaderReturn: %s", query.String())
+			be.Log.Debug("Callback ReaderReturn: %s", query.String())
 		}
 	}
 	return err

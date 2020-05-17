@@ -56,7 +56,6 @@ func (m *Mimicker) GetStep() *MimicStep {
 ////////////////////////////////////////////////////////////////
 
 type Simulator struct {
-	BaseEngine
 	mimicker  Mimicker
 }
 
@@ -72,22 +71,15 @@ func (sm *Simulator) GetMimicStep() *MimicStep {
 	return sm.mimicker.GetStep()
 }
 
-func (sm *Simulator) ClearDevice() {
-	sm.DevState  = common.DevStateUndefined
-	sm.DevError  = common.DevErrorSuccess
-	sm.DevPrompt = common.DevPromptNone
-	sm.DevAction = common.DevActionDoNothing
-	sm.DevInform = ""
-	sm.DevReply  = ""
-}
-
-func (sm *Simulator) ProcessStage(stage *MimicStep) {
+func (sm *Simulator) ProcessStage(be *BaseEngine, stage *MimicStep) error {
 	if stage == nil {
-		return
+		return nil
 	}
-	sm.DevAction = stage.Action
-	sm.RunStateChanged(stage.State)
-	sm.RunExecuteError(stage.Error, stage.Reason)
-	sm.RunActionPrompt(stage.Prompt)
-	sm.RunReaderReturn(stage.Inform)
+	var err error
+	be.DevAction = stage.Action
+	err = be.RunStateChanged(stage.State)
+	err = be.RunExecuteError(stage.Error, stage.Reason)
+	err = be.RunActionPrompt(stage.Prompt)
+	err = be.RunReaderReturn(stage.Inform)
+	return err
 }

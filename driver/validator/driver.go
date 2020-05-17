@@ -89,9 +89,6 @@ func (vd *ValidatorDriver) Cancel(name string, query *common.DeviceQuery) error 
 }
 func (vd *ValidatorDriver) Reset(name string, query *common.DeviceQuery) error {
 	err := vd.DevReset()
-	if err == nil {
-		err = vd.DevIdent()
-	}
 	vd.DevError, vd.DevReply = common.CheckError(err)
 	return vd.RunDeviceReply(common.CmdDeviceReset)
 }

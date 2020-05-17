@@ -295,6 +295,8 @@ func (oh *DeviceTester) NoteAccepted(name string, reply *common.ValidatorAccept)
 	if oh.log != nil {
 		oh.log.Debug("DeviceTester.NoteAccepted dev:%s, Reply: %s",
 			name, reply.String())
+		query := common.ValidatorQuery{ reply.Currency, 0 }
+		_ = oh.validatorMng.NoteAccept(name, &query)
 	}
 	return nil
 }

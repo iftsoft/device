@@ -103,12 +103,13 @@ func (dev *ValidatorAccept) String() string {
 }
 
 type ValidatorQuery struct {
-	Currency DevCurrency
+	Currency  DevCurrency
+	Operation int64
 }
 func (dev *ValidatorQuery) String() string {
 	if dev == nil { return "" }
-	str := fmt.Sprintf("Currency = %s",
-		dev.Currency)
+	str := fmt.Sprintf("Currency = %s, Operation = %d",
+		dev.Currency, dev.Operation)
 	return str
 }
 
