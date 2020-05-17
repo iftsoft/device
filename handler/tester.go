@@ -164,19 +164,19 @@ func (oh *DeviceTester) fillTestList() {
 		func(hnd *DeviceTester) error {
 			return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
 		},
-		10,
+		1000,
 	})
-	oh.tests = append(oh.tests, &TestItem{
-		func(hnd *DeviceTester) error {
-			return hnd.deviceMng.Cancel(hnd.devName, &common.DeviceQuery{})
-		},
-		10,
-	})
+	//oh.tests = append(oh.tests, &TestItem{
+	//	func(hnd *DeviceTester) error {
+	//		return hnd.deviceMng.Cancel(hnd.devName, &common.DeviceQuery{})
+	//	},
+	//	10,
+	//})
 	oh.tests = append(oh.tests, &TestItem{
 		func(hnd *DeviceTester) error {
 			return hnd.deviceMng.Status(hnd.devName, &common.DeviceQuery{})
 		},
-		5,
+		500,
 	})
 	oh.tests = append(oh.tests, &TestItem{
 		func(hnd *DeviceTester) error {

@@ -6,7 +6,7 @@ logger:
   log_path: ../logs
   log_file: server
   log_level: 7
-  cons_level: 7
+  cons_level: 5
   source: false
 
 handlers:

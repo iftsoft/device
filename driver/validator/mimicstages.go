@@ -2,7 +2,7 @@ package validator
 
 import (
 	"github.com/iftsoft/device/common"
-	"github.com/iftsoft/device/driver/simulator"
+	"github.com/iftsoft/device/driver/generic"
 )
 
 const (
@@ -15,49 +15,49 @@ const (
 	StepRejectingDone
 )
 
-var valResetStages = simulator.MimicStages{
+var valResetSteps = generic.MimicSteps{
 	{ 0, 0, common.DevStateWorking, 0, common.DevPromptUnitWork, common.DevActionInitialization, "", "" },
 	{ 10, 0, common.DevStateReady, 0, 0, common.DevActionInitialization, "", "" },
 	{ 1, 0, common.DevStateStandby, 0, 0, common.DevActionDoNothing, "", "" },
 }
 
-var valWaitNoteStages = simulator.MimicStages{
+var valWaitNoteSteps = generic.MimicSteps{
 	{ 0, 0, common.DevStateWorking, 0, common.DevPromptCashInsertBill, common.DevActionNoteWaiting, "", "" },
 	{ 1, 0, common.DevStateWaiting, 0, 0, common.DevActionNoteWaiting, "", "" },
 	{ 50, StepWaitNoteDone, common.DevStateWaiting, 0, 0, 0, "", "" },
 }
 
-var valAcceptingStages = simulator.MimicStages{
+var valAcceptingSteps = generic.MimicSteps{
 	{ 0, 0, common.DevStateCashAccepting, 0, common.DevPromptCashAccepting, common.DevActionNoteAccepting, "", "" },
 	{ 1, 0, common.DevStateCashAccepting, 0, 0, common.DevActionNoteAccepting, "", "" },
 	{ 10, StepAcceptingDone, common.DevStateCashAccepting, 0, 0, 0, "", "" },
 }
 
-var valEscrowedStages = simulator.MimicStages{
+var valEscrowedSteps = generic.MimicSteps{
 	{ 0, 0, common.DevStateCashEscrowed, 0, common.DevPromptCashEscrowed, common.DevActionNoteAccepting, "", "" },
 	{ 1, 0, common.DevStateCashEscrowed, 0, 0, common.DevActionNoteAccepting, "", "" },
 	{ 30, StepEscrowedDone, common.DevStateCashEscrowed, 0, 0, 0, "", "" },
 }
 
-var valStackingStages = simulator.MimicStages{
+var valStackingSteps = generic.MimicSteps{
 	{ 0, 0, common.DevStateCashStacking, 0, common.DevPromptCashStacking, common.DevActionNoteStacking, "", "" },
 	{ 1, 0, common.DevStateCashStacking, 0, 0, common.DevActionNoteStacking, "", "" },
 	{ 20, StepStackingDone, common.DevStateCashStacked, 0, 0, 0, "", "" },
 }
 
-var valReturningStages = simulator.MimicStages{
+var valReturningSteps = generic.MimicSteps{
 	{ 0, 0, common.DevStateCashReturning, 0, common.DevPromptCashReturning, common.DevActionNoteReturning, "", "" },
 	{ 1, 0, common.DevStateCashReturning, 0, 0, common.DevActionNoteReturning, "", "" },
 	{ 10, StepReturningDone, common.DevStateCashReturned, 0, 0, 0, "", "" },
 }
 
-var valRejectingStages = simulator.MimicStages{
+var valRejectingSteps = generic.MimicSteps{
 	{ 0, 0, common.DevStateCashRejecting, 0, common.DevPromptCashReturning, common.DevActionNoteRejecting, "", "" },
 	{ 1, 0, common.DevStateCashRejecting, 0, 0, common.DevActionNoteRejecting, "", "" },
 	{ 10, StepRejectingDone, common.DevStateCashRejecting, 0, 0, 0, "", "" },
 }
 
-var valStopWaitStages = simulator.MimicStages{
+var valStopWaitSteps = generic.MimicSteps{
 	{ 0, 0, common.DevStateWorking, 0, common.DevPromptUnitDone, common.DevActionDeviceStopping, "", "" },
 	{ 5, 0, common.DevStateReady, 0, 0, common.DevActionDeviceStopping, "", "" },
 	{ 1, 0, common.DevStateStandby, 0, 0, common.DevActionDoNothing, "", "" },
