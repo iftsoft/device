@@ -1,6 +1,9 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/iftsoft/device/common"
+)
 
 type CommonConfig struct {
 	Model    string `yaml:"model"`
@@ -85,12 +88,12 @@ func GetDefaultPinPadConfig() *PinPadConfig {
 
 
 type ValidatorConfig struct {
-	NotesMask	int64 `yaml:"notes_mask"`
-	NoteAlert	int32 `yaml:"note_alert"`
-	NoteLimit	int32 `yaml:"note_limit"`
-	ActDefault	EnumBillAction	`yaml:"act_default"`
-	StoreWait	int32 `yaml:"store_wait"`
-	CurrCode	int32 `yaml:"curr_code"`
+	NotesMask	int64              `yaml:"notes_mask"`
+	NoteAlert	int32              `yaml:"note_alert"`
+	NoteLimit	int32              `yaml:"note_limit"`
+	ActDefault	EnumBillAction	   `yaml:"act_default"`
+	StoreWait	int32              `yaml:"store_wait"`
+	CurrCode	common.DevCurrency `yaml:"curr_code"`
 }
 func (cfg *ValidatorConfig) String() string {
 	if cfg == nil { return "" }

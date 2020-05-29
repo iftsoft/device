@@ -234,7 +234,7 @@ func (e EnumDevAction) String() string {
 	switch e {
 	case DevActionDoNothing:		return "Do nothing"
 	case DevActionInitialization:	return "Initialization"
-	case DevActionReconciliation:	return "reconciliation"
+	case DevActionReconciliation:	return "Reconciliation"
 	case DevActionDeviceStarting:	return "Device starting"
 	case DevActionDeviceStopping:	return "Device stopping"
 	case DevActionDeviceResetting:	return "Device resetting"

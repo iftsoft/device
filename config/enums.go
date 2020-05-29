@@ -76,20 +76,20 @@ func (e EnumCardAction) String() string {
 	switch e {
 	case CardActionDefault:		return "Default"
 	case CardActionReturn:		return "Return card"
-	case CardActionHoldOn:		return "Hod card on"
+	case CardActionHoldOn:		return "Hold card on"
 	case CardActionCapture:		return "Capture card"
 	default:					return "Unknown"
 	}
 }
 
 const (
-	BillActionDefault EnumBillAction = iota	// Action by default
+	BillActionAccept EnumBillAction = iota	// Action by default
 	BillActionStore			// Store accepted bill to the cassette
 	BillActionReturn		// Return accepted bill to the client
 )
 func (e EnumBillAction) String() string {
 	switch e {
-	case BillActionDefault:		return "Default"
+	case BillActionAccept:		return "Accept note"
 	case BillActionStore:		return "Store note"
 	case BillActionReturn:		return "Return note"
 	default:					return "Unknown"
