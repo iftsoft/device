@@ -22,26 +22,28 @@ func main() {
 		core.StartFileLogger(appCfg.Logger)
 	}
 	log := core.GetLogAgent(core.LogLevelTrace, "APP")
-	log.Info("SysStart server application")
+	log.Info("Start server application")
 	log.Info(appPar.String())
 	log.Info(appCfg.String())
 
 	err = linker.GetLinkerPorts(log)
 
 	srv := duplex.NewDuplexServer(appCfg.Duplex, log)
-	obj := handler.NewHandlerProxy(appCfg.Handlers)
-	obj.RegisterReflexFactory(handler.GetDeviceTesterFactory())
-	obj.InitProxy(srv)
-	srv.SetClientManager(obj)
+	hnd := handler.NewHandlerManager(appCfg.Handlers)
+	hnd.RegisterReflexFactory(handler.GetDeviceTesterFactory())
+	hnd.SetupDuplexServer(srv)
+	srv.SetClientManager(hnd)
 	err = srv.StartListen()
 	if err == nil {
+		hnd.LaunchAllBinaries()
 
 		core.WaitForSignal(log)
 
+		hnd.StopAllBinaries()
 		srv.StopListen()
 	}
-	log.Info("SysStop server application")
-	obj.Cleanup()
+	log.Info("Stop server application")
+	hnd.Cleanup()
 	time.Sleep(time.Second)
 	core.StopFileLogger()
 	fmt.Println("-------END------------")

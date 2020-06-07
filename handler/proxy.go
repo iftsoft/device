@@ -2,13 +2,11 @@ package handler
 
 import (
 	"github.com/iftsoft/device/common"
-	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/duplex"
 	"github.com/iftsoft/device/proxy"
 )
 
 type HandlerProxy struct {
-	HandlerRouter
 	serverMng    duplex.ServerManager
 	systemSrv    *proxy.SystemServer
 	deviceSrv    *proxy.DeviceServer
@@ -18,29 +16,24 @@ type HandlerProxy struct {
 	pinpadSrv    *proxy.PinPadServer
 }
 
-func NewHandlerProxy(config config.HandlerList) *HandlerProxy {
-	hp := &HandlerProxy{
-		HandlerRouter: HandlerRouter{},
-		serverMng:     nil,
-		systemSrv:     proxy.NewSystemServer(),
-		deviceSrv:     proxy.NewDeviceServer(),
-		printerSrv:    proxy.NewPrinterServer(),
-		readerSrv:     proxy.NewReaderServer(),
-		validatorSrv:  proxy.NewValidatorServer(),
-		pinpadSrv:     proxy.NewPinPadServer(),
-	}
-	hp.HandlerRouter.InitRouter(config, hp)
-	return hp
+
+func (hp *HandlerProxy) initProxy() {
+	hp.systemSrv    = proxy.NewSystemServer()
+	hp.deviceSrv    = proxy.NewDeviceServer()
+	hp.printerSrv   = proxy.NewPrinterServer()
+	hp.readerSrv    = proxy.NewReaderServer()
+	hp.validatorSrv = proxy.NewValidatorServer()
+	hp.pinpadSrv    = proxy.NewPinPadServer()
 }
 
-func (hp *HandlerProxy) InitProxy(server duplex.ServerManager) {
+func (hp *HandlerProxy) setupProxy(server duplex.ServerManager, hr *HandlerRouter) {
 	hp.serverMng = server
-	hp.systemSrv.Init(server, &hp.HandlerRouter, hp.log)
-	hp.deviceSrv.Init(server, &hp.HandlerRouter, hp.log)
-	hp.printerSrv.Init(server, &hp.HandlerRouter, hp.log)
-	hp.readerSrv.Init(server, &hp.HandlerRouter, hp.log)
-	hp.validatorSrv.Init(server, &hp.HandlerRouter, hp.log)
-	hp.pinpadSrv.Init(server, &hp.HandlerRouter, hp.log)
+	hp.systemSrv.Init(server, hr, hr.log)
+	hp.deviceSrv.Init(server, hr, hr.log)
+	hp.printerSrv.Init(server, hr, hr.log)
+	hp.readerSrv.Init(server, hr, hr.log)
+	hp.validatorSrv.Init(server, hr, hr.log)
+	hp.pinpadSrv.Init(server, hr, hr.log)
 }
 
 

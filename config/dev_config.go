@@ -70,7 +70,7 @@ func GetDefaultReaderConfig() *ReaderConfig {
 
 
 type PinPadConfig struct {
-	NeedEnter bool  `yaml:"need_enter"`
+	NeedEnter bool   `yaml:"need_enter"`
 	PinDigits uint16 `yaml:"pin_digits"`
 }
 func (cfg *PinPadConfig) String() string {
@@ -118,7 +118,7 @@ func (cfg *DispenserConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tDispenser config: " +
 		"OutputDir = %s, UseDivert = %s, UseEscrow = %s.",
-		cfg.OutputDir, cfg.UseDivert, cfg.UseEscrow)
+		cfg.OutputDir.String(), cfg.UseDivert, cfg.UseEscrow)
 	return str
 }
 func GetDefaultDispenserConfig() *DispenserConfig {
@@ -178,3 +178,20 @@ func GetDefaultDeviceConfig() *DeviceConfig {
 	}
 	return devCfg
 }
+
+
+type ConfigOverwrite struct {
+	LinkType  EnumLinkType  `yaml:"link_type"`
+	PortName  string        `yaml:"port_name"`
+	VendorID  uint16        `yaml:"vendor_id"`  	// Device Vendor ID
+	ProductID uint16        `yaml:"product_id"` 	// Device Product ID
+}
+
+func (cfg *ConfigOverwrite) String() string {
+	if cfg == nil { return "" }
+	str := fmt.Sprintf("\n\t\tLinker overwrite: " +
+		"LinkType = %s, PortName = %s, VendorID = %X, ProductID = %X.",
+		cfg.LinkType, cfg.PortName, cfg.VendorID, cfg.ProductID)
+	return str
+}
+

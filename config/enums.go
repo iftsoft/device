@@ -113,6 +113,20 @@ func (e EnumCalcMethod) EnumCalcMethod() string {
 }
 
 const (
+	OutDirDefault EnumOutputDir = iota
+	OutDirFront
+	OutDirRear
+)
+func (e EnumOutputDir) String() string {
+	switch e {
+	case OutDirDefault:			return "Default"
+	case OutDirFront:			return "Front path"
+	case OutDirRear:			return "Rear path"
+	default:					return "Unknown"
+	}
+}
+
+const (
 	UnitIsAbsent EnumUnitUsage = iota
 	UnitIsPresent
 	UnitIsIgnored

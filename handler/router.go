@@ -4,30 +4,29 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
-	"github.com/iftsoft/device/duplex"
 	"sync"
 )
 
 type HandlerRouter struct {
 	config     config.HandlerList
-	proxy      interface{}
 	handlerMap map[string]*DeviceHandler
-	reflexMap  map[string]ReflexCreator
-	reflexLog  *core.LogAgent
 	log        *core.LogAgent
 	wg         sync.WaitGroup
 }
 
-func (hr *HandlerRouter) InitRouter(cfg config.HandlerList, proxy interface{}) {
-	hr.config     = cfg
-	hr.proxy      = proxy
+func (hr *HandlerRouter) initRouter(config config.HandlerList) {
+	hr.config     = config
 	hr.handlerMap = make(map[string]*DeviceHandler)
-	hr.reflexMap  = make(map[string]ReflexCreator)
-	hr.reflexLog  = core.GetLogAgent(core.LogLevelTrace, "Reflex")
 	hr.log        = core.GetLogAgent(core.LogLevelTrace, "Router")
 }
 
-func (hr *HandlerRouter) Cleanup() {
+func (hr *HandlerRouter) terminateAll(hp *HandlerProxy) {
+	for name, _ := range hr.handlerMap {
+		hp.Terminate(name, &common.SystemQuery{})
+	}
+}
+
+func (hr *HandlerRouter) cleanupRouter() {
 	for name, obj := range hr.handlerMap {
 		obj.StopObject()
 		delete(hr.handlerMap, name)
@@ -35,15 +34,9 @@ func (hr *HandlerRouter) Cleanup() {
 	hr.wg.Wait()
 }
 
-func (hr *HandlerRouter) RegisterReflexFactory(fact ReflexCreator) {
-	if fact == nil { return }
-	info := fact.GetReflexInfo()
-	if info == nil { return }
-	hr.log.Debug("HandlerProxy.RegisterReflexFactory for reflex:%s", info.ReflexName)
-	hr.reflexMap[info.ReflexName] = fact
-}
 
-func (hr *HandlerRouter) CreateNewHandler(name string) *DeviceHandler {
+//
+func (hr *HandlerRouter) createNewHandler(name string) *DeviceHandler {
 	if name == "" {
 		return nil
 	}
@@ -53,23 +46,8 @@ func (hr *HandlerRouter) CreateNewHandler(name string) *DeviceHandler {
 	return obj
 }
 
-func (hr *HandlerRouter) HandlerReflexes(handler *DeviceHandler, greet *duplex.GreetingInfo) {
-	// Attach mandatory reflexes
-	for refName, factory := range hr.reflexMap {
-		info := factory.GetReflexInfo()
-		if info.Mandatory && info.IsMatched(greet) {
-			hr.log.Debug("HandlerProxy.CreateNewHandler is attaching reflex:%s to device:%s",
-				refName, handler.devName)
-			err, reflex := factory.CreateReflex(handler.devName, hr.proxy, hr.reflexLog)
-			if err == nil {
-				err = handler.AttachReflex(refName, reflex)
-			}
-		}
-	}
-	return
-}
 
-func (hr *HandlerRouter) GetDeviceHandler(name string) *DeviceHandler {
+func (hr *HandlerRouter) getDeviceHandler(name string) *DeviceHandler {
 	if name == "" {
 		return nil
 	}
@@ -80,7 +58,7 @@ func (hr *HandlerRouter) GetDeviceHandler(name string) *DeviceHandler {
 	return nil
 }
 
-func (hr *HandlerRouter) DelDeviceHandler(name string) {
+func (hr *HandlerRouter) delDeviceHandler(name string) {
 	if name == "" {
 		return
 	}
@@ -91,42 +69,35 @@ func (hr *HandlerRouter) DelDeviceHandler(name string) {
 	delete(hr.handlerMap, name)
 }
 
-// Implementation of duplex.ClientManager
-func (hr *HandlerRouter) OnClientStarted(name string, info *duplex.GreetingInfo) {
-	if name == "" {
-		return
-	}
-	hr.log.Trace("HandlerProxy.OnClientStarted device:%s, type:%s",
-		name, info.DevType.ToString())
-	handler := hr.GetDeviceHandler(name)
+
+func (hr *HandlerRouter) onClientStarted(name string) *DeviceHandler {
+	hr.log.Trace("HandlerRouter.OnClientStarted device:%s", name)
+	handler := hr.getDeviceHandler(name)
 	if handler == nil {
-		handler = hr.CreateNewHandler(name)
+		handler = hr.createNewHandler(name)
 	}
-	hr.HandlerReflexes(handler, info)
-	handler.OnClientStarted(name)
+	return handler
 }
 
-func (hr *HandlerRouter) OnClientStopped(name string) {
-	if name == "" {
-		return
-	}
-	hr.log.Trace("HandlerProxy.OnClientStopped dev:%s", name)
-	handler := hr.GetDeviceHandler(name)
+func (hr *HandlerRouter) onClientStopped(name string) {
+	hr.log.Trace("HandlerRouter.OnClientStopped dev:%s", name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		handler.OnClientStopped(name)
 	}
 }
 
+
 // Implementation of common.SystemCallback
 func (hr *HandlerRouter) SystemReply(name string, reply *common.SystemReply) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.SystemReply(name, reply)
 	}
 	return nil
 }
 func (hr *HandlerRouter) SystemHealth(name string, reply *common.SystemHealth) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.SystemHealth(name, reply)
 	}
@@ -135,35 +106,35 @@ func (hr *HandlerRouter) SystemHealth(name string, reply *common.SystemHealth) e
 
 // Implementation of common.DeviceCallback
 func (hr *HandlerRouter) DeviceReply(name string, reply *common.DeviceReply) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.DeviceReply(name, reply)
 	}
 	return nil
 }
 func (hr *HandlerRouter) ExecuteError(name string, reply *common.DeviceError) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.ExecuteError(name, reply)
 	}
 	return nil
 }
 func (hr *HandlerRouter) StateChanged(name string, reply *common.DeviceState) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.StateChanged(name, reply)
 	}
 	return nil
 }
 func (hr *HandlerRouter) ActionPrompt(name string, reply *common.DevicePrompt) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.ActionPrompt(name, reply)
 	}
 	return nil
 }
 func (hr *HandlerRouter) ReaderReturn(name string, reply *common.DeviceInform) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.ReaderReturn(name, reply)
 	}
@@ -172,7 +143,7 @@ func (hr *HandlerRouter) ReaderReturn(name string, reply *common.DeviceInform) e
 
 // Implementation of common.PrinterCallback
 func (hr *HandlerRouter) PrinterProgress(name string, reply *common.PrinterProgress) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.PrinterProgress(name, reply)
 	}
@@ -181,21 +152,21 @@ func (hr *HandlerRouter) PrinterProgress(name string, reply *common.PrinterProgr
 
 // Implementation of common.ReaderCallback
 func (hr *HandlerRouter) CardPosition(name string, reply *common.ReaderCardPos) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.CardPosition(name, reply)
 	}
 	return nil
 }
 func (hr *HandlerRouter) CardDescription(name string, reply *common.ReaderCardInfo) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.CardDescription(name, reply)
 	}
 	return nil
 }
 func (hr *HandlerRouter) ChipResponse(name string, reply *common.ReaderChipReply) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.ChipResponse(name, reply)
 	}
@@ -204,28 +175,28 @@ func (hr *HandlerRouter) ChipResponse(name string, reply *common.ReaderChipReply
 
 // Implementation of common.ValidatorCallback
 func (hr *HandlerRouter) NoteAccepted(name string, reply *common.ValidatorAccept) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.NoteAccepted(name, reply)
 	}
 	return nil
 }
 func (hr *HandlerRouter) CashIsStored(name string, reply *common.ValidatorAccept) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.CashIsStored(name, reply)
 	}
 	return nil
 }
 func (hr *HandlerRouter) CashReturned(name string, reply *common.ValidatorAccept) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.CashReturned(name, reply)
 	}
 	return nil
 }
 func (hr *HandlerRouter) ValidatorStore(name string, reply *common.ValidatorStore) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.ValidatorStore(name, reply)
 	}
@@ -234,7 +205,7 @@ func (hr *HandlerRouter) ValidatorStore(name string, reply *common.ValidatorStor
 
 // Implementation of common.ReaderCallback
 func (hr *HandlerRouter) PinPadReply(name string, reply *common.ReaderPinReply) error {
-	handler := hr.GetDeviceHandler(name)
+	handler := hr.getDeviceHandler(name)
 	if handler != nil {
 		return handler.PinPadReply(name, reply)
 	}

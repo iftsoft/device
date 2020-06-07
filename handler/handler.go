@@ -79,12 +79,12 @@ func (dh *DeviceHandler) panicRecover() {
 }
 
 func (dh *DeviceHandler) StartObject(wg *sync.WaitGroup) {
-	dh.log.Info("Starting object handle")
+	dh.log.Info("Starting device handle")
 	go dh.objectHandlerLoop(wg)
 }
 
 func (dh *DeviceHandler) StopObject() {
-	dh.log.Info("Stopping object handle")
+	dh.log.Info("Stopping device handle")
 	close(dh.done)
 }
 
@@ -110,11 +110,11 @@ func (dh *DeviceHandler) objectHandlerLoop(wg *sync.WaitGroup) {
 func (dh *DeviceHandler) onTimerTick(tm time.Time) {
 	if dh.isRunning {
 		dh.log.Trace("Device handler %s onTimerTick %s", dh.devName, tm.Format(time.StampMilli))
-		for _, reflex := range dh.reflexMap {
-			go func() {
+		for _, item := range dh.reflexMap {
+			go func(reflex ReflexManager) {
 				defer dh.panicRecover()
 				reflex.OnTimerTick()
-			}()
+			}(item)
 		}
 	}
 }
@@ -122,11 +122,11 @@ func (dh *DeviceHandler) onTimerTick(tm time.Time) {
 // Implementation of duplex.ClientManager
 func (dh *DeviceHandler) OnClientStarted(name string) {
 	dh.log.Debug("DeviceHandler.OnClientStarted dev:%s", name)
-	for _, reflex := range dh.reflexMap {
-		go func() {
+	for _, item := range dh.reflexMap {
+		go func(reflex ReflexManager) {
 			defer dh.panicRecover()
 			reflex.Connected(true)
-		}()
+		}(item)
 	}
 	dh.isRunning = true
 }
@@ -134,11 +134,11 @@ func (dh *DeviceHandler) OnClientStarted(name string) {
 func (dh *DeviceHandler) OnClientStopped(name string) {
 	dh.isRunning = false
 	dh.log.Debug("DeviceHandler.OnClientStopped dev:%s", name)
-	for _, reflex := range dh.reflexMap {
-		go func() {
+	for _, item := range dh.reflexMap {
+		go func(reflex ReflexManager) {
 			defer dh.panicRecover()
 			reflex.Connected(false)
-		}()
+		}(item)
 	}
 }
 
@@ -150,11 +150,11 @@ func (dh *DeviceHandler) SystemReply(name string, reply *common.SystemReply) err
 		dh.log.Debug("DeviceHandler.SystemReply dev:%s get cmd:%s",
 			name, reply.Command)
 	}
-	for _, callback := range dh.systemCbk {
-		go func() {
+	for _, cb := range dh.systemCbk {
+		go func(callback common.SystemCallback) {
 			defer dh.panicRecover()
 			_ = callback.SystemReply(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -164,11 +164,11 @@ func (dh *DeviceHandler) SystemHealth(name string, reply *common.SystemHealth) e
 		dh.log.Debug("DeviceHandler.SystemHealth dev:%s for moment:%d",
 			name, reply.Moment)
 	}
-	for _, callback := range dh.systemCbk {
-		go func() {
+	for _, cb := range dh.systemCbk {
+		go func(callback common.SystemCallback) {
 			defer dh.panicRecover()
 			_ = callback.SystemHealth(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -179,11 +179,11 @@ func (dh *DeviceHandler) DeviceReply(name string, reply *common.DeviceReply) err
 		dh.log.Debug("DeviceHandler.DeviceReply dev:%s, cmd:%s, state:%s, error:%d - %s",
 			name, reply.Command, reply.DevState, reply.ErrCode, reply.ErrText)
 	}
-	for _, callback := range dh.deviceCbk {
-		go func() {
+	for _, cb := range dh.deviceCbk {
+		go func(callback common.DeviceCallback) {
 			defer dh.panicRecover()
 			_ = callback.DeviceReply(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -192,11 +192,11 @@ func (dh *DeviceHandler) ExecuteError(name string, reply *common.DeviceError) er
 		dh.log.Debug("DeviceHandler.ExecuteError dev:%s, action:%s, error:%d - %s",
 			name, reply.DevState, reply.ErrCode, reply.ErrText)
 	}
-	for _, callback := range dh.deviceCbk {
-		go func() {
+	for _, cb := range dh.deviceCbk {
+		go func(callback common.DeviceCallback) {
 			defer dh.panicRecover()
 			_ = callback.ExecuteError(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -205,11 +205,11 @@ func (dh *DeviceHandler) StateChanged(name string, reply *common.DeviceState) er
 		dh.log.Debug("DeviceHandler.StateChanged dev:%s, old state:%s, new state:%s",
 			name, reply.OldState, reply.NewState)
 	}
-	for _, callback := range dh.deviceCbk {
-		go func() {
+	for _, cb := range dh.deviceCbk {
+		go func(callback common.DeviceCallback) {
 			defer dh.panicRecover()
 			_ = callback.StateChanged(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -218,11 +218,11 @@ func (dh *DeviceHandler) ActionPrompt(name string, reply *common.DevicePrompt) e
 		dh.log.Debug("DeviceHandler.ActionPrompt dev:%s, action:%s, prompt:%s",
 			name, reply.Action, reply.Prompt)
 	}
-	for _, callback := range dh.deviceCbk {
-		go func() {
+	for _, cb := range dh.deviceCbk {
+		go func(callback common.DeviceCallback) {
 			defer dh.panicRecover()
 			_ = callback.ActionPrompt(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -231,11 +231,11 @@ func (dh *DeviceHandler) ReaderReturn(name string, reply *common.DeviceInform) e
 		dh.log.Debug("DeviceHandler.ReaderReturn dev:%s, action:%s, info:%s",
 			name, reply.Action, reply.Inform)
 	}
-	for _, callback := range dh.deviceCbk {
-		go func() {
+	for _, cb := range dh.deviceCbk {
+		go func(callback common.DeviceCallback) {
 			defer dh.panicRecover()
 			_ = callback.ReaderReturn(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -246,11 +246,11 @@ func (dh *DeviceHandler) PrinterProgress(name string, reply *common.PrinterProgr
 		dh.log.Debug("DeviceHandler.PrinterProgress dev:%s, done:%d, From:%d",
 			name, reply.PageDone, reply.PagesAll)
 	}
-	for _, callback := range dh.printerCbk {
-		go func() {
+	for _, cb := range dh.printerCbk {
+		go func(callback common.PrinterCallback) {
 			defer dh.panicRecover()
 			_ = callback.PrinterProgress(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -261,11 +261,11 @@ func (dh *DeviceHandler) CardPosition(name string, reply *common.ReaderCardPos) 
 		dh.log.Debug("DeviceHandler.CardPosition dev:%s, Position:%d",
 			name, reply.Position)
 	}
-	for _, callback := range dh.readerCbk {
-		go func() {
+	for _, cb := range dh.readerCbk {
+		go func(callback common.ReaderCallback) {
 			defer dh.panicRecover()
 			_ = callback.CardPosition(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -274,11 +274,11 @@ func (dh *DeviceHandler) CardDescription(name string, reply *common.ReaderCardIn
 		dh.log.Debug("DeviceHandler.CardDescription dev:%s, CardPAN:%s, ExpDate:%s",
 			name, reply.CardPan, reply.ExpDate)
 	}
-	for _, callback := range dh.readerCbk {
-		go func() {
+	for _, cb := range dh.readerCbk {
+		go func(callback common.ReaderCallback) {
 			defer dh.panicRecover()
 			_ = callback.CardDescription(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -287,11 +287,11 @@ func (dh *DeviceHandler) ChipResponse(name string, reply *common.ReaderChipReply
 		dh.log.Debug("DeviceHandler.ChipResponse dev:%s, Protocol:%d",
 			name, reply.Protocol)
 	}
-	for _, callback := range dh.readerCbk {
-		go func() {
+	for _, cb := range dh.readerCbk {
+		go func(callback common.ReaderCallback) {
 			defer dh.panicRecover()
 			_ = callback.ChipResponse(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -302,11 +302,11 @@ func (dh *DeviceHandler) NoteAccepted(name string, reply *common.ValidatorAccept
 		dh.log.Debug("DeviceHandler.NoteAccepted dev:%s, Reply: %s",
 			name, reply.String())
 	}
-	for _, callback := range dh.validatorCbk {
-		go func() {
+	for _, cb := range dh.validatorCbk {
+		go func(callback common.ValidatorCallback) {
 			defer dh.panicRecover()
 			_ = callback.NoteAccepted(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -315,11 +315,11 @@ func (dh *DeviceHandler) CashIsStored(name string, reply *common.ValidatorAccept
 		dh.log.Debug("DeviceHandler.CashIsStored dev:%s, Reply: %s",
 			name, reply.String())
 	}
-	for _, callback := range dh.validatorCbk {
-		go func() {
+	for _, cb := range dh.validatorCbk {
+		go func(callback common.ValidatorCallback) {
 			defer dh.panicRecover()
 			_ = callback.CashIsStored(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -328,11 +328,11 @@ func (dh *DeviceHandler) CashReturned(name string, reply *common.ValidatorAccept
 		dh.log.Debug("DeviceHandler.CashReturned dev:%s, Reply: %s",
 			name, reply.String())
 	}
-	for _, callback := range dh.validatorCbk {
-		go func() {
+	for _, cb := range dh.validatorCbk {
+		go func(callback common.ValidatorCallback) {
 			defer dh.panicRecover()
 			_ = callback.CashReturned(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -341,11 +341,11 @@ func (dh *DeviceHandler) ValidatorStore(name string, reply *common.ValidatorStor
 		dh.log.Debug("DeviceHandler.ValidatorStore dev:%s, Reply: %s",
 			name, reply.String())
 	}
-	for _, callback := range dh.validatorCbk {
-		go func() {
+	for _, cb := range dh.validatorCbk {
+		go func(callback common.ValidatorCallback) {
 			defer dh.panicRecover()
 			_ = callback.ValidatorStore(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }
@@ -356,11 +356,11 @@ func (dh *DeviceHandler) PinPadReply(name string, reply *common.ReaderPinReply) 
 		dh.log.Debug("DeviceHandler.PinPadReply dev:%s, PinLen:%d",
 			name, reply.PinLength)
 	}
-	for _, callback := range dh.pinpadCbk {
-		go func() {
+	for _, cb := range dh.pinpadCbk {
+		go func(callback common.PinPadCallback) {
 			defer dh.panicRecover()
 			_ = callback.PinPadReply(name, reply)
-		}()
+		}(cb)
 	}
 	return nil
 }

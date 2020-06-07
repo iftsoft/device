@@ -88,6 +88,8 @@ const (
 	DevStateDispCapturing
 	DevStateDispDispensing
 	DevStateDispDispensed
+	DevStateDispUnloading
+	DevStateDispUnloaded
 	DevStateDispEmptyStack
 	DevStateDoorBroken
 )
@@ -125,6 +127,8 @@ func (e EnumDevState) String() string {
 	case DevStateDispCapturing:		return "Capturing"
 	case DevStateDispDispensing:	return "Dispensing"
 	case DevStateDispDispensed:		return "Dispensed"
+	case DevStateDispUnloading:		return "Unloading"
+	case DevStateDispUnloaded:		return "Unloaded"
 	case DevStateDispEmptyStack:	return "Stack is empty"
 	case DevStateDoorBroken:		return "Door is broken"
 	default:						return "Unknown"
@@ -216,10 +220,12 @@ const (
 	DevActionPinEntering
 	DevActionNoteWaiting
 	DevActionNoteAccepting
+	DevActionNoteQuerying
 	DevActionNoteStacking
 	DevActionNoteReturning
 	DevActionNoteRejecting
 	DevActionNotePicking
+	DevActionNoteUnloading
 	DevActionNoteDispensing
 	DevActionNoteDiverting
 	DevActionLightSwitching
@@ -250,10 +256,12 @@ func (e EnumDevAction) String() string {
 	case DevActionPinEntering:		return "PIN entering"
 	case DevActionNoteWaiting:		return "Waiting for note"
 	case DevActionNoteAccepting:	return "Note accepting"
+	case DevActionNoteQuerying:		return "Note querying"
 	case DevActionNoteStacking:		return "Note stacking"
 	case DevActionNoteReturning:	return "Note returning"
 	case DevActionNoteRejecting:	return "Note rejecting"
 	case DevActionNotePicking:		return "Note picking"
+	case DevActionNoteUnloading:	return "Note unloading"
 	case DevActionNoteDispensing:	return "Note dispensing"
 	case DevActionNoteDiverting:	return "Note diverting"
 	case DevActionLightSwitching:	return "Light switching"

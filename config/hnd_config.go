@@ -4,6 +4,7 @@ import "fmt"
 
 type CommandConfig struct {
 	DeviceName  string	`yaml:"device_name"`
+	Enabled     bool    `yaml:"enabled"`
 	BinaryFile  string	`yaml:"binary_file"`
 	ConfigFile  string	`yaml:"config_file"`
 	LoggerPath  string	`yaml:"logger_path"`
@@ -13,8 +14,8 @@ type CommandConfig struct {
 func (cfg *CommandConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tCommand config: " +
-		"DeviceName = %s, BinaryFile = %s, ConfigFile = %s, LoggerPath = %s, Database = %s, AutoLoad = %t.",
-		cfg.DeviceName, cfg.BinaryFile, cfg.ConfigFile, cfg.LoggerPath, cfg.Database, cfg.AutoLoad)
+		"DeviceName = %s, Enabled = %t, BinaryFile = %s, ConfigFile = %s, LoggerPath = %s, Database = %s, AutoLoad = %t.",
+		cfg.DeviceName, cfg.Enabled, cfg.BinaryFile, cfg.ConfigFile, cfg.LoggerPath, cfg.Database, cfg.AutoLoad)
 	return str
 }
 
@@ -41,12 +42,13 @@ func (cfg ReflexList) String() string {
 }
 
 type HandlerConfig struct {
-	Command  CommandConfig `yaml:"command"`
-	Reflexes ReflexList    `yaml:"reflexes"`
+	Command  CommandConfig    `yaml:"command"`
+	Config   ConfigOverwrite  `yaml:"config"`
+	Reflexes ReflexList       `yaml:"reflexes"`
 }
 func (cfg *HandlerConfig) String() string {
-	str := fmt.Sprintf("\n\tHandler config: %s %s",
-		cfg.Command.String(), cfg.Reflexes)
+	str := fmt.Sprintf("\n\tHandler config: %s %s %s",
+		cfg.Command.String(), cfg.Config.String(), cfg.Reflexes)
 	return str
 }
 

@@ -132,7 +132,11 @@ func (oh *DeviceTester) OnClientStopped(name string) {
 func (oh *DeviceTester) fillTestList() {
 	oh.tests = append(oh.tests, &TestItem{
 		func(hnd *DeviceTester) error {
-			return hnd.systemMng.SysInform(hnd.devName, &common.SystemQuery{})
+			if hnd.systemMng != nil {
+				return hnd.systemMng.SysInform(hnd.devName, &common.SystemQuery{})
+			} else {
+				return nil
+			}
 		},
 		1,
 	})

@@ -31,4 +31,4 @@ GOOS=darwin GOARCH=amd64 go build -o ../../build/darwin/cashvalidator .
 GOOS=windows GOARCH=amd64 go build -o ../../build/windows/cashvalidator.exe .
 cd ../..
 
-popd > /dev/null
+popd > /dev/null || exit
