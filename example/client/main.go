@@ -7,6 +7,7 @@ import (
 	"github.com/iftsoft/device/driver"
 	"github.com/iftsoft/device/driver/loopback"
 	"github.com/iftsoft/device/linker"
+	"os"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func main() {
 	err, appCfg := config.GetAppConfig(appPar, devCfg)
 	if err != nil {
 		fmt.Println(err)
-		return
+		os.Exit(1)
 	}
 	core.StartFileLogger(appCfg.Logger)
 	log := core.GetLogAgent(core.LogLevelTrace, "APP")

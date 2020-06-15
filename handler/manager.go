@@ -59,7 +59,7 @@ func (hm *HandlerManager) LaunchAllBinaries() {
 func (hm *HandlerManager) StopAllBinaries() {
 	hm.runner.setQuitFlag()
 	hm.router.terminateAll(&hm.proxy)
-	hm.runner.wg.Wait()
+	hm.runner.waitAll()
 }
 
 

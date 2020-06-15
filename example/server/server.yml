@@ -11,25 +11,23 @@ logger:
 
 handlers:
   - command:
-      device_name: client
+      enabled: true
+      device_name: client1
       binary_file: client.exe
-      config_file: cliemt.yml
+      config_file: client.yml
       logger_path: ../logs
       database:
       auto_load: true
     reflexes:
       - plugin_name: plugin_1
-        enabled: true
-      - plugin_name: plugin_2
-        enabled: true
-      - plugin_name: plugin_3
         enabled: false
   - command:
-      device_name: cashcode
-      binary_file: cashcode.exe
-      config_file: cashcode.yml
+      enabled: true
+      device_name: cashvalid
+      binary_file: cashvalidator.exe
+      config_file: cashvalidator.yml
       logger_path: ../logs
-      database:
+      database: cashvalidator.db
       auto_load: false
     reflexes:
       - plugin_name: plugin_1

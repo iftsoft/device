@@ -7,6 +7,7 @@ import (
 	"github.com/iftsoft/device/duplex"
 	"github.com/iftsoft/device/handler"
 	"github.com/iftsoft/device/linker"
+	"os"
 	"time"
 )
 
@@ -17,7 +18,7 @@ func main() {
 	err, appCfg := config.GetSrvConfig(appPar)
 	if err != nil {
 		fmt.Println(err)
-		return
+		os.Exit(1)
 	} else {
 		core.StartFileLogger(appCfg.Logger)
 	}

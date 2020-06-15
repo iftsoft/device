@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"errors"
+	"fmt"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
@@ -25,21 +28,30 @@ func newBinaryRunner(cfg *config.CommandConfig, log *core.LogAgent) *BinaryRunne
 
 func (br *BinaryRunner) processConfig(cfg *config.CommandConfig) {
 	br.appArgs = append(br.appArgs, cfg.BinaryFile)
-	if cfg.DeviceName == "" {
-		br.appArgs = append(br.appArgs, "-name")
-		br.appArgs = append(br.appArgs, cfg.DeviceName)
+	if cfg.DeviceName != "" {
+		nameStr := fmt.Sprintf(`-name=%s`, cfg.DeviceName)
+		br.appArgs = append(br.appArgs, nameStr)
 	}
-	if cfg.ConfigFile == "" {
-		br.appArgs = append(br.appArgs, "-cfg")
-		br.appArgs = append(br.appArgs, cfg.ConfigFile)
+	if cfg.ConfigFile != "" {
+		fullCfg, err := filepath.Abs(cfg.ConfigFile)
+		if err == nil {
+			cfgStr := fmt.Sprintf(`-cfg="%s"`, fullCfg)
+			br.appArgs = append(br.appArgs, cfgStr)
+		}
 	}
-	if cfg.LoggerPath == "" {
-		br.appArgs = append(br.appArgs, "-logs")
-		br.appArgs = append(br.appArgs, cfg.LoggerPath)
+	if cfg.Database != "" {
+		fullBase, err := filepath.Abs(cfg.Database)
+		if err == nil {
+			baseStr := fmt.Sprintf(`-base="%s"`, fullBase)
+			br.appArgs = append(br.appArgs, baseStr)
+		}
 	}
-	if cfg.Database == "" {
-		br.appArgs = append(br.appArgs, "-base")
-		br.appArgs = append(br.appArgs, cfg.Database)
+	if cfg.LoggerPath != "" {
+		fullLog, err := filepath.Abs(cfg.LoggerPath)
+		if err == nil {
+			logsStr := fmt.Sprintf(`-logs="%s"`, fullLog)
+			br.appArgs = append(br.appArgs, logsStr)
+		}
 	}
 }
 
@@ -73,10 +85,15 @@ func (br *BinaryRunner) startBinary() error {
 	br.log.Debug("BinaryRunner.startBinary for: %v", br.appArgs)
 	process, err := os.StartProcess(br.appArgs[0], br.appArgs, &procAttr)
 	if err == nil {
-		state, err := process.Wait()
+		var state *os.ProcessState
+		state, err = process.Wait()
 		if err == nil {
 			br.log.Debug("BinaryRunner.process.Wait return: %d", state.ExitCode())
-		} else {
+			if state.ExitCode() > 0 {
+				err = errors.New("client process abnormal termination")
+			}
+		}
+		if err != nil {
 			br.log.Error("BinaryRunner.process.Wait error: %s", err.Error())
 		}
 	} else {

@@ -40,7 +40,7 @@ func (hs *HandleSet) AddHandler() *DuplexHandler {
 	defer hs.mutex.Unlock()
 
 	hs.count++
-	link := fmt.Sprintf("link_%d", hs.count)
+	link := fmt.Sprintf("Link_%d", hs.count)
 	handle.HndName = link
 	hs.store[link] = handle
 	return handle

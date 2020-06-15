@@ -21,6 +21,7 @@ func (bl *BinaryLauncher) initLauncher(list config.HandlerList) {
 			cfg.Command.BinaryFile != "" {
 			runner := newBinaryRunner(&cfg.Command, bl.log)
 			bl.runnerList = append(bl.runnerList, runner)
+			bl.log.Trace("BinaryLauncher.append runner for %s", cfg.Command.BinaryFile)
 		}
 	}
 }
@@ -37,5 +38,10 @@ func (bl *BinaryLauncher) setQuitFlag() {
 	for _, run := range bl.runnerList {
 		run.stopRunnerLoop()
 	}
+}
+
+func (bl *BinaryLauncher) waitAll() {
+	bl.log.Trace("BinaryLauncher.waitAll")
+	bl.wg.Wait()
 }
 
