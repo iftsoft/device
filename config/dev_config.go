@@ -9,13 +9,12 @@ type CommonConfig struct {
 	Model    string `yaml:"model"`
 	Version  string `yaml:"version"`
 	Timeout  int32  `yaml:"timeout"`
-	AutoLoad bool   `yaml:"auto_load"`
 }
 func (cfg *CommonConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tCommon config: " +
-		"Model = %s, Version = %s, Timeout = %d, AutoLoad = %t.",
-		cfg.Model, cfg.Version, cfg.Timeout, cfg.AutoLoad)
+		"Model = %s, Version = %s, Timeout = %d.",
+		cfg.Model, cfg.Version, cfg.Timeout)
 	return str
 }
 func GetDefaultCommonConfig() *CommonConfig {
@@ -23,7 +22,6 @@ func GetDefaultCommonConfig() *CommonConfig {
 		Model:    "",
 		Version:  "",
 		Timeout:  60,
-		AutoLoad: false,
 	}
 	return cfg
 }
@@ -164,6 +162,29 @@ func (cfg *DeviceConfig) String() string {
 	return str
 }
 
+func (cfg *DeviceConfig) OverwriteConfig(data *common.SystemConfig) {
+	if data == nil {
+		return
+	}
+	if cfg.Linker == nil {
+		cfg.Linker = GetDefaultLinkerConfig()
+	}
+	if data.LinkType > 0 {
+		cfg.Linker.LinkType = EnumLinkType(data.LinkType)
+	}
+	if cfg.Linker.LinkType == LinkTypeSerial {
+		if data.PortName != "" {
+			cfg.Linker.Serial.PortName = data.PortName
+		}
+	}
+	if cfg.Linker.LinkType == LinkTypeHidUsb {
+		if data.VendorID > 0 || data.ProductID > 0 {
+			cfg.Linker.HidUsb.VendorID  = data.VendorID
+			cfg.Linker.HidUsb.ProductID = data.ProductID
+		}
+	}
+}
+
 
 func GetDefaultDeviceConfig() *DeviceConfig {
 	devCfg := &DeviceConfig{
@@ -193,5 +214,14 @@ func (cfg *ConfigOverwrite) String() string {
 		"LinkType = %s, PortName = %s, VendorID = %X, ProductID = %X.",
 		cfg.LinkType, cfg.PortName, cfg.VendorID, cfg.ProductID)
 	return str
+}
+
+func (cfg *ConfigOverwrite) SystemConfig() *common.SystemConfig {
+	out := &common.SystemConfig{}
+	out.LinkType  = uint16(cfg.LinkType)
+	out.PortName  = cfg.PortName
+	out.VendorID  = cfg.VendorID
+	out.ProductID = cfg.ProductID
+	return out
 }
 

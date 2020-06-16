@@ -50,27 +50,34 @@ func (e EnumSystemState) String() string {
 type SystemQuery struct {
 }
 
+type SystemConfig struct {
+	LinkType  uint16	`json:"linkType"`		// 0-none, 1-COM, 2-USB
+	PortName  string	`json:"portName"`		// Serial port name
+	VendorID  uint16	`json:"vendorId"` 	 	// Device Vendor ID
+	ProductID uint16	`json:"productId"`	 	// Device Product ID
+}
+
 type SystemReply struct {
-	Command string
-	Message string
-	Error   EnumSystemError
-	State   EnumSystemState
+	Command string			`json:"command"`
+	Message string			`json:"message"`
+	Error   EnumSystemError	`json:"error"`
+	State   EnumSystemState	`json:"state"`
 }
 
 type SystemMetrics struct {
-	Uptime   int64
-	DevError EnumDevError
-	DevState EnumDevState
-	Counts   map[string]uint32
-	Totals   map[string]float32
-	Topics   map[string]string
+	Uptime   int64				`json:"uptime"`
+	DevError EnumDevError		`json:"devError"`
+	DevState EnumDevState		`json:"devState"`
+	Counts   map[string]uint32	`json:"counts"`
+	Totals   map[string]float32	`json:"totals"`
+	Topics   map[string]string	`json:"topics"`
 }
 
 type SystemHealth struct {
-	Moment  int64
-	Error   EnumSystemError
-	State   EnumSystemState
-	Metrics SystemMetrics
+	Moment  int64				`json:"moment"`
+	Error   EnumSystemError		`json:"error"`
+	State   EnumSystemState		`json:"state"`
+	Metrics SystemMetrics		`json:"metrics"`
 }
 
 func NewSystemHealth() *SystemHealth {
@@ -98,7 +105,7 @@ type SystemCallback interface {
 type SystemManager interface {
 	Terminate(name string, query *SystemQuery) error
 	SysInform(name string, query *SystemQuery) error
-	SysStart(name string, query *SystemQuery) error
+	SysStart(name string, query *SystemConfig) error
 	SysStop(name string, query *SystemQuery) error
-	SysRestart(name string, query *SystemQuery) error
+	SysRestart(name string, query *SystemConfig) error
 }

@@ -113,13 +113,13 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	return errors.New("device driver is not implemented")
 }
 
-func (sd *SystemDevice) StartDevice() {
+func (sd *SystemDevice) StartDeviceLoop() {
 	sd.log.Info("Starting system device")
 	sd.duplex.StartClient(&sd.wg, sd.greeting)
 	go sd.deviceLoop(&sd.wg)
 }
 
-func (sd *SystemDevice) StopDevice() {
+func (sd *SystemDevice) StopDeviceLoop() {
 	sd.log.Info("Stopping system device")
 	close(sd.done)
 	sd.duplex.StopClient(&sd.wg)
@@ -132,12 +132,13 @@ func (sd *SystemDevice) deviceLoop(wg *sync.WaitGroup) {
 	sd.log.Debug("System device loop is started")
 	defer sd.log.Debug("System device loop is stopped")
 
-	if sd.config.Common.AutoLoad {
-		err := sd.driver.StartDevice()
-		if err == nil {
-			sd.state = common.SysStateRunning
-		}
-	}
+	sd.state = common.SysStateUndefined
+	//if sd.config.Common.AutoLoad {
+	//	err := sd.driver.StartDevice(nil)
+	//	if err == nil {
+	//		sd.state = common.SysStateRunning
+	//	}
+	//}
 	defer func() {
 		err := sd.driver.StopDevice()
 		if err == nil {
@@ -209,11 +210,11 @@ func (sd *SystemDevice) SysInform(name string, query *common.SystemQuery) error 
 	return sd.SystemReply(name, reply)
 }
 
-func (sd *SystemDevice) SysStart(name string, query *common.SystemQuery) error {
+func (sd *SystemDevice) SysStart(name string, query *common.SystemConfig) error {
 	sd.state = common.SysStateUndefined
 	var err error
 	if sd.driver != nil {
-		err = sd.driver.StartDevice()
+		err = sd.driver.StartDevice(query)
 		if err == nil {
 			sd.state = common.SysStateRunning
 		} else {
@@ -247,7 +248,7 @@ func (sd *SystemDevice) SysStop(name string, query *common.SystemQuery) error {
 	return sd.SystemReply(name, reply)
 }
 
-func (sd *SystemDevice) SysRestart(name string, query *common.SystemQuery) error {
+func (sd *SystemDevice) SysRestart(name string, query *common.SystemConfig) error {
 	sd.state = common.SysStateUndefined
 	var err error
 	if sd.driver != nil {
@@ -255,7 +256,7 @@ func (sd *SystemDevice) SysRestart(name string, query *common.SystemQuery) error
 		if err == nil {
 			sd.state = common.SysStateStopped
 		}
-		err = sd.driver.StartDevice()
+		err = sd.driver.StartDevice(query)
 		if err == nil {
 			sd.state = common.SysStateRunning
 		} else {

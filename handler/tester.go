@@ -142,7 +142,7 @@ func (oh *DeviceTester) fillTestList() {
 	})
 	oh.tests = append(oh.tests, &TestItem{
 		func(hnd *DeviceTester) error {
-			return hnd.systemMng.SysStart(hnd.devName, &common.SystemQuery{})
+			return hnd.systemMng.SysStart(hnd.devName, &common.SystemConfig{})
 		},
 		1,
 	})

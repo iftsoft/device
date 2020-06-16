@@ -33,11 +33,11 @@ func main() {
 	drv := loopback.NewDummyDriver()
 	err = dev.InitDevice(drv)
 	if err == nil {
-		dev.StartDevice()
+		dev.StartDeviceLoop()
 
 		core.WaitForSignal(log)
 
-		dev.StopDevice()
+		dev.StopDeviceLoop()
 	} else {
 		log.Error("Can't start device: %s", err)
 	}

@@ -12,12 +12,17 @@ logger:
 handlers:
   - command:
       enabled: true
-      device_name: client1
+      device_name: client
       binary_file: client.exe
       config_file: client.yml
       logger_path: ../logs
       database:
       auto_load: true
+    config:
+      link_type: 1
+      port_name: COM4
+      vendor_id: 0
+      product_id: 0
     reflexes:
       - plugin_name: plugin_1
         enabled: false
@@ -29,6 +34,11 @@ handlers:
       logger_path: ../logs
       database: cashvalidator.db
       auto_load: false
+    config:
+      link_type: 0
+      port_name:
+      vendor_id: 0
+      product_id: 0
     reflexes:
       - plugin_name: plugin_1
         enabled: true

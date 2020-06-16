@@ -9,13 +9,12 @@ type CommandConfig struct {
 	ConfigFile  string	`yaml:"config_file"`
 	LoggerPath  string	`yaml:"logger_path"`
 	Database    string	`yaml:"database"`
-	AutoLoad	bool	`yaml:"auto_load"`
 }
 func (cfg *CommandConfig) String() string {
 	if cfg == nil { return "" }
 	str := fmt.Sprintf("\n\tCommand config: " +
-		"DeviceName = %s, Enabled = %t, BinaryFile = %s, ConfigFile = %s, LoggerPath = %s, Database = %s, AutoLoad = %t.",
-		cfg.DeviceName, cfg.Enabled, cfg.BinaryFile, cfg.ConfigFile, cfg.LoggerPath, cfg.Database, cfg.AutoLoad)
+		"DeviceName = %s, Enabled = %t, BinaryFile = %s, ConfigFile = %s, LoggerPath = %s, Database = %s.",
+		cfg.DeviceName, cfg.Enabled, cfg.BinaryFile, cfg.ConfigFile, cfg.LoggerPath, cfg.Database)
 	return str
 }
 

@@ -36,6 +36,7 @@ func (hm *HandlerManager) OnClientStarted(name string, info *duplex.GreetingInfo
 	handler := hm.router.onClientStarted(name)
 	if handler != nil {
 		hm.reflex.attachReflexes(handler, &hm.proxy, info)
+		handler.AttachProxy(&hm.proxy)
 		handler.OnClientStarted(name)
 	}
 }

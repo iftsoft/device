@@ -46,9 +46,12 @@ func (vd *ValidatorDriver) InitDevice(context *driver.Context) error {
 	return nil
 }
 
-func (vd *ValidatorDriver) StartDevice() error {
-	vd.Log.Debug("ValidatorDriver run cmd:%s", "StartDevice")
+func (vd *ValidatorDriver) StartDevice(query *common.SystemConfig) error {
+	vd.Log.Debug("ValidatorDriver run cmd:%s", "StartDeviceLoop")
 	var err error
+	if vd.config != nil && query != nil {
+		vd.config.OverwriteConfig(query)
+	}
 	if vd.storage != nil {
 		err = vd.storage.Open()
 	}
@@ -63,7 +66,7 @@ func (vd *ValidatorDriver) DeviceTimer(unix int64) error {
 	return nil
 }
 func (vd *ValidatorDriver) StopDevice() error {
-	vd.Log.Debug("ValidatorDriver run cmd:%s", "StopDevice")
+	vd.Log.Debug("ValidatorDriver run cmd:%s", "StopDeviceLoop")
 	err := vd.DevCleanup()
 	if vd.storage != nil {
 		_ = vd.storage.Close()

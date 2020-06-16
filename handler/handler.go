@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"github.com/iftsoft/device/common"
+	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	"sync"
 	"time"
@@ -11,6 +12,8 @@ import (
 
 type DeviceHandler struct {
 	devName      string
+	config       *config.HandlerConfig
+	proxy        *HandlerProxy
 	reflexMap    map[string]ReflexManager
 	systemCbk    []common.SystemCallback
 	deviceCbk    []common.DeviceCallback
@@ -23,9 +26,10 @@ type DeviceHandler struct {
 	done         chan struct{}
 }
 
-func NewDeviceHandler(name string, log *core.LogAgent) *DeviceHandler {
+func NewDeviceHandler(name string, cfg *config.HandlerConfig, log *core.LogAgent) *DeviceHandler {
 	dh := DeviceHandler{
 		devName:      name,
+		config:       cfg,
 		reflexMap:    make(map[string]ReflexManager),
 		systemCbk:    make([]common.SystemCallback, 0),
 		deviceCbk:    make([]common.DeviceCallback, 0),
@@ -38,6 +42,10 @@ func NewDeviceHandler(name string, log *core.LogAgent) *DeviceHandler {
 		done:         make(chan struct{}),
 	}
 	return &dh
+}
+
+func (dh *DeviceHandler) AttachProxy(proxy *HandlerProxy) {
+	dh.proxy = proxy
 }
 
 func (dh *DeviceHandler) AttachReflex(name string, reflex interface{}) error {
@@ -127,6 +135,13 @@ func (dh *DeviceHandler) OnClientStarted(name string) {
 			defer dh.panicRecover()
 			reflex.Connected(true)
 		}(item)
+	}
+	if dh.proxy != nil {
+		query := &common.SystemConfig{}
+		if dh.config != nil {
+			query = dh.config.Config.SystemConfig()
+		}
+		_ = dh.proxy.SysStart(name, query)
 	}
 	dh.isRunning = true
 }

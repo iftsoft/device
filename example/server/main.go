@@ -31,7 +31,7 @@ func main() {
 
 	srv := duplex.NewDuplexServer(appCfg.Duplex, log)
 	hnd := handler.NewHandlerManager(appCfg.Handlers)
-	hnd.RegisterReflexFactory(handler.GetDeviceTesterFactory())
+//	hnd.RegisterReflexFactory(handler.GetDeviceTesterFactory())
 	hnd.SetupDuplexServer(srv)
 	srv.SetClientManager(hnd)
 	err = srv.StartListen()

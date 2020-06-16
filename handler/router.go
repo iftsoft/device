@@ -22,7 +22,7 @@ func (hr *HandlerRouter) initRouter(config config.HandlerList) {
 
 func (hr *HandlerRouter) terminateAll(hp *HandlerProxy) {
 	for name, _ := range hr.handlerMap {
-		hp.Terminate(name, &common.SystemQuery{})
+		_ = hp.Terminate(name, &common.SystemQuery{})
 	}
 }
 
@@ -34,13 +34,23 @@ func (hr *HandlerRouter) cleanupRouter() {
 	hr.wg.Wait()
 }
 
+func (hr *HandlerRouter) getHandlerConfig(name string) *config.HandlerConfig {
+	for _, cfg := range hr.config {
+		if cfg.Command.DeviceName == name {
+			return cfg
+		}
+	}
+	return nil
+}
+
 
 //
 func (hr *HandlerRouter) createNewHandler(name string) *DeviceHandler {
 	if name == "" {
 		return nil
 	}
-	obj := NewDeviceHandler(name, hr.log)
+	cfg := hr.getHandlerConfig(name)
+	obj := NewDeviceHandler(name, cfg, hr.log)
 	obj.StartObject(&hr.wg)
 	hr.handlerMap[name] = obj
 	return obj

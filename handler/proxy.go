@@ -45,13 +45,13 @@ func (hp *HandlerProxy) Terminate(name string, query *common.SystemQuery) error 
 func (hp *HandlerProxy) SysInform(name string, query *common.SystemQuery) error {
 	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemInform, query)
 }
-func (hp *HandlerProxy) SysStart(name string, query *common.SystemQuery) error {
+func (hp *HandlerProxy) SysStart(name string, query *common.SystemConfig) error {
 	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemStart, query)
 }
 func (hp *HandlerProxy) SysStop(name string, query *common.SystemQuery) error {
 	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemStop, query)
 }
-func (hp *HandlerProxy) SysRestart(name string, query *common.SystemQuery) error {
+func (hp *HandlerProxy) SysRestart(name string, query *common.SystemConfig) error {
 	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemRestart, query)
 }
 

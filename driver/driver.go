@@ -17,7 +17,7 @@ type Context struct {
 
 type DeviceDriver interface {
 	InitDevice(context *Context) error
-	StartDevice() error
+	StartDevice(query *common.SystemConfig) error
 	StopDevice() error
 	DeviceTimer(unix int64) error
 	CheckDevice(metrics *common.SystemMetrics) error

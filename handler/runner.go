@@ -11,9 +11,9 @@ import (
 )
 
 type BinaryRunner struct {
-	appArgs   []string // List of application params
-	log          *core.LogAgent
-	exitLoop     bool
+	appArgs  []string 			// List of application params
+	log      *core.LogAgent
+	exitLoop bool
 }
 
 func newBinaryRunner(cfg *config.CommandConfig, log *core.LogAgent) *BinaryRunner {

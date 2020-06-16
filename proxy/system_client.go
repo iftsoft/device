@@ -28,31 +28,36 @@ func (sc *SystemClient) Init(command common.SystemManager, log *core.LogAgent) {
 	// init scope functions
 	if sc.scopeItem != nil {
 		sc.scopeItem.SetScopeFunc(common.CmdSystemTerminate, func(name string, dump []byte) {
-			query, err := sc.decodeQuery(name, common.CmdSystemTerminate, dump)
+			query := &common.SystemQuery{}
+			err := sc.decodeQuery(name, common.CmdSystemTerminate, dump, query)
 			if err == nil && sc.commands != nil {
 				err = sc.commands.Terminate(name, query)
 			}
 		})
 		sc.scopeItem.SetScopeFunc(common.CmdSystemInform, func(name string, dump []byte) {
-			query, err := sc.decodeQuery(name, common.CmdSystemInform, dump)
+			query := &common.SystemQuery{}
+			err := sc.decodeQuery(name, common.CmdSystemInform, dump, query)
 			if err == nil && sc.commands != nil {
 				err = sc.commands.SysInform(name, query)
 			}
 		})
 		sc.scopeItem.SetScopeFunc(common.CmdSystemStart, func(name string, dump []byte) {
-			query, err := sc.decodeQuery(name, common.CmdSystemStart, dump)
+			query := &common.SystemConfig{}
+			err := sc.decodeQuery(name, common.CmdSystemStart, dump, query)
 			if err == nil && sc.commands != nil {
 				err = sc.commands.SysStart(name, query)
 			}
 		})
 		sc.scopeItem.SetScopeFunc(common.CmdSystemStop, func(name string, dump []byte) {
-			query, err := sc.decodeQuery(name, common.CmdSystemStop, dump)
+			query := &common.SystemQuery{}
+			err := sc.decodeQuery(name, common.CmdSystemStop, dump, query)
 			if err == nil && sc.commands != nil {
 				err = sc.commands.SysStop(name, query)
 			}
 		})
 		sc.scopeItem.SetScopeFunc(common.CmdSystemRestart, func(name string, dump []byte) {
-			query, err := sc.decodeQuery(name, common.CmdSystemRestart, dump)
+			query := &common.SystemConfig{}
+			err := sc.decodeQuery(name, common.CmdSystemRestart, dump, query)
 			if err == nil && sc.commands != nil {
 				err = sc.commands.SysRestart(name, query)
 			}
@@ -60,14 +65,11 @@ func (sc *SystemClient) Init(command common.SystemManager, log *core.LogAgent) {
 	}
 }
 
-func (sc *SystemClient) decodeQuery(name string, cmd string, dump []byte) (
-	query *common.SystemQuery, err error) {
+func (sc *SystemClient) decodeQuery(name string, cmd string, dump []byte, query interface{}) error {
 	if sc.log != nil {
 		sc.log.Dump("SystemClient dev:%s take cmd:%s, pack:%s", name, cmd, string(dump))
 	}
-	query = &common.SystemQuery{}
-	err = json.Unmarshal(dump, query)
-	return query, err
+	return json.Unmarshal(dump, query)
 }
 
 func (sc *SystemClient) GetScopeItem() *duplex.ScopeItem {
