@@ -29,16 +29,16 @@ func (e EnumPinKeyType) String() string {
 
 type ReaderPinQuery struct {
 //	UseMode  int16
-	KeyType  EnumPinKeyType
-	KeyIndex uint16
-	KeyValue []byte
-	CardPan  string
+	KeyType  EnumPinKeyType	`json:"keyType"`
+	KeyIndex uint16	        `json:"keyIndex"`
+	KeyValue []byte	        `json:"keyValue"`
+	CardPan  string	        `json:"cardPan"`
 }
 
 type ReaderPinReply struct {
 	DeviceReply
-	PinLength uint16
-	PinBlock  []byte
+	PinLength uint16	`json:"pinLenght"`
+	PinBlock  []byte	`json:"pinBlock"`
 }
 func (dev *ReaderPinReply) String() string {
 	if dev == nil { return "" }

@@ -19,11 +19,11 @@ const (
 type ValidNoteList []*ValidatorNote
 
 type ValidatorNote struct {
-	Device   string
-	Currency DevCurrency
-	Count    DevCounter
-	Nominal  DevAmount
-	Amount   DevAmount
+	Device   string			`json:"device"`
+	Currency DevCurrency	`json:"currency"`
+	Count    DevCounter		`json:"count"`
+	Nominal  DevAmount		`json:"nominal"`
+	Amount   DevAmount		`json:"amount"`
 }
 
 type BatchState int16
@@ -44,10 +44,10 @@ func (e BatchState) String() string {
 }
 
 type ValidatorBatch struct {
-	Notes    ValidNoteList
-	BatchId  int64
-	State    BatchState
-	Detail   string
+	Notes    ValidNoteList	`json:"notes"`
+	BatchId  int64			`json:"batchId"`
+	State    BatchState		`json:"state"`
+	Detail   string			`json:"detail"`
 }
 func (dev *ValidatorBatch) String() string {
 	if dev == nil { return "" }
@@ -90,10 +90,10 @@ func (dev *ValidatorStore) String() string {
 }
 
 type ValidatorAccept struct {
-	Currency DevCurrency
-	Nominal  DevAmount
-	Count    DevCounter
-	Amount   DevAmount
+	Currency DevCurrency	`json:"currency"`
+	Nominal  DevAmount		`json:"nominal"`
+	Count    DevCounter		`json:"count"`
+	Amount   DevAmount		`json:"amount"`
 }
 func (dev *ValidatorAccept) String() string {
 	if dev == nil { return "" }
@@ -103,8 +103,8 @@ func (dev *ValidatorAccept) String() string {
 }
 
 type ValidatorQuery struct {
-	Currency  DevCurrency
-	Operation int64
+	Currency  DevCurrency	`json:"currency"`
+	Operation int64			`json:"operation"`
 }
 func (dev *ValidatorQuery) String() string {
 	if dev == nil { return "" }

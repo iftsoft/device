@@ -26,10 +26,10 @@ func (dev *DeviceQuery) String() string {
 }
 
 type DeviceError struct {
-	Action   EnumDevAction
-	DevState EnumDevState
-	ErrCode  EnumDevError
-	ErrText  string
+	Action   EnumDevAction	`json:"action"`
+	DevState EnumDevState	`json:"devState"`
+	ErrCode  EnumDevError	`json:"errCode"`
+	ErrText  string			`json:"errText"`
 }
 func (dev *DeviceError) String() string {
 	if dev == nil { return "" }
@@ -50,9 +50,9 @@ func (dev *DeviceReply) String() string {
 }
 
 type DeviceState struct {
-	Action   EnumDevAction
-	NewState EnumDevState
-	OldState EnumDevState
+	Action   EnumDevAction	`json:"action"`
+	NewState EnumDevState	`json:"newState"`
+	OldState EnumDevState	`json:"oldState"`
 }
 func (dev *DeviceState) String() string {
 	if dev == nil { return "" }
@@ -62,8 +62,8 @@ func (dev *DeviceState) String() string {
 }
 
 type DevicePrompt struct {
-	Action EnumDevAction
-	Prompt EnumDevPrompt
+	Action EnumDevAction	`json:"action"`
+	Prompt EnumDevPrompt	`json:"prompt"`
 }
 func (dev *DevicePrompt) String() string {
 	if dev == nil { return "" }
@@ -73,8 +73,8 @@ func (dev *DevicePrompt) String() string {
 }
 
 type DeviceInform struct {
-	Action EnumDevAction
-	Inform string
+	Action EnumDevAction	`json:"action"`
+	Inform string	        `json:"inform"`
 }
 func (dev *DeviceInform) String() string {
 	if dev == nil { return "" }
