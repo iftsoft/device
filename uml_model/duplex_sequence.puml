@@ -1,0 +1,111 @@
+@startuml
+
+participant Manager
+participant DuplexServer
+participant ServerScopeSet
+participant HandleSet
+participant DuplexHandler
+participant ServerConnection
+participant ClientConnection
+participant DuplexClient
+participant ClientScopeSet
+participant Device
+
+== Server and Client Initialization ==
+
+Manager -> DuplexServer : SetScopeItem
+Manager <-- DuplexServer
+Manager -> DuplexServer : StartListen
+activate DuplexServer
+
+Device -> DuplexClient : SetScopeItem
+Device <-- DuplexClient
+Device -> DuplexClient : StartClient
+activate DuplexClient
+DuplexClient -> ClientConnection : connectToServer
+activate ClientConnection
+DuplexServer -> HandleSet : handleMessages
+activate HandleSet
+HandleSet -> DuplexHandler : Init
+activate DuplexHandler
+DuplexHandler -> ServerConnection : SetConnect
+activate ServerConnection
+DuplexHandler <-- ServerConnection
+HandleSet <-- DuplexHandler
+DuplexClient <-- ClientConnection
+DuplexClient -> ClientConnection : sendGreeting
+ClientConnection -> ClientConnection : WriteBinary
+DuplexClient <-- ClientConnection
+DuplexClient -> DuplexClient : readingLoop
+
+HandleSet -> DuplexHandler : StartHandle
+DuplexHandler -> ServerConnection : readGreeting
+ServerConnection -> ServerConnection : ReadBinary
+DuplexHandler <-- ServerConnection
+DuplexHandler -> HandleSet : SetHandlerDevice
+HandleSet -> Manager : OnClientStarted
+HandleSet <-- Manager
+DuplexHandler <-- HandleSet
+DuplexHandler -> DuplexHandler : readingLoop
+
+== Request to client ==
+
+Manager -> DuplexServer : GetTransporter
+Manager <-- DuplexServer : return DuplexHandler
+Manager -> DuplexHandler : SendPacket
+DuplexHandler -> ServerConnection : WritePacket
+ServerConnection -> ServerConnection : WriteBinary
+DuplexHandler <-- ServerConnection
+Manager <-- DuplexHandler
+
+DuplexClient -> ClientConnection : ReadPacket
+ClientConnection -> ClientConnection : ReadBinary
+DuplexClient <-- ClientConnection
+DuplexClient -> DuplexClient : OnNewPacket
+DuplexClient -> ClientScopeSet : GetScopeFunc
+DuplexClient <-- ClientScopeSet
+DuplexClient -> DuplexClient : Run ScopeFunc
+
+== Callback from client ==
+
+Device -> DuplexClient : SendPacket
+DuplexClient -> ClientConnection : WritePacket
+ClientConnection -> ClientConnection : WriteBinary
+DuplexClient <-- ClientConnection
+Device <-- DuplexClient
+
+DuplexHandler -> ServerConnection : ReadPacket
+ServerConnection -> ServerConnection : ReadBinary
+DuplexHandler <- ServerConnection
+DuplexHandler -> DuplexHandler : OnNewPacket
+DuplexHandler -> ServerScopeSet : GetScopeFunc
+DuplexHandler <-- ServerScopeSet
+DuplexHandler -> DuplexHandler : Run ScopeFunc
+
+== Close Connection ==
+
+Device -> DuplexClient : StopClient
+DuplexClient -> ClientConnection : CloseConnect
+DuplexClient <-- ClientConnection
+deactivate ClientConnection
+Device <-- DuplexClient
+deactivate DuplexClient
+
+DuplexHandler -> DuplexHandler : OnError
+DuplexHandler -> ServerConnection : CloseConnect
+DuplexHandler <-- ServerConnection
+deactivate ServerConnection
+DuplexHandler -> HandleSet : DelHandler
+HandleSet -> Manager : OnClientStopped
+HandleSet <-- Manager
+DuplexHandler <-- HandleSet
+deactivate DuplexHandler
+
+Manager -> DuplexServer : StopListen
+DuplexServer -> HandleSet : StopAllHandlers
+DuplexServer <-- HandleSet
+deactivate HandleSet
+Manager <-- DuplexServer
+deactivate DuplexServer
+
+@enduml

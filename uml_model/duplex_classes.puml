@@ -1,0 +1,53 @@
+@startuml
+
+package duplex <<Frame>> {
+
+    interface ServerManager {
+      GetTransporter()
+      AddScopeItem()
+    }
+    interface ClientManager {
+      OnClientStarted()
+      OnClientStopped()
+    }
+    interface DuplexManager
+    interface Transporter {
+      SendPacket(*Packet)
+    }
+
+    class Packet
+    class ScopeItem
+    class ScopeSet
+    class Connection
+    class LinkHolder
+    class Duplex
+    class DuplexClient
+    class DuplexHandler
+    class HandlerSet
+    class DuplexServer {
+      SetClientManager()
+    }
+    class ClientConfig
+    class ServerConfig
+
+}
+
+Connection "+conn" <- LinkHolder
+ScopeItem "scope" <- ScopeSet : map
+LinkHolder "+link" <--* Duplex
+Duplex <|-- DuplexClient
+Duplex <|-- DuplexHandler
+DuplexManager "mngr" <- Duplex
+DuplexManager <|.. DuplexClient
+DuplexManager <|.. DuplexHandler
+Transporter <|.. DuplexClient
+Transporter <|.. DuplexHandler
+DuplexHandler "+store" <- HandlerSet : map
+HandlerSet "handlers" <-* DuplexServer
+DuplexHandler --> "config" ServerConfig
+ServerConfig "config" <- DuplexServer
+DuplexClient --> "config" ClientConfig
+ServerManager <|... DuplexServer
+ClientManager "manager" <-- HandlerSet
+
+@enduml

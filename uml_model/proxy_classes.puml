@@ -1,0 +1,60 @@
+@startuml
+
+package duplex <<Frame>> {
+    interface ServerManager {
+      GetTransporter()
+      AddScopeItem()
+    }
+}
+
+package common <<Frame>> {
+    interface SystemCallback
+    interface DeviceCallback
+    interface PrinterCallback
+    interface ReaderCallback
+    interface ValidatorCallback
+    interface PinPadCallback
+    interface SystemManager
+    interface DeviceManager
+    interface PrinterManager
+    interface ReaderManager
+    interface ValidatorManager
+    interface PinPadManager
+}
+
+package proxy <<Frame>> {
+class SystemServer
+class DeviceServer
+class PrinterServer
+class ReaderServer
+class ValidatorServer
+class PinPadServer
+class SystemClient
+class DeviceClient
+class PrinterClient
+class ReaderClient
+class ValidatorClient
+class PinPadClient
+}
+
+SystemCallback "callback" <-- SystemServer
+SystemServer --> "server" ServerManager
+DeviceCallback "callback" <-- DeviceServer
+DeviceServer --> "server" ServerManager
+PrinterCallback "callback" <-- PrinterServer
+PrinterServer --> "server" ServerManager
+ReaderCallback "callback" <-- ReaderServer
+ReaderServer --> "server" ServerManager
+ValidatorCallback "callback" <-- ValidatorServer
+ValidatorServer --> "server" ServerManager
+PinPadCallback "callback" <-- PinPadServer
+PinPadServer --> "server" ServerManager
+
+SystemClient --> "commands" SystemManager
+DeviceClient --> "commands" DeviceManager
+PrinterClient --> "commands" PrinterManager
+ReaderClient --> "commands" ReaderManager
+ValidatorClient --> "commands" ValidatorManager
+PinPadClient --> "commands" PinPadManager
+
+@enduml
