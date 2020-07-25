@@ -10,7 +10,11 @@ const commandGreeting = "Greeting"
 type ScopeFunc func(name string, dump []byte)
 
 type Transporter interface {
-	SendPacket(pack *Packet) error // , link string
+	SendPacket(pack *Packet) error
+}
+
+type Dispatcher interface {
+	EvalPacket(pack *Packet) error
 }
 
 type GreetingInfo struct {
@@ -19,53 +23,27 @@ type GreetingInfo struct {
 	Required  common.DevScopeMask	`json:"required"`	// Callback interfaces that driver required
 }
 
-type ScopeItem struct {
-	scopeId PacketScope
-	handler map[string]ScopeFunc
-	mutex   sync.RWMutex
-}
-
-func NewScopeItem(id PacketScope) *ScopeItem {
-	si := ScopeItem{scopeId: id, handler: make(map[string]ScopeFunc)}
-	return &si
-}
-
-func (si *ScopeItem) SetScopeFunc(name string, proc ScopeFunc) {
-	si.mutex.Lock()
-	defer si.mutex.Unlock()
-	si.handler[name] = proc
-}
-
-func (si *ScopeItem) GetScopeFunc(name string) ScopeFunc {
-	si.mutex.RLock()
-	defer si.mutex.RUnlock()
-	proc, ok := si.handler[name]
-	if ok {
-		return proc
-	}
-	return nil
-}
 
 type ScopeSet struct {
-	store map[PacketScope]*ScopeItem
+	store map[PacketScope]Dispatcher
 	mutex sync.RWMutex
 }
 
 func NewScopeSet() *ScopeSet {
-	ss := ScopeSet{store: make(map[PacketScope]*ScopeItem)}
+	ss := ScopeSet{store: make(map[PacketScope]Dispatcher)}
 	return &ss
 }
 
-func (ss *ScopeSet) AddScope(scope *ScopeItem) {
+func (ss *ScopeSet) AddScope(id PacketScope, scope Dispatcher) {
 	if scope == nil {
 		return
 	}
 	ss.mutex.Lock()
 	defer ss.mutex.Unlock()
-	ss.store[scope.scopeId] = scope
+	ss.store[id] = scope
 }
 
-func (ss *ScopeSet) GetScope(id PacketScope) *ScopeItem {
+func (ss *ScopeSet) GetScope(id PacketScope) Dispatcher {
 	ss.mutex.RLock()
 	defer ss.mutex.RUnlock()
 	scope, ok := ss.store[id]
@@ -75,10 +53,3 @@ func (ss *ScopeSet) GetScope(id PacketScope) *ScopeItem {
 	return nil
 }
 
-func (ss *ScopeSet) GetScopeFunc(id PacketScope, name string) ScopeFunc {
-	scope := ss.GetScope(id)
-	if scope != nil {
-		return scope.GetScopeFunc(name)
-	}
-	return nil
-}

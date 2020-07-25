@@ -4,7 +4,7 @@ package duplex <<Frame>> {
 
     interface ServerManager {
       GetTransporter()
-      AddScopeItem()
+      AddDispatcher()
     }
     interface ClientManager {
       OnClientStarted()
@@ -14,9 +14,11 @@ package duplex <<Frame>> {
     interface Transporter {
       SendPacket(*Packet)
     }
+    interface Dispatcher {
+      EvalPacket(*Packet)
+    }
 
     class Packet
-    class ScopeItem
     class ScopeSet
     class Connection
     class LinkHolder
@@ -33,7 +35,7 @@ package duplex <<Frame>> {
 }
 
 Connection "+conn" <- LinkHolder
-ScopeItem "scope" <- ScopeSet : map
+Dispatcher "store" <- ScopeSet : map
 LinkHolder "+link" <--* Duplex
 Duplex <|-- DuplexClient
 Duplex <|-- DuplexHandler

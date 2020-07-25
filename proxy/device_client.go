@@ -2,70 +2,82 @@ package proxy
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
 )
 
 type DeviceClient struct {
-	scopeItem *duplex.ScopeItem
 	commands  common.DeviceManager
 	log       *core.LogAgent
 }
 
 func NewDeviceClient() *DeviceClient {
 	dc := DeviceClient{
-		scopeItem: duplex.NewScopeItem(duplex.ScopeDevice),
 		commands:  nil,
 		log:       nil,
 	}
 	return &dc
 }
 
-func (dc *DeviceClient) GetScopeItem() *duplex.ScopeItem {
-	return dc.scopeItem
+func (dc *DeviceClient) GetDispatcher() duplex.Dispatcher {
+	return dc
 }
 
 func (dc *DeviceClient) Init(command common.DeviceManager, log *core.LogAgent) {
 	dc.log = log
 	dc.commands = command
-	// init scope functions
-	if dc.scopeItem != nil {
-		dc.scopeItem.SetScopeFunc(common.CmdDeviceCancel, func(name string, dump []byte) {
+}
+
+func (dc *DeviceClient) EvalPacket(pack *duplex.Packet) error {
+	if pack == nil {
+		return errors.New("duplex Packet is nil")
+	}
+	switch pack.Command {
+	case common.CmdDeviceCancel:
+		query := &common.DeviceQuery{}
+		err := dc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && dc.commands != nil {
+			err = dc.commands.Cancel(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdDeviceReset:
 			query := &common.DeviceQuery{}
-			err := dc.decodeQuery(name, common.CmdDeviceCancel, dump, query)
+			err := dc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
 			if err == nil && dc.commands != nil {
-				err = dc.commands.Cancel(name, query)
+				err = dc.commands.Reset(pack.DevName, query)
 			}
-		})
-		dc.scopeItem.SetScopeFunc(common.CmdDeviceReset, func(name string, dump []byte) {
+		return err
+
+	case common.CmdDeviceStatus:
 			query := &common.DeviceQuery{}
-			err := dc.decodeQuery(name, common.CmdDeviceReset, dump, query)
+			err := dc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
 			if err == nil && dc.commands != nil {
-				err = dc.commands.Reset(name, query)
+				err = dc.commands.Status(pack.DevName, query)
 			}
-		})
-		dc.scopeItem.SetScopeFunc(common.CmdDeviceStatus, func(name string, dump []byte) {
+		return err
+
+	case common.CmdRunAction:
 			query := &common.DeviceQuery{}
-			err := dc.decodeQuery(name, common.CmdDeviceStatus, dump, query)
+			err := dc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
 			if err == nil && dc.commands != nil {
-				err = dc.commands.Status(name, query)
+				err = dc.commands.RunAction(pack.DevName, query)
 			}
-		})
-		dc.scopeItem.SetScopeFunc(common.CmdRunAction, func(name string, dump []byte) {
+		return err
+
+	case common.CmdStopAction:
 			query := &common.DeviceQuery{}
-			err := dc.decodeQuery(name, common.CmdRunAction, dump, query)
+			err := dc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
 			if err == nil && dc.commands != nil {
-				err = dc.commands.RunAction(name, query)
+				err = dc.commands.StopAction(pack.DevName, query)
 			}
-		})
-		dc.scopeItem.SetScopeFunc(common.CmdStopAction, func(name string, dump []byte) {
-			query := &common.DeviceQuery{}
-			err := dc.decodeQuery(name, common.CmdStopAction, dump, query)
-			if err == nil && dc.commands != nil {
-				err = dc.commands.StopAction(name, query)
-			}
-		})
+		return err
+
+	default:
+		dc.log.Warn("DeviceClient EvalPacket: Unknown  command - %s", pack.Command)
+		return errors.New("duplex Packet unknown command")
 	}
 }
 

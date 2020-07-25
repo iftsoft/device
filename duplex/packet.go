@@ -11,18 +11,9 @@ const (
 	packetHeaderSize int           = 16
 )
 
-type PacketType byte
 type PacketScope byte
 type PacketVersion byte
 
-const (
-	PacketNotify PacketType = iota
-	PackerRequest
-	PacketResponse
-
-//	PacketCallback
-//	PacketBackword
-)
 
 const (
 	ScopeSystem PacketScope = iota
@@ -72,7 +63,6 @@ func GetScopeMask(scope PacketScope) common.DevScopeMask {
 
 type Packet struct {
 	Version PacketVersion
-	Type    PacketType
 	Scope   PacketScope
 	Counter uint32
 	Options uint32
@@ -84,7 +74,6 @@ type Packet struct {
 func NewPacket(scope PacketScope, name string, cmd string, data []byte) *Packet {
 	p := Packet{
 		Version: packetVersion,
-		Type:    PackerRequest,
 		Scope:   scope,
 		DevName: name,
 		Command: cmd,
@@ -110,8 +99,7 @@ func (p *Packet) Encode() []byte {
 	len2 := len(task)
 	size := len(p.Content)
 
-	//	head[0] = byte(p.Version)
-	head[0] = byte(p.Type)
+	head[0] = byte(p.Version)
 	head[1] = byte(p.Scope)
 	head[2] = byte(len1)
 	head[3] = byte(len2)
@@ -138,9 +126,8 @@ func (p *Packet) Decode(dump []byte) error {
 	}
 	name := dump[packetHeaderSize : packetHeaderSize+len1]
 	task := dump[packetHeaderSize+len1 : packetHeaderSize+len1+len2]
-	//	p.Version = PacketVersion(head[0])
-	p.Type = PacketType(head[0])
-	p.Scope = PacketScope(head[1])
+	p.Version = PacketVersion(head[0])
+	p.Scope   = PacketScope(head[1])
 	p.Options = BytesToUint(head[4], head[5], head[6], head[7])
 	p.Counter = BytesToUint(head[8], head[9], head[10], head[11])
 	p.DevName = string(name)

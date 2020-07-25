@@ -2,84 +2,98 @@ package proxy
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
 )
 
 type ReaderClient struct {
-	scopeItem *duplex.ScopeItem
 	commands  common.ReaderManager
 	log       *core.LogAgent
 }
 
 func NewReaderClient() *ReaderClient {
 	rc := ReaderClient{
-		scopeItem: duplex.NewScopeItem(duplex.ScopeReader),
 		commands:  nil,
 		log:       nil,
 	}
 	return &rc
 }
 
-func (rc *ReaderClient) GetScopeItem() *duplex.ScopeItem {
-	return rc.scopeItem
+func (rc *ReaderClient) GetDispatcher() duplex.Dispatcher {
+	return rc
 }
 
 func (rc *ReaderClient) Init(command common.ReaderManager, log *core.LogAgent) {
 	rc.log = log
 	rc.commands = command
-	// init scope functions
-	if rc.scopeItem != nil {
-		rc.scopeItem.SetScopeFunc(common.CmdEnterCard, func(name string, dump []byte) {
-			query := &common.DeviceQuery{}
-			err := rc.decodeQuery(name, common.CmdEnterCard, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.EnterCard(name, query)
-			}
-		})
-		rc.scopeItem.SetScopeFunc(common.CmdEjectCard, func(name string, dump []byte) {
-			query := &common.DeviceQuery{}
-			err := rc.decodeQuery(name, common.CmdEjectCard, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.EjectCard(name, query)
-			}
-		})
-		rc.scopeItem.SetScopeFunc(common.CmdCaptureCard, func(name string, dump []byte) {
-			query := &common.DeviceQuery{}
-			err := rc.decodeQuery(name, common.CmdCaptureCard, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.CaptureCard(name, query)
-			}
-		})
-		rc.scopeItem.SetScopeFunc(common.CmdReadCard, func(name string, dump []byte) {
-			query := &common.DeviceQuery{}
-			err := rc.decodeQuery(name, common.CmdReadCard, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.ReadCard(name, query)
-			}
-		})
-		rc.scopeItem.SetScopeFunc(common.CmdChipGetATR, func(name string, dump []byte) {
-			query := &common.DeviceQuery{}
-			err := rc.decodeQuery(name, common.CmdChipGetATR, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.ChipGetATR(name, query)
-			}
-		})
-		rc.scopeItem.SetScopeFunc(common.CmdChipPowerOff, func(name string, dump []byte) {
-			query := &common.DeviceQuery{}
-			err := rc.decodeQuery(name, common.CmdChipPowerOff, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.ChipPowerOff(name, query)
-			}
-		})
-		rc.scopeItem.SetScopeFunc(common.CmdChipCommand, func(name string, dump []byte) {
-			query := &common.ReaderChipQuery{}
-			err := rc.decodeQuery(name, common.CmdChipCommand, dump, query)
-			if err == nil && rc.commands != nil {
-				err = rc.commands.ChipCommand(name, query)
-			}
-		})
+}
+
+func (rc *ReaderClient) EvalPacket(pack *duplex.Packet) error {
+	if pack == nil {
+		return errors.New("duplex Packet is nil")
+	}
+	switch pack.Command {
+	case common.CmdEnterCard:
+		query := &common.DeviceQuery{}
+		err := rc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && rc.commands != nil {
+			err = rc.commands.EnterCard(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdEjectCard:
+		query := &common.DeviceQuery{}
+		err := rc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && rc.commands != nil {
+			err = rc.commands.EjectCard(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdCaptureCard:
+		query := &common.DeviceQuery{}
+		err := rc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && rc.commands != nil {
+			err = rc.commands.CaptureCard(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdReadCard:
+		query := &common.DeviceQuery{}
+		err := rc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && rc.commands != nil {
+			err = rc.commands.ReadCard(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdChipGetATR:
+		query := &common.DeviceQuery{}
+		err := rc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && rc.commands != nil {
+			err = rc.commands.ChipGetATR(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdChipPowerOff:
+		query := &common.DeviceQuery{}
+		err := rc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && rc.commands != nil {
+			err = rc.commands.ChipPowerOff(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdChipCommand:
+		query := &common.ReaderChipQuery{}
+		err := rc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && rc.commands != nil {
+			err = rc.commands.ChipCommand(pack.DevName, query)
+		}
+		return err
+
+	default:
+		rc.log.Warn("ReaderClient EvalPacket: Unknown  command - %s", pack.Command)
+		return errors.New("duplex Packet unknown command")
 	}
 }
 

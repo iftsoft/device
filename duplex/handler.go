@@ -72,14 +72,16 @@ func (dh *DuplexHandler) StopHandle(wg *sync.WaitGroup) {
 
 // Implementation of DuplexManager interface
 func (dh *DuplexHandler) OnNewPacket(pack *Packet) bool {
-	//	dh.log.Trace("DuplexHandler OnNewPacket: %+v", pack)
 	dh.log.Trace("DuplexHandler OnNewPacket dev:%s, cmd:%s", pack.DevName, pack.Command)
-	proc := dh.scopeMap.GetScopeFunc(pack.Scope, pack.Command)
-	if proc == nil {
-		dh.log.Trace("DuplexHandler OnNewPacket: Unknown command - %s", pack.Command)
+	scope := dh.scopeMap.GetScope(pack.Scope)
+	if scope == nil {
+		dh.log.Warn("DuplexHandler OnNewPacket: Unknown  scope - %s", GetScopeName(pack.Scope))
 		return false
 	}
-	proc(pack.DevName, pack.Content)
+	err := scope.EvalPacket(pack)
+	if err != nil {
+		return false
+	}
 	return true
 }
 

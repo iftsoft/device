@@ -9,7 +9,6 @@ import (
 )
 
 type ReaderServer struct {
-	scopeItem *duplex.ScopeItem
 	server    duplex.ServerManager
 	callback  common.ReaderCallback
 	log       *core.LogAgent
@@ -17,7 +16,6 @@ type ReaderServer struct {
 
 func NewReaderServer() *ReaderServer {
 	rs := ReaderServer{
-		scopeItem: duplex.NewScopeItem(duplex.ScopeReader),
 		server:    nil,
 		callback:  nil,
 		log:       nil,
@@ -25,39 +23,47 @@ func NewReaderServer() *ReaderServer {
 	return &rs
 }
 
-func (rs *ReaderServer) GetScopeItem() *duplex.ScopeItem {
-	return rs.scopeItem
-}
-
 func (rs *ReaderServer) Init(server duplex.ServerManager, callback common.ReaderCallback, log *core.LogAgent) {
 	rs.log = log
 	rs.server = server
 	rs.callback = callback
-	if rs.scopeItem != nil {
-		rs.scopeItem.SetScopeFunc(common.CmdCardPosition, func(name string, dump []byte) {
-			reply := &common.ReaderCardPos{}
-			err := rs.decodeReply(name, common.CmdCardPosition, dump, reply)
-			if err == nil && rs.callback != nil {
-				err = rs.callback.CardPosition(name, reply)
-			}
-		})
-		rs.scopeItem.SetScopeFunc(common.CmdCardDescription, func(name string, dump []byte) {
-			reply := &common.ReaderCardInfo{}
-			err := rs.decodeReply(name, common.CmdCardDescription, dump, reply)
-			if err == nil && rs.callback != nil {
-				err = rs.callback.CardDescription(name, reply)
-			}
-		})
-		rs.scopeItem.SetScopeFunc(common.CmdChipResponse, func(name string, dump []byte) {
-			reply := &common.ReaderChipReply{}
-			err := rs.decodeReply(name, common.CmdChipResponse, dump, reply)
-			if err == nil && rs.callback != nil {
-				err = rs.callback.ChipResponse(name, reply)
-			}
-		})
-		if rs.server != nil {
-			rs.server.AddScopeItem(rs.scopeItem)
+	if rs.server != nil {
+		rs.server.AddDispatcher(duplex.ScopeReader, rs)
+	}
+}
+
+func (rs *ReaderServer) EvalPacket(pack *duplex.Packet) error {
+	if pack == nil {
+		return errors.New("duplex Packet is nil")
+	}
+	switch pack.Command {
+	case common.CmdCardPosition:
+		reply := &common.ReaderCardPos{}
+		err := rs.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && rs.callback != nil {
+			err = rs.callback.CardPosition(pack.DevName, reply)
 		}
+		return err
+
+	case common.CmdCardDescription:
+		reply := &common.ReaderCardInfo{}
+		err := rs.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && rs.callback != nil {
+			err = rs.callback.CardDescription(pack.DevName, reply)
+		}
+		return err
+
+	case common.CmdChipResponse:
+		reply := &common.ReaderChipReply{}
+		err := rs.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && rs.callback != nil {
+			err = rs.callback.ChipResponse(pack.DevName, reply)
+		}
+		return err
+
+	default:
+		rs.log.Warn("ReaderServer EvalPacket: Unknown  command - %s", pack.Command)
+		return errors.New("duplex Packet unknown command")
 	}
 }
 

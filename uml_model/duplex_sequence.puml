@@ -62,9 +62,9 @@ DuplexClient -> ClientConnection : ReadPacket
 ClientConnection -> ClientConnection : ReadBinary
 DuplexClient <-- ClientConnection
 DuplexClient -> DuplexClient : OnNewPacket
-DuplexClient -> ClientScopeSet : GetScopeFunc
+DuplexClient -> ClientScopeSet : GetDispatcher
 DuplexClient <-- ClientScopeSet
-DuplexClient -> DuplexClient : Run ScopeFunc
+DuplexClient -> DuplexClient : EvalPacket
 
 == Callback from client ==
 
@@ -78,9 +78,9 @@ DuplexHandler -> ServerConnection : ReadPacket
 ServerConnection -> ServerConnection : ReadBinary
 DuplexHandler <- ServerConnection
 DuplexHandler -> DuplexHandler : OnNewPacket
-DuplexHandler -> ServerScopeSet : GetScopeFunc
+DuplexHandler -> ServerScopeSet : GetDispatcher
 DuplexHandler <-- ServerScopeSet
-DuplexHandler -> DuplexHandler : Run ScopeFunc
+DuplexHandler -> DuplexHandler : EvalPacket
 
 == Close Connection ==
 

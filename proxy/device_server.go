@@ -9,7 +9,6 @@ import (
 )
 
 type DeviceServer struct {
-	scopeItem *duplex.ScopeItem
 	server    duplex.ServerManager
 	callback  common.DeviceCallback
 	log       *core.LogAgent
@@ -17,7 +16,6 @@ type DeviceServer struct {
 
 func NewDeviceServer() *DeviceServer {
 	ss := DeviceServer{
-		scopeItem: duplex.NewScopeItem(duplex.ScopeDevice),
 		server:    nil,
 		callback:  nil,
 		log:       nil,
@@ -25,53 +23,64 @@ func NewDeviceServer() *DeviceServer {
 	return &ss
 }
 
-func (ss *DeviceServer) GetScopeItem() *duplex.ScopeItem {
-	return ss.scopeItem
-}
 
 func (ss *DeviceServer) Init(server duplex.ServerManager, callback common.DeviceCallback, log *core.LogAgent) {
 	ss.log = log
 	ss.server = server
 	ss.callback = callback
-	if ss.scopeItem != nil {
-		ss.scopeItem.SetScopeFunc(common.CmdDeviceReply, func(name string, dump []byte) {
-			reply := &common.DeviceReply{}
-			err := ss.decodeReply(name, common.CmdDeviceReply, dump, reply)
-			if err == nil && ss.callback != nil {
-				err = ss.callback.DeviceReply(name, reply)
-			}
-		})
-		ss.scopeItem.SetScopeFunc(common.CmdExecuteError, func(name string, dump []byte) {
-			reply := &common.DeviceError{}
-			err := ss.decodeReply(name, common.CmdExecuteError, dump, reply)
-			if err == nil && ss.callback != nil {
-				err = ss.callback.ExecuteError(name, reply)
-			}
-		})
-		ss.scopeItem.SetScopeFunc(common.CmdStateChanged, func(name string, dump []byte) {
-			reply := &common.DeviceState{}
-			err := ss.decodeReply(name, common.CmdStateChanged, dump, reply)
-			if err == nil && ss.callback != nil {
-				err = ss.callback.StateChanged(name, reply)
-			}
-		})
-		ss.scopeItem.SetScopeFunc(common.CmdActionPrompt, func(name string, dump []byte) {
-			reply := &common.DevicePrompt{}
-			err := ss.decodeReply(name, common.CmdActionPrompt, dump, reply)
-			if err == nil && ss.callback != nil {
-				err = ss.callback.ActionPrompt(name, reply)
-			}
-		})
-		ss.scopeItem.SetScopeFunc(common.CmdReaderReturn, func(name string, dump []byte) {
-			reply := &common.DeviceInform{}
-			err := ss.decodeReply(name, common.CmdReaderReturn, dump, reply)
-			if err == nil && ss.callback != nil {
-				err = ss.callback.ReaderReturn(name, reply)
-			}
-		})
-		if ss.server != nil {
-			ss.server.AddScopeItem(ss.scopeItem)
+	if ss.server != nil {
+		ss.server.AddDispatcher(duplex.ScopeDevice, ss)
+	}
+}
+
+func (ss *DeviceServer) EvalPacket(pack *duplex.Packet) error {
+	if pack == nil {
+		return errors.New("duplex Packet is nil")
+	}
+	switch pack.Command {
+	case common.CmdDeviceReply:
+		reply := &common.DeviceReply{}
+		err := ss.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && ss.callback != nil {
+			err = ss.callback.DeviceReply(pack.DevName, reply)
 		}
+		return err
+
+	case common.CmdExecuteError:
+			reply := &common.DeviceError{}
+			err := ss.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+			if err == nil && ss.callback != nil {
+				err = ss.callback.ExecuteError(pack.DevName, reply)
+			}
+		return err
+
+	case common.CmdStateChanged:
+			reply := &common.DeviceState{}
+			err := ss.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+			if err == nil && ss.callback != nil {
+				err = ss.callback.StateChanged(pack.DevName, reply)
+			}
+		return err
+
+	case common.CmdActionPrompt:
+			reply := &common.DevicePrompt{}
+			err := ss.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+			if err == nil && ss.callback != nil {
+				err = ss.callback.ActionPrompt(pack.DevName, reply)
+			}
+		return err
+
+	case common.CmdReaderReturn:
+			reply := &common.DeviceInform{}
+			err := ss.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+			if err == nil && ss.callback != nil {
+				err = ss.callback.ReaderReturn(pack.DevName, reply)
+			}
+		return err
+
+	default:
+		ss.log.Warn("DeviceServer EvalPacket: Unknown  command - %s", pack.Command)
+		return errors.New("duplex Packet unknown command")
 	}
 }
 

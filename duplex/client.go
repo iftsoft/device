@@ -66,9 +66,9 @@ func (dc *DuplexClient) StopClient(wg *sync.WaitGroup) {
 	close(dc.done)
 }
 
-func (dc *DuplexClient) AddScopeItem(item *ScopeItem) {
-	if item != nil {
-		dc.scopeMap.AddScope(item)
+func (dc *DuplexClient) AddDispatcher(id PacketScope, scope Dispatcher) {
+	if scope != nil {
+		dc.scopeMap.AddScope(id, scope)
 	}
 }
 
@@ -80,12 +80,15 @@ func (dc *DuplexClient) SendPacket(pack *Packet) error {
 // Implementation of DuplexManager interface
 func (dc *DuplexClient) OnNewPacket(pack *Packet) bool {
 	dc.log.Trace("DuplexClient OnNewPacket dev:%s, cmd:%s", pack.DevName, pack.Command)
-	proc := dc.scopeMap.GetScopeFunc(pack.Scope, pack.Command)
-	if proc == nil {
-		dc.log.Warn("DuplexClient OnNewPacket: Unknown command - %s", pack.Command)
+	scope := dc.scopeMap.GetScope(pack.Scope)
+	if scope == nil {
+		dc.log.Warn("DuplexClient OnNewPacket: Unknown  scope - %s", GetScopeName(pack.Scope))
 		return false
 	}
-	proc(pack.DevName, pack.Content)
+	err := scope.EvalPacket(pack)
+	if err != nil {
+		return false
+	}
 	return true
 }
 

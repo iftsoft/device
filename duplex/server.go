@@ -7,7 +7,7 @@ import (
 )
 
 type ServerManager interface {
-	AddScopeItem(item *ScopeItem)
+	AddDispatcher(id PacketScope, scope Dispatcher)
 	GetTransporter(name string) Transporter
 }
 
@@ -61,9 +61,9 @@ func (ds *DuplexServer) GetTransporter(name string) Transporter {
 	return hnd
 }
 
-func (ds *DuplexServer) AddScopeItem(item *ScopeItem) {
-	if item != nil {
-		ds.scopeMap.AddScope(item)
+func (ds *DuplexServer) AddDispatcher(id PacketScope, scope Dispatcher) {
+	if scope != nil {
+		ds.scopeMap.AddScope(id, scope)
 	}
 }
 

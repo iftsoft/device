@@ -9,7 +9,6 @@ import (
 )
 
 type PinPadServer struct {
-	scopeItem *duplex.ScopeItem
 	server    duplex.ServerManager
 	callback  common.PinPadCallback
 	log       *core.LogAgent
@@ -17,7 +16,6 @@ type PinPadServer struct {
 
 func NewPinPadServer() *PinPadServer {
 	pps := PinPadServer{
-		scopeItem: duplex.NewScopeItem(duplex.ScopePinPad),
 		server:    nil,
 		callback:  nil,
 		log:       nil,
@@ -25,25 +23,31 @@ func NewPinPadServer() *PinPadServer {
 	return &pps
 }
 
-func (pps *PinPadServer) GetScopeItem() *duplex.ScopeItem {
-	return pps.scopeItem
-}
-
 func (pps *PinPadServer) Init(server duplex.ServerManager, callback common.PinPadCallback, log *core.LogAgent) {
 	pps.log = log
 	pps.server = server
 	pps.callback = callback
-	if pps.scopeItem != nil {
-		pps.scopeItem.SetScopeFunc(common.CmdPinPadReply, func(name string, dump []byte) {
-			reply := &common.ReaderPinReply{}
-			err := pps.decodeReply(name, common.CmdPinPadReply, dump, reply)
-			if err == nil && pps.callback != nil {
-				err = pps.callback.PinPadReply(name, reply)
-			}
-		})
-		if pps.server != nil {
-			pps.server.AddScopeItem(pps.scopeItem)
+	if pps.server != nil {
+		pps.server.AddDispatcher(duplex.ScopePinPad, pps)
+	}
+}
+
+func (pps *PinPadServer) EvalPacket(pack *duplex.Packet) error {
+	if pack == nil {
+		return errors.New("duplex Packet is nil")
+	}
+	switch pack.Command {
+	case common.CmdPinPadReply:
+		reply := &common.ReaderPinReply{}
+		err := pps.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && pps.callback != nil {
+			err = pps.callback.PinPadReply(pack.DevName, reply)
 		}
+		return err
+
+	default:
+		pps.log.Warn("PinPadServer EvalPacket: Unknown  command - %s", pack.Command)
+		return errors.New("duplex Packet unknown command")
 	}
 }
 

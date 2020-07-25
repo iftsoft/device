@@ -2,66 +2,84 @@ package proxy
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
 )
 
 type SystemClient struct {
-	scopeItem *duplex.ScopeItem
+//	scopeItem *duplex.ScopeItem
 	commands  common.SystemManager
 	log       *core.LogAgent
 }
 
 func NewSystemClient() *SystemClient {
 	sc := SystemClient{
-		scopeItem: duplex.NewScopeItem(duplex.ScopeSystem),
+//		scopeItem: duplex.NewScopeItem(duplex.ScopeSystem),
 		commands:  nil,
 		log:       nil,
 	}
 	return &sc
 }
 
+func (sc *SystemClient) GetDispatcher() duplex.Dispatcher {
+	return sc
+}
+
 func (sc *SystemClient) Init(command common.SystemManager, log *core.LogAgent) {
 	sc.log = log
 	sc.commands = command
-	// init scope functions
-	if sc.scopeItem != nil {
-		sc.scopeItem.SetScopeFunc(common.CmdSystemTerminate, func(name string, dump []byte) {
+}
+
+func (sc *SystemClient) EvalPacket(pack *duplex.Packet) error {
+	if pack == nil {
+		return errors.New("duplex Packet is nil")
+	}
+	switch pack.Command {
+	case common.CmdSystemTerminate:
 			query := &common.SystemQuery{}
-			err := sc.decodeQuery(name, common.CmdSystemTerminate, dump, query)
+			err := sc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.Terminate(name, query)
+				err = sc.commands.Terminate(pack.DevName, query)
 			}
-		})
-		sc.scopeItem.SetScopeFunc(common.CmdSystemInform, func(name string, dump []byte) {
+		return err
+
+	case common.CmdSystemInform:
 			query := &common.SystemQuery{}
-			err := sc.decodeQuery(name, common.CmdSystemInform, dump, query)
+			err := sc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.SysInform(name, query)
+				err = sc.commands.SysInform(pack.DevName, query)
 			}
-		})
-		sc.scopeItem.SetScopeFunc(common.CmdSystemStart, func(name string, dump []byte) {
+		return err
+
+	case common.CmdSystemStart:
 			query := &common.SystemConfig{}
-			err := sc.decodeQuery(name, common.CmdSystemStart, dump, query)
+			err := sc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.SysStart(name, query)
+				err = sc.commands.SysStart(pack.DevName, query)
 			}
-		})
-		sc.scopeItem.SetScopeFunc(common.CmdSystemStop, func(name string, dump []byte) {
+		return err
+
+	case common.CmdSystemStop:
 			query := &common.SystemQuery{}
-			err := sc.decodeQuery(name, common.CmdSystemStop, dump, query)
+			err := sc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.SysStop(name, query)
+				err = sc.commands.SysStop(pack.DevName, query)
 			}
-		})
-		sc.scopeItem.SetScopeFunc(common.CmdSystemRestart, func(name string, dump []byte) {
+		return err
+
+	case common.CmdSystemRestart:
 			query := &common.SystemConfig{}
-			err := sc.decodeQuery(name, common.CmdSystemRestart, dump, query)
+			err := sc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
 			if err == nil && sc.commands != nil {
-				err = sc.commands.SysRestart(name, query)
+				err = sc.commands.SysRestart(pack.DevName, query)
 			}
-		})
+		return err
+
+	default:
+		sc.log.Warn("SystemClient EvalPacket: Unknown  command - %s", pack.Command)
+		return errors.New("duplex Packet unknown command")
 	}
 }
 
@@ -72,6 +90,3 @@ func (sc *SystemClient) decodeQuery(name string, cmd string, dump []byte, query 
 	return json.Unmarshal(dump, query)
 }
 
-func (sc *SystemClient) GetScopeItem() *duplex.ScopeItem {
-	return sc.scopeItem
-}

@@ -65,37 +65,37 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	}
 	// Setup System scope interface
 	sd.system.Init(sd, sd.log)
-	sd.duplex.AddScopeItem(sd.system.GetScopeItem())
+	sd.duplex.AddDispatcher(duplex.ScopeSystem, sd.system.GetDispatcher())
 	sd.greeting.Supported = common.ScopeFlagSystem
 
 	// Setup Device scope interface
 	if device, ok := worker.(common.DeviceManager); ok {
 		sd.device.Init(device, sd.log)
-		sd.duplex.AddScopeItem(sd.device.GetScopeItem())
+		sd.duplex.AddDispatcher(duplex.ScopeDevice, sd.device.GetDispatcher())
 		sd.greeting.Supported |= common.ScopeFlagDevice
 	}
 	// Setup Printer scope interface
 	if printer, ok := worker.(common.PrinterManager); ok {
 		sd.printer.Init(printer, sd.log)
-		sd.duplex.AddScopeItem(sd.printer.GetScopeItem())
+		sd.duplex.AddDispatcher(duplex.ScopePrinter, sd.printer.GetDispatcher())
 		sd.greeting.Supported |= common.ScopeFlagPrinter
 	}
 	// Setup Reader scope interface
 	if reader, ok := worker.(common.ReaderManager); ok {
 		sd.reader.Init(reader, sd.log)
-		sd.duplex.AddScopeItem(sd.reader.GetScopeItem())
+		sd.duplex.AddDispatcher(duplex.ScopeReader, sd.reader.GetDispatcher())
 		sd.greeting.Supported |= common.ScopeFlagReader
 	}
 	// Setup Validator scope interface
 	if valid, ok := worker.(common.ValidatorManager); ok {
 		sd.validator.Init(valid, sd.log)
-		sd.duplex.AddScopeItem(sd.validator.GetScopeItem())
+		sd.duplex.AddDispatcher(duplex.ScopeValidator, sd.validator.GetDispatcher())
 		sd.greeting.Supported |= common.ScopeFlagValidator
 	}
 	// Setup PinPad scope interface
 	if pinpad, ok := worker.(common.PinPadManager); ok {
 		sd.pinpad.Init(pinpad, sd.log)
-		sd.duplex.AddScopeItem(sd.pinpad.GetScopeItem())
+		sd.duplex.AddDispatcher(duplex.ScopePinPad, sd.pinpad.GetDispatcher())
 		sd.greeting.Supported |= common.ScopeFlagPinPad
 	}
 	// Setup Device driver interface

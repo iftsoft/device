@@ -9,7 +9,6 @@ import (
 )
 
 type SystemServer struct {
-	scopeItem *duplex.ScopeItem
 	server    duplex.ServerManager
 	callback  common.SystemCallback
 	log       *core.LogAgent
@@ -17,7 +16,6 @@ type SystemServer struct {
 
 func NewSystemServer() *SystemServer {
 	ss := SystemServer{
-		scopeItem: duplex.NewScopeItem(duplex.ScopeSystem),
 		server:    nil,
 		callback:  nil,
 		log:       nil,
@@ -25,32 +23,39 @@ func NewSystemServer() *SystemServer {
 	return &ss
 }
 
-func (ss *SystemServer) GetScopeItem() *duplex.ScopeItem {
-	return ss.scopeItem
-}
-
 func (ss *SystemServer) Init(server duplex.ServerManager, callback common.SystemCallback, log *core.LogAgent) {
 	ss.log = log
 	ss.server = server
 	ss.callback = callback
-	if ss.scopeItem != nil {
-		ss.scopeItem.SetScopeFunc(common.CmdSystemReply, func(name string, dump []byte) {
-			reply := &common.SystemReply{}
-			err := ss.decodeReply(name, common.CmdSystemReply, dump, reply)
-			if err == nil && ss.callback != nil {
-				err = ss.callback.SystemReply(name, reply)
-			}
-		})
-		ss.scopeItem.SetScopeFunc(common.CmdSystemHealth, func(name string, dump []byte) {
-			reply := &common.SystemHealth{}
-			err := ss.decodeReply(name, common.CmdSystemHealth, dump, reply)
-			if err == nil && ss.callback != nil {
-				err = ss.callback.SystemHealth(name, reply)
-			}
-		})
-		if ss.server != nil {
-			ss.server.AddScopeItem(ss.scopeItem)
+	if ss.server != nil {
+		ss.server.AddDispatcher(duplex.ScopeSystem, ss)
+	}
+}
+
+func (ss *SystemServer) EvalPacket(pack *duplex.Packet) error {
+	if pack == nil {
+		return errors.New("duplex Packet is nil")
+	}
+	switch pack.Command {
+	case common.CmdSystemReply:
+		reply := &common.SystemReply{}
+		err := ss.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && ss.callback != nil {
+			err = ss.callback.SystemReply(pack.DevName, reply)
 		}
+		return err
+
+	case common.CmdSystemHealth:
+		reply := &common.SystemHealth{}
+		err := ss.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && ss.callback != nil {
+			err = ss.callback.SystemHealth(pack.DevName, reply)
+		}
+		return err
+
+	default:
+		ss.log.Warn("SystemServer EvalPacket: Unknown  command - %s", pack.Command)
+		return errors.New("duplex Packet unknown command")
 	}
 }
 

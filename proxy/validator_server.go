@@ -9,7 +9,6 @@ import (
 )
 
 type ValidatorServer struct {
-	scopeItem *duplex.ScopeItem
 	server    duplex.ServerManager
 	callback  common.ValidatorCallback
 	log       *core.LogAgent
@@ -17,7 +16,6 @@ type ValidatorServer struct {
 
 func NewValidatorServer() *ValidatorServer {
 	vs := ValidatorServer{
-		scopeItem: duplex.NewScopeItem(duplex.ScopeValidator),
 		server:    nil,
 		callback:  nil,
 		log:       nil,
@@ -25,46 +23,56 @@ func NewValidatorServer() *ValidatorServer {
 	return &vs
 }
 
-func (vs *ValidatorServer) GetScopeItem() *duplex.ScopeItem {
-	return vs.scopeItem
-}
 
 func (vs *ValidatorServer) Init(server duplex.ServerManager, callback common.ValidatorCallback, log *core.LogAgent) {
 	vs.log = log
 	vs.server = server
 	vs.callback = callback
-	if vs.scopeItem != nil {
-		vs.scopeItem.SetScopeFunc(common.CmdNoteAccepted, func(name string, dump []byte) {
-			reply := &common.ValidatorAccept{}
-			err := vs.decodeReply(name, common.CmdNoteAccepted, dump, reply)
-			if err == nil && vs.callback != nil {
-				err = vs.callback.NoteAccepted(name, reply)
-			}
-		})
-		vs.scopeItem.SetScopeFunc(common.CmdCashIsStored, func(name string, dump []byte) {
-			reply := &common.ValidatorAccept{}
-			err := vs.decodeReply(name, common.CmdCashIsStored, dump, reply)
-			if err == nil && vs.callback != nil {
-				err = vs.callback.CashIsStored(name, reply)
-			}
-		})
-		vs.scopeItem.SetScopeFunc(common.CmdCashReturned, func(name string, dump []byte) {
-			reply := &common.ValidatorAccept{}
-			err := vs.decodeReply(name, common.CmdCashReturned, dump, reply)
-			if err == nil && vs.callback != nil {
-				err = vs.callback.CashReturned(name, reply)
-			}
-		})
-		vs.scopeItem.SetScopeFunc(common.CmdValidatorStore, func(name string, dump []byte) {
-			reply := &common.ValidatorStore{}
-			err := vs.decodeReply(name, common.CmdValidatorStore, dump, reply)
-			if err == nil && vs.callback != nil {
-				err = vs.callback.ValidatorStore(name, reply)
-			}
-		})
-		if vs.server != nil {
-			vs.server.AddScopeItem(vs.scopeItem)
+	if vs.server != nil {
+		vs.server.AddDispatcher(duplex.ScopeValidator, vs)
+	}
+}
+
+func (vs *ValidatorServer) EvalPacket(pack *duplex.Packet) error {
+	if pack == nil {
+		return errors.New("duplex Packet is nil")
+	}
+	switch pack.Command {
+	case common.CmdNoteAccepted:
+		reply := &common.ValidatorAccept{}
+		err := vs.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && vs.callback != nil {
+			err = vs.callback.NoteAccepted(pack.DevName, reply)
 		}
+		return err
+
+	case common.CmdCashIsStored:
+		reply := &common.ValidatorAccept{}
+		err := vs.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && vs.callback != nil {
+			err = vs.callback.CashIsStored(pack.DevName, reply)
+		}
+		return err
+
+	case common.CmdCashReturned:
+		reply := &common.ValidatorAccept{}
+		err := vs.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && vs.callback != nil {
+			err = vs.callback.CashReturned(pack.DevName, reply)
+		}
+		return err
+
+	case common.CmdValidatorStore:
+		reply := &common.ValidatorStore{}
+		err := vs.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && vs.callback != nil {
+			err = vs.callback.ValidatorStore(pack.DevName, reply)
+		}
+		return err
+
+	default:
+		vs.log.Warn("ValidatorServer EvalPacket: Unknown  command - %s", pack.Command)
+		return errors.New("duplex Packet unknown command")
 	}
 }
 

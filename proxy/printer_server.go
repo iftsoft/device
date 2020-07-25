@@ -9,7 +9,6 @@ import (
 )
 
 type PrinterServer struct {
-	scopeItem *duplex.ScopeItem
 	server    duplex.ServerManager
 	callback  common.PrinterCallback
 	log       *core.LogAgent
@@ -17,7 +16,6 @@ type PrinterServer struct {
 
 func NewPrinterServer() *PrinterServer {
 	ps := PrinterServer{
-		scopeItem: duplex.NewScopeItem(duplex.ScopePrinter),
 		server:    nil,
 		callback:  nil,
 		log:       nil,
@@ -25,31 +23,38 @@ func NewPrinterServer() *PrinterServer {
 	return &ps
 }
 
-func (ps *PrinterServer) GetScopeItem() *duplex.ScopeItem {
-	return ps.scopeItem
-}
 
 func (ps *PrinterServer) Init(server duplex.ServerManager, callback common.PrinterCallback, log *core.LogAgent) {
 	ps.log = log
 	ps.server = server
 	ps.callback = callback
-	if ps.scopeItem != nil {
-		ps.scopeItem.SetScopeFunc(common.CmdPrinterProgress, func(name string, dump []byte) {
-			reply := &common.PrinterProgress{}
-			err := ps.decodeReply(name, common.CmdPrinterProgress, dump, reply)
-			if err == nil && ps.callback != nil {
-				err = ps.callback.PrinterProgress(name, reply)
-			}
-		})
-		if ps.server != nil {
-			ps.server.AddScopeItem(ps.scopeItem)
-		}
+	if ps.server != nil {
+		ps.server.AddDispatcher(duplex.ScopePrinter, ps)
 	}
 }
 
-func (rs *PrinterServer) decodeReply(name string, cmd string, dump []byte, reply interface{}) (err error) {
-	if rs.log != nil {
-		rs.log.Dump("PrinterServer dev:%s take cmd:%s, pack:%s", name, cmd, string(dump))
+func (ps *PrinterServer) EvalPacket(pack *duplex.Packet) error {
+	if pack == nil {
+		return errors.New("duplex Packet is nil")
+	}
+	switch pack.Command {
+	case common.CmdPrinterProgress:
+		reply := &common.PrinterProgress{}
+		err := ps.decodeReply(pack.DevName, pack.Command, pack.Content, reply)
+		if err == nil && ps.callback != nil {
+			err = ps.callback.PrinterProgress(pack.DevName, reply)
+		}
+		return err
+
+	default:
+		ps.log.Warn("PrinterServer EvalPacket: Unknown  command - %s", pack.Command)
+		return errors.New("duplex Packet unknown command")
+	}
+}
+
+func (ps *PrinterServer) decodeReply(name string, cmd string, dump []byte, reply interface{}) (err error) {
+	if ps.log != nil {
+		ps.log.Dump("PrinterServer dev:%s take cmd:%s, pack:%s", name, cmd, string(dump))
 	}
 	err = json.Unmarshal(dump, reply)
 	return err

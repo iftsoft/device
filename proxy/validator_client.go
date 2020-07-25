@@ -2,84 +2,98 @@ package proxy
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/duplex"
 )
 
 type ValidatorClient struct {
-	scopeItem *duplex.ScopeItem
 	commands  common.ValidatorManager
 	log       *core.LogAgent
 }
 
 func NewValidatorClient() *ValidatorClient {
 	vc := ValidatorClient{
-		scopeItem: duplex.NewScopeItem(duplex.ScopeValidator),
 		commands:  nil,
 		log:       nil,
 	}
 	return &vc
 }
 
-func (vc *ValidatorClient) GetScopeItem() *duplex.ScopeItem {
-	return vc.scopeItem
+func (vc *ValidatorClient) GetDispatcher() duplex.Dispatcher {
+	return vc
 }
 
 func (vc *ValidatorClient) Init(command common.ValidatorManager, log *core.LogAgent) {
 	vc.log = log
 	vc.commands = command
-	// init scope functions
-	if vc.scopeItem != nil {
-		vc.scopeItem.SetScopeFunc(common.CmdInitValidator, func(name string, dump []byte) {
-			query := &common.ValidatorQuery{}
-			err := vc.decodeQuery(name, common.CmdInitValidator, dump, query)
-			if err == nil && vc.commands != nil {
-				err = vc.commands.InitValidator(name, query)
-			}
-		})
-		vc.scopeItem.SetScopeFunc(common.CmdDoValidate, func(name string, dump []byte) {
-			query := &common.ValidatorQuery{}
-			err := vc.decodeQuery(name, common.CmdDoValidate, dump, query)
-			if err == nil && vc.commands != nil {
-				err = vc.commands.DoValidate(name, query)
-			}
-		})
-		vc.scopeItem.SetScopeFunc(common.CmdNoteAccept, func(name string, dump []byte) {
-			query := &common.ValidatorQuery{}
-			err := vc.decodeQuery(name, common.CmdNoteAccept, dump, query)
-			if err == nil && vc.commands != nil {
-				err = vc.commands.NoteAccept(name, query)
-			}
-		})
-		vc.scopeItem.SetScopeFunc(common.CmdNoteReturn, func(name string, dump []byte) {
-			query := &common.ValidatorQuery{}
-			err := vc.decodeQuery(name, common.CmdNoteReturn, dump, query)
-			if err == nil && vc.commands != nil {
-				err = vc.commands.NoteReturn(name, query)
-			}
-		})
-		vc.scopeItem.SetScopeFunc(common.CmdStopValidate, func(name string, dump []byte) {
-			query := &common.ValidatorQuery{}
-			err := vc.decodeQuery(name, common.CmdStopValidate, dump, query)
-			if err == nil && vc.commands != nil {
-				err = vc.commands.StopValidate(name, query)
-			}
-		})
-		vc.scopeItem.SetScopeFunc(common.CmdCheckValidator, func(name string, dump []byte) {
-			query := &common.ValidatorQuery{}
-			err := vc.decodeQuery(name, common.CmdCheckValidator, dump, query)
-			if err == nil && vc.commands != nil {
-				err = vc.commands.CheckValidator(name, query)
-			}
-		})
-		vc.scopeItem.SetScopeFunc(common.CmdClearValidator, func(name string, dump []byte) {
-			query := &common.ValidatorQuery{}
-			err := vc.decodeQuery(name, common.CmdClearValidator, dump, query)
-			if err == nil && vc.commands != nil {
-				err = vc.commands.ClearValidator(name, query)
-			}
-		})
+}
+
+func (vc *ValidatorClient) EvalPacket(pack *duplex.Packet) error {
+	if pack == nil {
+		return errors.New("duplex Packet is nil")
+	}
+	switch pack.Command {
+	case common.CmdInitValidator:
+		query := &common.ValidatorQuery{}
+		err := vc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && vc.commands != nil {
+			err = vc.commands.InitValidator(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdDoValidate:
+		query := &common.ValidatorQuery{}
+		err := vc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && vc.commands != nil {
+			err = vc.commands.DoValidate(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdNoteAccept:
+		query := &common.ValidatorQuery{}
+		err := vc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && vc.commands != nil {
+			err = vc.commands.NoteAccept(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdNoteReturn:
+		query := &common.ValidatorQuery{}
+		err := vc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && vc.commands != nil {
+			err = vc.commands.NoteReturn(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdStopValidate:
+		query := &common.ValidatorQuery{}
+		err := vc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && vc.commands != nil {
+			err = vc.commands.StopValidate(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdCheckValidator:
+		query := &common.ValidatorQuery{}
+		err := vc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && vc.commands != nil {
+			err = vc.commands.CheckValidator(pack.DevName, query)
+		}
+		return err
+
+	case common.CmdClearValidator:
+		query := &common.ValidatorQuery{}
+		err := vc.decodeQuery(pack.DevName, pack.Command, pack.Content, query)
+		if err == nil && vc.commands != nil {
+			err = vc.commands.ClearValidator(pack.DevName, query)
+		}
+		return err
+
+	default:
+		vc.log.Warn("ValidatorClient EvalPacket: Unknown  command - %s", pack.Command)
+		return errors.New("duplex Packet unknown command")
 	}
 }
 
