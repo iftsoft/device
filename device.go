@@ -1,5 +1,4 @@
-package device
+package main
 
-type Device struct {
-	Name string
+func main() {
 }
