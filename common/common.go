@@ -18,71 +18,88 @@ const (
 type DeviceQuery struct {
 	Timeout int32
 }
+
 func (dev *DeviceQuery) String() string {
-	if dev == nil { return "" }
+	if dev == nil {
+		return ""
+	}
 	str := fmt.Sprintf("Timeout = %d",
 		dev.Timeout)
 	return str
 }
 
 type DeviceError struct {
-	Action   EnumDevAction	`json:"action"`
-	DevState EnumDevState	`json:"devState"`
-	ErrCode  EnumDevError	`json:"errCode"`
-	ErrText  string			`json:"errText"`
+	Action   EnumDevAction `json:"action"`
+	DevState EnumDevState  `json:"dev_state"`
+	ErrCode  EnumDevError  `json:"err_code"`
+	ErrText  string        `json:"err_text"`
 }
+
 func (dev *DeviceError) String() string {
-	if dev == nil { return "" }
+	if dev == nil {
+		return ""
+	}
 	str := fmt.Sprintf("Action = %s, DevState = %s, ErrCode = %s, ErrText = %s",
 		dev.Action, dev.DevState, dev.ErrCode, dev.ErrText)
 	return str
 }
 
 type DeviceReply struct {
-	Command string
+	Command string `json:"command"`
 	DeviceError
 }
+
 func (dev *DeviceReply) String() string {
-	if dev == nil { return "" }
+	if dev == nil {
+		return ""
+	}
 	str := fmt.Sprintf("Command = %s, %s",
 		dev.Command, dev.DeviceError.String())
 	return str
 }
 
 type DeviceState struct {
-	Action   EnumDevAction	`json:"action"`
-	NewState EnumDevState	`json:"newState"`
-	OldState EnumDevState	`json:"oldState"`
+	Action   EnumDevAction `json:"action"`
+	NewState EnumDevState  `json:"new_state"`
+	OldState EnumDevState  `json:"old_state"`
 }
+
 func (dev *DeviceState) String() string {
-	if dev == nil { return "" }
+	if dev == nil {
+		return ""
+	}
 	str := fmt.Sprintf("Action = %s, NewState = %s, OldState = %s",
 		dev.Action, dev.NewState, dev.OldState)
 	return str
 }
 
 type DevicePrompt struct {
-	Action EnumDevAction	`json:"action"`
-	Prompt EnumDevPrompt	`json:"prompt"`
+	Action EnumDevAction `json:"action"`
+	Prompt EnumDevPrompt `json:"prompt"`
 }
+
 func (dev *DevicePrompt) String() string {
-	if dev == nil { return "" }
+	if dev == nil {
+		return ""
+	}
 	str := fmt.Sprintf("Action = %s, Prompt = %s",
 		dev.Action, dev.Prompt)
 	return str
 }
 
 type DeviceInform struct {
-	Action EnumDevAction	`json:"action"`
-	Inform string	        `json:"inform"`
+	Action EnumDevAction `json:"action"`
+	Inform string        `json:"inform"`
 }
+
 func (dev *DeviceInform) String() string {
-	if dev == nil { return "" }
+	if dev == nil {
+		return ""
+	}
 	str := fmt.Sprintf("Action = %s, Inform = %s",
 		dev.Action, dev.Inform)
 	return str
 }
-
 
 type DeviceCallback interface {
 	DeviceReply(name string, reply *DeviceReply) error

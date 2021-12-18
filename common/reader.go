@@ -14,28 +14,28 @@ const (
 )
 
 type ReaderCardPos struct {
-	Position int16	`json:"position"`
+	Position int16 `json:"position"`
 }
 
 type ReaderCardInfo struct {
-	Track1  string	`json:"track1"`
-	Track2  string	`json:"track2"`
-	Track3  string	`json:"track3"`
-	RawData string	`json:"rawData"`
-	CardPan string	`json:"cardPan"`
-	ExpDate string	`json:"expDate"`
-	Holder  string	`json:"holder"`
+	Track1  string `json:"track1"`
+	Track2  string `json:"track2"`
+	Track3  string `json:"track3"`
+	RawData string `json:"raw_data"`
+	CardPan string `json:"card_pan"`
+	ExpDate string `json:"exp_date"`
+	Holder  string `json:"holder"`
 }
 
 type ReaderChipQuery struct {
-	Protocol int16	`json:"protocol"`
-	Query    []byte	`json:"query"`
+	Protocol int16  `json:"protocol"`
+	Query    []byte `json:"query"`
 }
 
 type ReaderChipReply struct {
 	DeviceReply
-	Protocol int16	`json:"protocol"`
-	Reply    []byte	`json:"reply"`
+	Protocol int16  `json:"protocol"`
+	Reply    []byte `json:"reply"`
 }
 
 type ReaderCallback interface {

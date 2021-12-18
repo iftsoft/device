@@ -6,9 +6,9 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/dbase"
 	"github.com/iftsoft/device/duplex"
 	"github.com/iftsoft/device/proxy"
-	"github.com/iftsoft/device/dbase"
 	"sync"
 	"time"
 )

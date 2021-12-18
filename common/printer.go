@@ -7,19 +7,19 @@ const (
 )
 
 type PrinterQuery struct {
-	Text string	`json:"text"`
+	Text string `json:"text"`
 }
 
 type PrinterSetup struct {
-	PaperPath int32	`json:"paperPath"`
-	Landscape bool	`json:"landscape"`
-	ShowImage int32	`json:"showImage"`
+	PaperPath int32 `json:"paper_path"`
+	Landscape bool  `json:"landscape"`
+	ShowImage int32 `json:"show_image"`
 }
 
 type PrinterProgress struct {
-	DocName  string	`json:"docName"`
-	PageDone int32	`json:"pageDone"`
-	PagesAll int32	`json:"pagesAll"`
+	DocName  string `json:"doc_name"`
+	PageDone int32  `json:"page_done"`
+	PagesAll int32  `json:"pages_all"`
 }
 
 type PrinterCallback interface {

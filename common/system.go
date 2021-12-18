@@ -19,15 +19,19 @@ const (
 	SysErrSystemFail
 	SysErrDeviceFail
 )
+
 func (e EnumSystemError) String() string {
 	switch e {
-	case SysErrSuccess:			return "Success"
-	case SysErrSystemFail:		return "System fail"
-	case SysErrDeviceFail:		return "Device fail"
-	default:					return "Undefined"
+	case SysErrSuccess:
+		return "Success"
+	case SysErrSystemFail:
+		return "System fail"
+	case SysErrDeviceFail:
+		return "Device fail"
+	default:
+		return "Undefined"
 	}
 }
-
 
 // System state codes
 const (
@@ -36,55 +40,60 @@ const (
 	SysStateStopped
 	SysStateFailed
 )
+
 func (e EnumSystemState) String() string {
 	switch e {
-	case SysStateUndefined:		return "Undefined"
-	case SysStateRunning:		return "Running"
-	case SysStateStopped:		return "Stopped"
-	case SysStateFailed:		return "Failed"
-	default:					return "Unknown"
+	case SysStateUndefined:
+		return "Undefined"
+	case SysStateRunning:
+		return "Running"
+	case SysStateStopped:
+		return "Stopped"
+	case SysStateFailed:
+		return "Failed"
+	default:
+		return "Unknown"
 	}
 }
-
 
 type SystemQuery struct {
 }
 
 type SystemConfig struct {
-	LinkType  uint16	`json:"linkType"`		// 0-none, 1-COM, 2-USB
-	PortName  string	`json:"portName"`		// Serial port name
-	VendorID  uint16	`json:"vendorId"` 	 	// Device Vendor ID
-	ProductID uint16	`json:"productId"`	 	// Device Product ID
+	LinkType  uint16 `json:"link_type"`  // 0-none, 1-COM, 2-USB
+	PortName  string `json:"port_name"`  // Serial port name
+	VendorID  uint16 `json:"vendor_id"`  // Device Vendor ID
+	ProductID uint16 `json:"product_id"` // Device Product ID
 }
 
 type SystemReply struct {
-	Command string			`json:"command"`
-	Message string			`json:"message"`
-	Error   EnumSystemError	`json:"error"`
-	State   EnumSystemState	`json:"state"`
+	Command string          `json:"command"`
+	Message string          `json:"message"`
+	Error   EnumSystemError `json:"error"`
+	State   EnumSystemState `json:"state"`
 }
 
 type SystemMetrics struct {
-	Uptime   int64				`json:"uptime"`
-	DevError EnumDevError		`json:"devError"`
-	DevState EnumDevState		`json:"devState"`
-	Counts   map[string]uint32	`json:"counts"`
-	Totals   map[string]float32	`json:"totals"`
-	Topics   map[string]string	`json:"topics"`
+	Uptime   int64              `json:"uptime"`
+	DevError EnumDevError       `json:"dev_error"`
+	DevState EnumDevState       `json:"dev_state"`
+	Counts   map[string]uint32  `json:"counts"`
+	Totals   map[string]float32 `json:"totals"`
+	Topics   map[string]string  `json:"topics"`
 }
 
 type SystemHealth struct {
-	Moment  int64				`json:"moment"`
-	Error   EnumSystemError		`json:"error"`
-	State   EnumSystemState		`json:"state"`
-	Metrics SystemMetrics		`json:"metrics"`
+	Moment  int64           `json:"moment"`
+	Error   EnumSystemError `json:"error"`
+	State   EnumSystemState `json:"state"`
+	Metrics SystemMetrics   `json:"metrics"`
 }
 
 func NewSystemHealth() *SystemHealth {
 	sh := &SystemHealth{
 		Moment: 0,
-		Error: 0,
-		State: 0,
+		Error:  0,
+		State:  0,
 		Metrics: SystemMetrics{
 			Uptime:   0,
 			DevError: 0,

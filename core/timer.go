@@ -2,17 +2,17 @@ package core
 
 import "time"
 
-// Used to get duration of process
+// DurationTimer is used to get duration of process
 type DurationTimer struct {
 	start time.Time
 }
 
-// Save time of process beginning
+// StartTimer saves time of process beginning
 func (timer *DurationTimer) StartTimer() {
 	timer.start = time.Now()
 }
 
-// Get process duration in nanoseconds
+// Nanoseconds returns process duration in nanoseconds
 func (timer *DurationTimer) Nanoseconds() int64 {
 	if !timer.start.IsZero() {
 		delta := time.Now().Sub(timer.start)
@@ -21,7 +21,7 @@ func (timer *DurationTimer) Nanoseconds() int64 {
 	return 0
 }
 
-// Get process duration in microseconds
+// Microseconds returns process duration in microseconds
 func (timer *DurationTimer) Microseconds() int {
 	if !timer.start.IsZero() {
 		delta := time.Now().Sub(timer.start)
@@ -30,7 +30,7 @@ func (timer *DurationTimer) Microseconds() int {
 	return 0
 }
 
-// Get process duration in milliseconds
+// Milliseconds returns process duration in milliseconds
 func (timer *DurationTimer) Milliseconds() int {
 	if !timer.start.IsZero() {
 		delta := time.Now().Sub(timer.start)
@@ -39,7 +39,7 @@ func (timer *DurationTimer) Milliseconds() int {
 	return 0
 }
 
-// Get process duration in seconds
+// Seconds returns process duration in seconds
 func (timer *DurationTimer) Seconds() int {
 	if !timer.start.IsZero() {
 		delta := time.Now().Sub(timer.start)

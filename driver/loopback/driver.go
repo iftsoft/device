@@ -4,8 +4,8 @@ import (
 	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
-	"github.com/iftsoft/device/driver"
 	"github.com/iftsoft/device/dbase"
+	"github.com/iftsoft/device/driver"
 	"time"
 )
 
@@ -24,7 +24,6 @@ type LoopbackDriver struct {
 	errorText string
 	begTime   int64
 }
-
 
 func NewDummyDriver() *LoopbackDriver {
 	dd := LoopbackDriver{
@@ -48,8 +47,8 @@ func NewDummyDriver() *LoopbackDriver {
 // Implementation of DeviceDriver interface
 func (dd *LoopbackDriver) InitDevice(context *driver.Context) error {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "InitDevice")
-	dd.config   = context.Config
-	dd.storage  = context.Storage
+	dd.config = context.Config
+	dd.storage = context.Storage
 	dd.protocol = GetLoopbackProtocol(dd.config.Linker)
 
 	mask := common.ScopeFlagSystem
@@ -74,7 +73,7 @@ func (dd *LoopbackDriver) InitDevice(context *driver.Context) error {
 		mask |= common.ScopeFlagPinPad
 	}
 	if context.Greeting != nil {
-		context.Greeting.DevType  = common.DevTypeCommon
+		context.Greeting.DevType = common.DevTypeCommon
 		context.Greeting.Required = mask
 	}
 	return nil
@@ -105,8 +104,8 @@ func (dd *LoopbackDriver) StopDevice() error {
 }
 func (dd *LoopbackDriver) CheckDevice(metrics *common.SystemMetrics) error {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "CheckDevice")
-	if metrics != nil{
-		metrics.Uptime   = time.Now().Unix() - dd.begTime
+	if metrics != nil {
+		metrics.Uptime = time.Now().Unix() - dd.begTime
 		metrics.DevState = dd.devState
 		metrics.DevError = dd.devError
 	}
@@ -149,8 +148,8 @@ func (dd *LoopbackDriver) dummyDeviceReply(name string, cmd string, query interf
 	reply := &common.DeviceReply{}
 	reply.Command = cmd
 	reply.DevState = dd.devState
-	reply.ErrCode  = dd.devError
-	reply.ErrText  = dd.errorText
+	reply.ErrCode = dd.devError
+	reply.ErrText = dd.errorText
 	if dd.device != nil {
 		return dd.device.DeviceReply(name, reply)
 	}
@@ -254,8 +253,8 @@ func (dd *LoopbackDriver) dummyValidatorStore(name string, cmd string, query *co
 	reply := &common.ValidatorStore{}
 	reply.Command = cmd
 	reply.DevState = dd.devState
-	reply.ErrCode  = dd.devError
-	reply.ErrText  = dd.errorText
+	reply.ErrCode = dd.devError
+	reply.ErrText = dd.errorText
 	var err error
 	if dd.validator != nil {
 		err = dd.validator.ValidatorStore(name, reply)
@@ -319,8 +318,8 @@ func (dd *LoopbackDriver) dummyPinPadReply(name string, cmd string, query interf
 	reply := &common.ReaderPinReply{}
 	reply.Command = cmd
 	reply.DevState = dd.devState
-	reply.ErrCode  = dd.devError
-	reply.ErrText  = dd.errorText
+	reply.ErrCode = dd.devError
+	reply.ErrText = dd.errorText
 	var err error
 	if dd.reader != nil {
 		err = dd.pinpad.PinPadReply(name, reply)

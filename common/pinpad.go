@@ -18,35 +18,42 @@ const (
 	PinPadKeyMAC
 	PinPadKeyData
 )
+
 func (e EnumPinKeyType) String() string {
 	switch e {
-	case PinPadKeyPIN:			return "Key for PIN"
-	case PinPadKeyMAC:			return "Key for MAC"
-	case PinPadKeyData:			return "Key for data"
-	default:					return "Unknown"
+	case PinPadKeyPIN:
+		return "Key for PIN"
+	case PinPadKeyMAC:
+		return "Key for MAC"
+	case PinPadKeyData:
+		return "Key for data"
+	default:
+		return "Unknown"
 	}
 }
 
 type ReaderPinQuery struct {
-//	UseMode  int16
-	KeyType  EnumPinKeyType	`json:"keyType"`
-	KeyIndex uint16	        `json:"keyIndex"`
-	KeyValue []byte	        `json:"keyValue"`
-	CardPan  string	        `json:"cardPan"`
+	//	UseMode  int16
+	KeyType  EnumPinKeyType `json:"key_type"`
+	KeyIndex uint16         `json:"key_index"`
+	KeyValue []byte         `json:"key_value"`
+	CardPan  string         `json:"card_pan"`
 }
 
 type ReaderPinReply struct {
 	DeviceReply
-	PinLength uint16	`json:"pinLenght"`
-	PinBlock  []byte	`json:"pinBlock"`
+	PinLength uint16 `json:"pin_lenght"`
+	PinBlock  []byte `json:"pin_block"`
 }
+
 func (dev *ReaderPinReply) String() string {
-	if dev == nil { return "" }
+	if dev == nil {
+		return ""
+	}
 	str := fmt.Sprintf("%s, PinLength = %d",
 		dev.DeviceReply.String(), dev.PinLength)
 	return str
 }
-
 
 type PinPadCallback interface {
 	PinPadReply(name string, reply *ReaderPinReply) error

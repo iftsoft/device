@@ -16,7 +16,9 @@ func init() {
 func WaitForSignal(out *LogAgent) {
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 	s := <-signalChan
-	out.Info("Got signal: %v, exiting.", s)
+	if out != nil {
+		out.Info("Got signal: %v, exiting.", s)
+	}
 }
 
 func SendQuitSignal(wait int) {

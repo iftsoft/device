@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Get go routine ID as a string
+// GetGID returns go routine ID as a string
 func GetGID() string {
 	b := make([]byte, 64)
 	b = b[:runtime.Stack(b, false)]
@@ -17,7 +17,7 @@ func GetGID() string {
 	return string(b)
 }
 
-// Extract error text from Message object
+// GetErrorText extracts error text from Message object
 func GetErrorText(err error) string {
 	if err != nil {
 		return err.Error()
@@ -28,10 +28,14 @@ func GetErrorText(err error) string {
 func GetBinaryDump(data []byte) string {
 	str := ""
 	size := len(data)
-	if size == 0   { return str }
-	if size > 512  { return str }
+	if size == 0 {
+		return str
+	}
+	if size > 512 {
+		return str
+	}
 
-	for i:=0; i<size; i++ {
+	for i := 0; i < size; i++ {
 		if size > 16 && i%16 == 0 {
 			str += "\n"
 		}
@@ -43,7 +47,7 @@ func GetBinaryDump(data []byte) string {
 	return str
 }
 
-// Get Call Stack Trace as a string
+// TraceCallStack returns Call Stack Trace as a string
 func TraceCallStack(text string, i int) string {
 	//	i := 2
 	for {
@@ -86,4 +90,3 @@ func FormatSnakeString(s string) string {
 	}
 	return strings.ToLower(string(data[:]))
 }
-
