@@ -1,0 +1,54 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class ValidatorNote {
+	Device   string
+	Currency DevCurrency
+	Count    DevCounter
+	Nominal  DevAmount
+	Amount   DevAmount
+}
+
+class ObjBalance {
+	Id       int64
+	BatchId  int64
+	Currency DevCurrency
+	Nominal  DevAmount
+	Count    DevCounter
+	Amount   DevAmount
+	Created  string
+}
+
+class ObjBatch {
+	Id       int64
+	Device   string
+	State    BatchState
+	Count    DevCounter
+	Opened   string
+	Closed   string
+	Detail   string
+}
+
+class ObjDeposit {
+	Id       int64
+	BatchId  int64
+	ExtraId  int64
+	Currency DevCurrency
+	Nominal  DevAmount
+	Count    DevCounter
+	Amount   DevAmount
+	Created  string
+}
+
+enum BatchState {
+	StateEmpty
+	StateActive
+	StateCorrect
+	StateMismatch
+}
+
+BatchState <-- ObjBatch
+ObjBatch <- ObjDeposit
+ObjBalance -> ObjBatch
+
+@enduml
