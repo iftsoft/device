@@ -18,7 +18,7 @@ func ReadYamlFile(name string, cfg interface{}) error {
 	return nil
 }
 
-// fileExists checks if a file exists and is not a directory before we
+// FileExists checks if a file exists and is not a directory before we
 // try using it to prevent further errors.
 func FileExists(filename string) bool {
 	info, err := os.Stat(filename)
@@ -38,4 +38,3 @@ func CheckOrCreateFile(filename string) error {
 	}
 	return err
 }
-

@@ -7,15 +7,27 @@ import (
 )
 
 type SrvConfig struct {
-	Logger   *core.LogConfig		`yaml:"logger"`
-	Duplex   *duplex.ServerConfig	`yaml:"duplex"`
-	Handlers HandlerList			`yaml:"handlers"`
+	Logger   *core.LogConfig      `yaml:"logger"`
+	Duplex   *duplex.ServerConfig `yaml:"duplex"`
+	Handlers HandlerList          `yaml:"handlers"`
 }
 
 func (cfg *SrvConfig) String() string {
 	str := fmt.Sprintf("Server app config: %s %s %s",
 		cfg.Logger, cfg.Duplex, cfg.Handlers)
 	return str
+}
+
+func (cfg *SrvConfig) UpdateConfig(appPar *AppParams) {
+	if cfg == nil {
+		return
+	}
+	if cfg.Logger.LogFile == "" {
+		cfg.Logger.LogFile = appPar.Name
+	}
+	if appPar.Logs != "" {
+		cfg.Logger.LogPath = appPar.Logs
+	}
 }
 
 func GetDefaultSrvConfig() *SrvConfig {
@@ -27,12 +39,12 @@ func GetDefaultSrvConfig() *SrvConfig {
 }
 
 func GetSrvConfig(appPar *AppParams) (error, *SrvConfig) {
-	appCfg := GetDefaultSrvConfig()
-	err := core.ReadYamlFile(appPar.Config, appCfg)
+	srvCfg := GetDefaultSrvConfig()
+	err := core.ReadYamlFile(appPar.Config, srvCfg)
 	if err != nil {
 		return err, nil
 	} else {
-		appPar.UpdateLoggerConfig(appCfg.Logger)
+		srvCfg.UpdateConfig(appPar)
 	}
-	return nil, appCfg
+	return nil, srvCfg
 }

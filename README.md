@@ -1,2 +1,2 @@
 # device
-Controller of hadware device
+Controller of hardware device
