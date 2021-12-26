@@ -3,6 +3,7 @@ package duplex
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"io"
 	"net"
@@ -24,7 +25,9 @@ func GetDefaultClientConfig() *ClientConfig {
 }
 
 func (cfg *ClientConfig) String() string {
-	if cfg == nil { return "" }
+	if cfg == nil {
+		return ""
+	}
 	str := fmt.Sprintf("\nDuplex client config: "+
 		"Port = %d, DevName = %s.",
 		cfg.Port, cfg.DevName)
@@ -35,7 +38,7 @@ type DuplexClient struct {
 	Duplex
 	config   *ClientConfig
 	scopeMap *ScopeSet
-	greeting *GreetingInfo
+	greeting *common.GreetingInfo
 }
 
 func NewDuplexClient(cfg *ClientConfig) *DuplexClient {
@@ -53,7 +56,7 @@ func NewDuplexClient(cfg *ClientConfig) *DuplexClient {
 	return dc
 }
 
-func (dc *DuplexClient) StartClient(wg *sync.WaitGroup, info *GreetingInfo) {
+func (dc *DuplexClient) StartClient(wg *sync.WaitGroup, info *common.GreetingInfo) {
 	wg.Add(1)
 	dc.greeting = info
 	dc.log.Info("Starting client engine")

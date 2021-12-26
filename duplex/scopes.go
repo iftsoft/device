@@ -1,7 +1,6 @@
 package duplex
 
 import (
-	"github.com/iftsoft/device/common"
 	"sync"
 )
 
@@ -16,13 +15,6 @@ type Transporter interface {
 type Dispatcher interface {
 	EvalPacket(pack *Packet) error
 }
-
-type GreetingInfo struct {
-	DevType   common.DevTypeMask	`json:"devType"`	// Implemented device types
-	Supported common.DevScopeMask	`json:"supported"`	// Manager interfaces that driver supported
-	Required  common.DevScopeMask	`json:"required"`	// Callback interfaces that driver required
-}
-
 
 type ScopeSet struct {
 	store map[PacketScope]Dispatcher
@@ -52,4 +44,3 @@ func (ss *ScopeSet) GetScope(id PacketScope) Dispatcher {
 	}
 	return nil
 }
-

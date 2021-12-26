@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/duplex"
 )
@@ -12,7 +13,6 @@ type HandlerManager struct {
 	runner BinaryLauncher
 }
 
-
 func NewHandlerManager(config config.HandlerList) *HandlerManager {
 	hm := &HandlerManager{}
 	hm.reflex.initReflexSet()
@@ -22,14 +22,12 @@ func NewHandlerManager(config config.HandlerList) *HandlerManager {
 	return hm
 }
 
-
 func (hm *HandlerManager) SetupDuplexServer(server duplex.ServerManager) {
 	hm.proxy.setupProxy(server, &hm.router)
 }
 
-
 // Implementation of duplex.ClientManager
-func (hm *HandlerManager) OnClientStarted(name string, info *duplex.GreetingInfo) {
+func (hm *HandlerManager) OnClientStarted(name string, info *common.GreetingInfo) {
 	if name == "" {
 		return
 	}
@@ -48,7 +46,6 @@ func (hm *HandlerManager) OnClientStopped(name string) {
 	hm.router.onClientStopped(name)
 }
 
-
 func (hm *HandlerManager) RegisterReflexFactory(factory ReflexCreator) {
 	hm.reflex.registerFactory(factory)
 }
@@ -63,9 +60,6 @@ func (hm *HandlerManager) StopAllBinaries() {
 	hm.runner.waitAll()
 }
 
-
 func (hm *HandlerManager) Cleanup() {
 	hm.router.cleanupRouter()
 }
-
-

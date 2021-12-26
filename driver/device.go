@@ -15,7 +15,7 @@ import (
 
 type SystemDevice struct {
 	devName   string
-	greeting  *duplex.GreetingInfo
+	greeting  *common.GreetingInfo
 	state     common.EnumSystemState
 	error     common.EnumSystemError
 	driver    DeviceDriver
@@ -40,12 +40,12 @@ func NewSystemDevice(cfg *config.AppConfig) *SystemDevice {
 	}
 	sd := SystemDevice{
 		devName:   cfg.Duplex.DevName,
-		greeting:  &duplex.GreetingInfo{},
+		greeting:  &common.GreetingInfo{},
 		state:     common.SysStateUndefined,
 		error:     common.SysErrSuccess,
 		driver:    nil,
 		duplex:    duplex.NewDuplexClient(cfg.Duplex),
-		config:    cfg.Device,
+		config:    cfg.Devices[0],
 		system:    proxy.NewSystemClient(),
 		device:    proxy.NewDeviceClient(),
 		printer:   proxy.NewPrinterClient(),
@@ -102,13 +102,14 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 	if drv, ok := worker.(DeviceDriver); ok {
 		sd.driver = drv
 		context := Context{
-			DevName:  sd.devName,
-			Manager:  sd,
+			DevName: sd.devName,
+			//Manager:  sd,
 			Storage:  sd.storage,
 			Config:   sd.config,
 			Greeting: sd.greeting,
 		}
-		return drv.InitDevice(&context)
+		drv.InitDevice(&context)
+		return nil
 	}
 	return errors.New("device driver is not implemented")
 }

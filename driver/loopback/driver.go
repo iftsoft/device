@@ -25,7 +25,7 @@ type LoopbackDriver struct {
 	begTime   int64
 }
 
-func NewDummyDriver() *LoopbackDriver {
+func NewDummyDriver() driver.DeviceDriver {
 	dd := LoopbackDriver{
 		config:    nil,
 		storage:   nil,
@@ -45,30 +45,36 @@ func NewDummyDriver() *LoopbackDriver {
 }
 
 // Implementation of DeviceDriver interface
-func (dd *LoopbackDriver) InitDevice(context *driver.Context) error {
+
+func (dd *LoopbackDriver) InitDevice(context *driver.Context) common.ComplexManager {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "InitDevice")
 	dd.config = context.Config
 	dd.storage = context.Storage
 	dd.protocol = GetLoopbackProtocol(dd.config.Linker)
 
 	mask := common.ScopeFlagSystem
-	if device, ok := context.Manager.(common.DeviceCallback); ok {
+	device := context.Complex.GetDeviceCallback()
+	if device != nil {
 		dd.device = device
 		mask |= common.ScopeFlagDevice
 	}
-	if printer, ok := context.Manager.(common.PrinterCallback); ok {
+	printer := context.Complex.GetPrinterCallback()
+	if printer != nil {
 		dd.printer = printer
 		mask |= common.ScopeFlagPrinter
 	}
-	if reader, ok := context.Manager.(common.ReaderCallback); ok {
+	reader := context.Complex.GetReaderCallback()
+	if reader != nil {
 		dd.reader = reader
 		mask |= common.ScopeFlagReader
 	}
-	if validator, ok := context.Manager.(common.ValidatorCallback); ok {
+	validator := context.Complex.GetValidatorCallback()
+	if validator != nil {
 		dd.validator = validator
 		mask |= common.ScopeFlagValidator
 	}
-	if pinpad, ok := context.Manager.(common.PinPadCallback); ok {
+	pinpad := context.Complex.GetPinPadCallback()
+	if pinpad != nil {
 		dd.pinpad = pinpad
 		mask |= common.ScopeFlagPinPad
 	}
@@ -76,7 +82,7 @@ func (dd *LoopbackDriver) InitDevice(context *driver.Context) error {
 		context.Greeting.DevType = common.DevTypeCommon
 		context.Greeting.Required = mask
 	}
-	return nil
+	return dd
 }
 
 func (dd *LoopbackDriver) StartDevice(query *common.SystemConfig) error {
@@ -110,6 +116,27 @@ func (dd *LoopbackDriver) CheckDevice(metrics *common.SystemMetrics) error {
 		metrics.DevError = dd.devError
 	}
 	return nil
+}
+
+// Implementation of common.ComplexManager
+
+func (dd *LoopbackDriver) GetSystemManager() common.SystemManager {
+	return nil
+}
+func (dd *LoopbackDriver) GetDeviceManager() common.DeviceManager {
+	return dd
+}
+func (dd *LoopbackDriver) GetPrinterManager() common.PrinterManager {
+	return dd
+}
+func (dd *LoopbackDriver) GetReaderManager() common.ReaderManager {
+	return dd
+}
+func (dd *LoopbackDriver) GetPinPadManager() common.PinPadManager {
+	return dd
+}
+func (dd *LoopbackDriver) GetValidatorManager() common.ValidatorManager {
+	return dd
 }
 
 // Implementation of common.DeviceManager

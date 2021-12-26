@@ -106,6 +106,12 @@ func NewSystemHealth() *SystemHealth {
 	return sh
 }
 
+type GreetingInfo struct {
+	DevType   DevTypeMask  `json:"devType"`   // Implemented device types
+	Supported DevScopeMask `json:"supported"` // Manager interfaces that driver supported
+	Required  DevScopeMask `json:"required"`  // Callback interfaces that driver required
+}
+
 type SystemCallback interface {
 	SystemReply(name string, reply *SystemReply) error
 	SystemHealth(name string, reply *SystemHealth) error

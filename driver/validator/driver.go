@@ -14,36 +14,39 @@ type ValidatorDriver struct {
 	begTime int64
 }
 
-func NewValidatorDriver() *ValidatorDriver {
+func NewValidatorDriver() driver.DeviceDriver {
 	ccd := ValidatorDriver{}
 	return &ccd
 }
 
 // Implementation of DeviceDriver interface
-func (vd *ValidatorDriver) InitDevice(context *driver.Context) error {
+
+func (vd *ValidatorDriver) InitDevice(context *driver.Context) common.ComplexManager {
 	vd.initEngine(context.Config)
 	vd.DevName = context.DevName
 	vd.begTime = time.Now().Unix()
 	vd.Log.Debug("ValidatorDriver run cmd:%s", "InitDevice")
 
 	mask := common.ScopeFlagSystem
-	if device, ok := context.Manager.(common.DeviceCallback); ok {
+	device := context.Complex.GetDeviceCallback()
+	if device != nil {
 		vd.CbDevice = device
 		mask |= common.ScopeFlagDevice
 	}
-	if validator, ok := context.Manager.(common.ValidatorCallback); ok {
+	validator := context.Complex.GetValidatorCallback()
+	if validator != nil {
 		vd.CbValidator = validator
 		mask |= common.ScopeFlagValidator
 	}
 	if context.Storage != nil {
 		vd.storage = context.Storage
-		vd.booker  = dbvalid.NewDBaseValidator(vd.storage, vd.DevName)
+		vd.booker = dbvalid.NewDBaseValidator(vd.storage, vd.DevName)
 	}
 	if context.Greeting != nil {
 		context.Greeting.DevType = common.DevTypeCashValidator
 		context.Greeting.Required = mask
 	}
-	return nil
+	return vd
 }
 
 func (vd *ValidatorDriver) StartDevice(query *common.SystemConfig) error {
@@ -83,8 +86,29 @@ func (vd *ValidatorDriver) CheckDevice(metrics *common.SystemMetrics) error {
 	return nil
 }
 
+// Implementation of common.ComplexManager
+
+func (vd *ValidatorDriver) GetSystemManager() common.SystemManager {
+	return nil
+}
+func (vd *ValidatorDriver) GetDeviceManager() common.DeviceManager {
+	return vd
+}
+func (vd *ValidatorDriver) GetPrinterManager() common.PrinterManager {
+	return nil
+}
+func (vd *ValidatorDriver) GetReaderManager() common.ReaderManager {
+	return nil
+}
+func (vd *ValidatorDriver) GetPinPadManager() common.PinPadManager {
+	return nil
+}
+func (vd *ValidatorDriver) GetValidatorManager() common.ValidatorManager {
+	return vd
+}
+
 // Implementation of common.DeviceManager
-//
+
 func (vd *ValidatorDriver) Cancel(name string, query *common.DeviceQuery) error {
 	err := vd.DevStatus()
 	vd.DevError, vd.DevReply = common.CheckError(err)
@@ -116,7 +140,6 @@ func (vd *ValidatorDriver) StopAction(name string, query *common.DeviceQuery) er
 	vd.DevError, vd.DevReply = common.CheckError(err)
 	return vd.RunDeviceReply(common.CmdStopAction)
 }
-
 
 // Implementation of common.ValidatorManager
 //
@@ -166,5 +189,3 @@ func (vd *ValidatorDriver) ClearValidator(name string, query *common.ValidatorQu
 	err = vd.DevCheckBatch()
 	return err
 }
-
-
