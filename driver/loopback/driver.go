@@ -9,6 +9,21 @@ import (
 	"time"
 )
 
+var Specification = driver.Specification{
+	ModelName:   "LoopBack",
+	Versions:    []string{"default"},
+	Description: "Device Emulator with port loopback",
+	DeviceType:  common.DevTypeCommon,
+	Supported: common.ScopeFlagSystem | common.ScopeFlagDevice | common.ScopeFlagPrinter |
+		common.ScopeFlagReader | common.ScopeFlagPinPad | common.ScopeFlagValidator,
+	Required: common.ScopeFlagSystem | common.ScopeFlagDevice | common.ScopeFlagPrinter |
+		common.ScopeFlagReader | common.ScopeFlagPinPad | common.ScopeFlagValidator,
+}
+
+func RegisterDriver() error {
+	return driver.RegisterDriver(&Specification, NewDummyDriver)
+}
+
 type LoopbackDriver struct {
 	config    *config.DeviceConfig
 	storage   dbase.DBaseLinker
@@ -52,36 +67,12 @@ func (dd *LoopbackDriver) InitDevice(context *driver.Context) common.ComplexMana
 	dd.storage = context.Storage
 	dd.protocol = GetLoopbackProtocol(dd.config.Linker)
 
-	mask := common.ScopeFlagSystem
-	device := context.Complex.GetDeviceCallback()
-	if device != nil {
-		dd.device = device
-		mask |= common.ScopeFlagDevice
-	}
-	printer := context.Complex.GetPrinterCallback()
-	if printer != nil {
-		dd.printer = printer
-		mask |= common.ScopeFlagPrinter
-	}
-	reader := context.Complex.GetReaderCallback()
-	if reader != nil {
-		dd.reader = reader
-		mask |= common.ScopeFlagReader
-	}
-	validator := context.Complex.GetValidatorCallback()
-	if validator != nil {
-		dd.validator = validator
-		mask |= common.ScopeFlagValidator
-	}
-	pinpad := context.Complex.GetPinPadCallback()
-	if pinpad != nil {
-		dd.pinpad = pinpad
-		mask |= common.ScopeFlagPinPad
-	}
-	if context.Greeting != nil {
-		context.Greeting.DevType = common.DevTypeCommon
-		context.Greeting.Required = mask
-	}
+	dd.device = context.Complex.GetDeviceCallback()
+	dd.printer = context.Complex.GetPrinterCallback()
+	dd.reader = context.Complex.GetReaderCallback()
+	dd.validator = context.Complex.GetValidatorCallback()
+	dd.pinpad = context.Complex.GetPinPadCallback()
+
 	return dd
 }
 

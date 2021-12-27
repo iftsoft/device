@@ -6,12 +6,21 @@ import (
 	"github.com/iftsoft/device/dbase"
 )
 
+type Specification struct {
+	ModelName   string              `json:"model_name"`  // Unique model name
+	Versions    []string            `json:"versions"`    // list of model versions
+	Description string              `json:"description"` // Model description
+	DeviceType  common.DevTypeMask  `json:"device_type"` // Implemented device types
+	Supported   common.DevScopeMask `json:"supported"`   // Manager interfaces that driver supported
+	Required    common.DevScopeMask `json:"required"`    // Callback interfaces that driver required
+}
+
 type Context struct {
-	DevName  string
-	Complex  common.ComplexCallback
-	Storage  dbase.DBaseLinker
-	Config   *config.DeviceConfig
-	Greeting *common.GreetingInfo
+	DevName string
+	Complex common.ComplexCallback
+	Storage dbase.DBaseLinker
+	Config  *config.DeviceConfig
+	//Greeting *common.GreetingInfo
 }
 
 type DeviceDriver interface {
@@ -21,3 +30,5 @@ type DeviceDriver interface {
 	DeviceTimer(unix int64) error
 	CheckDevice(metrics *common.SystemMetrics) error
 }
+
+type DrvFactory func() DeviceDriver

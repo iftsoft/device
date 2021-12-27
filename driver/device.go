@@ -104,9 +104,9 @@ func (sd *SystemDevice) InitDevice(worker interface{}) error {
 		context := Context{
 			DevName: sd.devName,
 			//Manager:  sd,
-			Storage:  sd.storage,
-			Config:   sd.config,
-			Greeting: sd.greeting,
+			Storage: sd.storage,
+			Config:  sd.config,
+			//Greeting: sd.greeting,
 		}
 		drv.InitDevice(&context)
 		return nil

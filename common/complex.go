@@ -36,78 +36,38 @@ type ManagerSet struct {
 	Validator ValidatorManager
 }
 
-func (set *CallbackSet) InitCallbacks(complex ComplexCallback) DevScopeMask {
-	var mask DevScopeMask
+func (set *CallbackSet) InitCallbacks(complex ComplexCallback) {
 	if complex == nil {
-		return mask
+		return
 	}
 	// Setup System scope interface
 	set.System = complex.GetSystemCallback()
-	if set.System != nil {
-		mask |= ScopeFlagSystem
-	}
 	// Setup Device scope interface
 	set.Device = complex.GetDeviceCallback()
-	if set.Device != nil {
-		mask |= ScopeFlagDevice
-	}
 	// Setup Printer scope interface
 	set.Printer = complex.GetPrinterCallback()
-	if set.Printer != nil {
-		mask |= ScopeFlagPrinter
-	}
 	// Setup Reader scope interface
 	set.Reader = complex.GetReaderCallback()
-	if set.Reader != nil {
-		mask |= ScopeFlagReader
-	}
 	// Setup Validator scope interface
 	set.Validator = complex.GetValidatorCallback()
-	if set.Validator != nil {
-		mask |= ScopeFlagValidator
-	}
 	// Setup PinPad scope interface
 	set.PinPad = complex.GetPinPadCallback()
-	if set.PinPad != nil {
-		mask |= ScopeFlagPinPad
-	}
-	return mask
 }
 
-func (set *ManagerSet) InitManagers(complex ComplexManager) DevScopeMask {
-	var mask DevScopeMask
+func (set *ManagerSet) InitManagers(complex ComplexManager) {
 	if complex == nil {
-		return mask
+		return
 	}
 	// Setup System scope interface
 	set.System = complex.GetSystemManager()
-	if set.System != nil {
-		mask |= ScopeFlagSystem
-	}
 	// Setup Device scope interface
 	set.Device = complex.GetDeviceManager()
-	if set.Device != nil {
-		mask |= ScopeFlagDevice
-	}
 	// Setup Printer scope interface
 	set.Printer = complex.GetPrinterManager()
-	if set.Printer != nil {
-		mask |= ScopeFlagPrinter
-	}
 	// Setup Reader scope interface
 	set.Reader = complex.GetReaderManager()
-	if set.Reader != nil {
-		mask |= ScopeFlagReader
-	}
 	// Setup Validator scope interface
 	set.Validator = complex.GetValidatorManager()
-	if set.Validator != nil {
-		mask |= ScopeFlagValidator
-	}
 	// Setup PinPad scope interface
 	set.PinPad = complex.GetPinPadManager()
-	if set.PinPad != nil {
-		mask |= ScopeFlagPinPad
-	}
-	return mask
 }

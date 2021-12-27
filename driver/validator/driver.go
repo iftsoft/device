@@ -8,6 +8,19 @@ import (
 	"time"
 )
 
+var Specification = driver.Specification{
+	ModelName:   "Validator",
+	Versions:    []string{"default"},
+	Description: "Emulator of note validator",
+	DeviceType:  common.DevTypeCashValidator,
+	Supported:   common.ScopeFlagSystem | common.ScopeFlagDevice | common.ScopeFlagValidator,
+	Required:    common.ScopeFlagSystem | common.ScopeFlagDevice | common.ScopeFlagValidator,
+}
+
+func RegisterDriver() error {
+	return driver.RegisterDriver(&Specification, NewValidatorDriver)
+}
+
 type ValidatorDriver struct {
 	ValidatorEngine
 	storage dbase.DBaseLinker
@@ -27,24 +40,11 @@ func (vd *ValidatorDriver) InitDevice(context *driver.Context) common.ComplexMan
 	vd.begTime = time.Now().Unix()
 	vd.Log.Debug("ValidatorDriver run cmd:%s", "InitDevice")
 
-	mask := common.ScopeFlagSystem
-	device := context.Complex.GetDeviceCallback()
-	if device != nil {
-		vd.CbDevice = device
-		mask |= common.ScopeFlagDevice
-	}
-	validator := context.Complex.GetValidatorCallback()
-	if validator != nil {
-		vd.CbValidator = validator
-		mask |= common.ScopeFlagValidator
-	}
+	vd.CbDevice = context.Complex.GetDeviceCallback()
+	vd.CbValidator = context.Complex.GetValidatorCallback()
 	if context.Storage != nil {
 		vd.storage = context.Storage
 		vd.booker = dbvalid.NewDBaseValidator(vd.storage, vd.DevName)
-	}
-	if context.Greeting != nil {
-		context.Greeting.DevType = common.DevTypeCashValidator
-		context.Greeting.Required = mask
 	}
 	return vd
 }
