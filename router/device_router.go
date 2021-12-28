@@ -10,38 +10,35 @@ import (
 )
 
 type DeviceRouter struct {
-	config    config.AppConfig
 	callback  common.ComplexCallback
+	config    *config.AppConfig
 	storage   *dbase.DBaseStore
 	log       *core.LogAgent
 	deviceMap map[string]*SystemDevice
 }
 
-func (dr *DeviceRouter) initRouter(config config.AppConfig, callback common.ComplexCallback) {
+func (dr *DeviceRouter) initRouter(log *core.LogAgent, config *config.AppConfig, callback common.ComplexCallback) {
+	dr.log = log
 	dr.config = config
 	dr.callback = callback
 	dr.deviceMap = make(map[string]*SystemDevice)
-	dr.log = core.GetLogAgent(core.LogLevelTrace, "Router")
 	dr.storage = dbase.GetNewDBaseStore(config.Storage)
 }
-
-//func (dr *DeviceRouter) terminateAll() {
-//	for name, obj := range dr.deviceMap {
-//		_ = obj.Terminate(name, &common.SystemQuery{})
-//	}
-//}
 
 func (dr *DeviceRouter) cleanupRouter() {
 	for name, obj := range dr.deviceMap {
 		obj.StopDeviceLoop()
 		delete(dr.deviceMap, name)
 	}
+	dr.storage.Close()
 }
 
-func (dr *DeviceRouter) setupRouter() {
+func (dr *DeviceRouter) startupRouter() {
+	dr.storage.Open()
 	for _, cfg := range dr.config.Devices {
 		obj, err := dr.createSystemDevice(cfg)
 		if err == nil {
+			obj.StartDeviceLoop()
 			dr.deviceMap[cfg.DevName] = obj
 		}
 	}
@@ -360,27 +357,3 @@ func (dr *DeviceRouter) TestWorkKey(name string, query *common.ReaderPinQuery) e
 	}
 	return common.NewError(common.DevErrorNotInitialized, "")
 }
-
-/*
-// Implementation of common.ComplexCallback
-
-func (dr *DeviceRouter) GetSystemCallback() common.SystemCallback {
-	return dr
-}
-func (dr *DeviceRouter) GetDeviceCallback() common.DeviceCallback {
-	return dr
-}
-func (dr *DeviceRouter) GetPrinterCallback() common.PrinterCallback {
-	return dr
-}
-func (dr *DeviceRouter) GetReaderCallback() common.ReaderCallback {
-	return dr
-}
-func (dr *DeviceRouter) GetPinPadCallback() common.PinPadCallback {
-	return dr
-}
-func (dr *DeviceRouter) GetValidatorCallback() common.ValidatorCallback {
-	return dr
-}
-
-*/

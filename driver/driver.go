@@ -20,7 +20,6 @@ type Context struct {
 	Complex common.ComplexCallback
 	Storage dbase.DBaseLinker
 	Config  *config.DeviceConfig
-	//Greeting *common.GreetingInfo
 }
 
 type DeviceDriver interface {

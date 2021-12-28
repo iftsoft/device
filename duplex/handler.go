@@ -3,6 +3,7 @@ package duplex
 import (
 	"encoding/json"
 	"errors"
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/core"
 	"net"
 	"sync"
@@ -106,7 +107,7 @@ func (dh *DuplexHandler) SendPacket(pack *Packet) error {
 	return dh.WritePacket(pack)
 }
 
-func (dh *DuplexHandler) readGreeting() (*GreetingInfo, error) {
+func (dh *DuplexHandler) readGreeting() (*common.GreetingInfo, error) {
 	conn := dh.link.GetConnect()
 	if conn == nil {
 		return nil, errors.New("duplex DialTCP conn is nil")
@@ -118,7 +119,7 @@ func (dh *DuplexHandler) readGreeting() (*GreetingInfo, error) {
 	if pack.Command != commandGreeting {
 		return nil, errors.New("packet is not Greeting")
 	}
-	info := &GreetingInfo{}
+	info := &common.GreetingInfo{}
 	dh.DevName = pack.DevName
 	if len(pack.Content) > 0 {
 		err = json.Unmarshal(pack.Content, info)

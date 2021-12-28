@@ -2,11 +2,12 @@ package duplex
 
 import (
 	"fmt"
+	"github.com/iftsoft/device/common"
 	"sync"
 )
 
 type ClientManager interface {
-	OnClientStarted(name string, info *GreetingInfo)
+	OnClientStarted(name string, info *common.GreetingInfo)
 	OnClientStopped(name string)
 }
 
@@ -46,7 +47,7 @@ func (hs *HandleSet) AddHandler() *DuplexHandler {
 	return handle
 }
 
-func (hs *HandleSet) SetHandlerDevice(link, name string, info *GreetingInfo) {
+func (hs *HandleSet) SetHandlerDevice(link, name string, info *common.GreetingInfo) {
 	hs.mutex.Lock()
 	hs.names[name] = link
 	hs.mutex.Unlock()

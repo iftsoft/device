@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/router"
 	"time"
 )
 
@@ -24,6 +25,8 @@ func main() {
 
 	//err = linker.GetLinkerPorts(log)
 
+	mux := router.NewMultiplexer(appCfg)
+	mux.Startup()
 	//srv := duplex.NewDuplexServer(appCfg.Duplex, log)
 	//hnd := handler.NewHandlerManager(appCfg.Handlers)
 	////hnd.RegisterReflexFactory(plugin.GetValidatorCheckerFactory())
@@ -32,10 +35,11 @@ func main() {
 	//err = srv.StartListen()
 	//if err == nil {
 	//
-	//	core.WaitForSignal(log)
+	core.WaitForSignal(log)
 	//
 	//	srv.StopListen()
 	//}
+	mux.Cleanup()
 	log.Info("Stop device application")
 	//hnd.Cleanup()
 	time.Sleep(time.Second)
