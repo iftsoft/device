@@ -10,39 +10,51 @@ import (
 )
 
 type DeviceRouter struct {
-	config     config.AppConfig
-	storage    *dbase.DBaseStore
-	log        *core.LogAgent
-	handlerMap map[string]*SystemDevice
+	config    config.AppConfig
+	callback  common.ComplexCallback
+	storage   *dbase.DBaseStore
+	log       *core.LogAgent
+	deviceMap map[string]*SystemDevice
 }
 
-func (dr *DeviceRouter) initRouter(config config.AppConfig) {
+func (dr *DeviceRouter) initRouter(config config.AppConfig, callback common.ComplexCallback) {
 	dr.config = config
-	dr.handlerMap = make(map[string]*SystemDevice)
+	dr.callback = callback
+	dr.deviceMap = make(map[string]*SystemDevice)
 	dr.log = core.GetLogAgent(core.LogLevelTrace, "Router")
+	dr.storage = dbase.GetNewDBaseStore(config.Storage)
 }
 
-func (dr *DeviceRouter) terminateAll() {
-	for name, obj := range dr.handlerMap {
-		_ = obj.Terminate(name, &common.SystemQuery{})
-	}
-}
+//func (dr *DeviceRouter) terminateAll() {
+//	for name, obj := range dr.deviceMap {
+//		_ = obj.Terminate(name, &common.SystemQuery{})
+//	}
+//}
 
 func (dr *DeviceRouter) cleanupRouter() {
-	for name, obj := range dr.handlerMap {
+	for name, obj := range dr.deviceMap {
 		obj.StopDeviceLoop()
-		delete(dr.handlerMap, name)
+		delete(dr.deviceMap, name)
 	}
 }
 
-func (dr *DeviceRouter) getDeviceConfig(name string) *config.DeviceConfig {
+func (dr *DeviceRouter) setupRouter() {
 	for _, cfg := range dr.config.Devices {
-		if cfg.DevName == name {
-			return cfg
+		obj, err := dr.createSystemDevice(cfg)
+		if err == nil {
+			dr.deviceMap[cfg.DevName] = obj
 		}
 	}
-	return nil
 }
+
+//func (dr *DeviceRouter) getDeviceConfig(name string) *config.DeviceConfig {
+//	for _, cfg := range dr.config.Devices {
+//		if cfg.DevName == name {
+//			return cfg
+//		}
+//	}
+//	return nil
+//}
 
 func (dr *DeviceRouter) createSystemDevice(cfg *config.DeviceConfig) (*SystemDevice, error) {
 	if cfg == nil {
@@ -53,7 +65,7 @@ func (dr *DeviceRouter) createSystemDevice(cfg *config.DeviceConfig) (*SystemDev
 	}
 	ctx := &driver.Context{
 		DevName: cfg.DevName,
-		Complex: dr,
+		Complex: dr.callback,
 		Storage: dr.storage,
 		Config:  cfg,
 	}
@@ -67,41 +79,289 @@ func (dr *DeviceRouter) createSystemDevice(cfg *config.DeviceConfig) (*SystemDev
 	return obj, nil
 }
 
-//
-//func (dr *DeviceRouter) createNewDevice(name string) *SystemDevice {
-//	if name == "" {
-//		return nil
-//	}
-//	cfg := dr.getDeviceConfig(name)
-//	obj := NewSystemDevice(cfg)
-//
-//	obj.StartDeviceLoop()
-//	dr.handlerMap[name] = obj
-//	return obj
-//}
-
-func (dr *DeviceRouter) getDeviceHandler(name string) *SystemDevice {
+func (dr *DeviceRouter) getSystemDevice(name string) *SystemDevice {
 	if name == "" {
 		return nil
 	}
-	obj, ok := dr.handlerMap[name]
+	obj, ok := dr.deviceMap[name]
 	if ok {
 		return obj
 	}
 	return nil
 }
 
-func (dr *DeviceRouter) delDeviceHandler(name string) {
+func (dr *DeviceRouter) delSystemDevice(name string) {
 	if name == "" {
 		return
 	}
-	obj, ok := dr.handlerMap[name]
+	obj, ok := dr.deviceMap[name]
 	if ok {
 		obj.StopDeviceLoop()
 	}
-	delete(dr.handlerMap, name)
+	delete(dr.deviceMap, name)
 }
 
+// Implementation of common.ComplexManager
+
+func (dr *DeviceRouter) GetSystemManager() common.SystemManager {
+	return dr
+}
+func (dr *DeviceRouter) GetDeviceManager() common.DeviceManager {
+	return dr
+}
+func (dr *DeviceRouter) GetPrinterManager() common.PrinterManager {
+	return dr
+}
+func (dr *DeviceRouter) GetReaderManager() common.ReaderManager {
+	return dr
+}
+func (dr *DeviceRouter) GetPinPadManager() common.PinPadManager {
+	return dr
+}
+func (dr *DeviceRouter) GetValidatorManager() common.ValidatorManager {
+	return dr
+}
+
+// Implementation of common.SystemManager
+
+func (dr *DeviceRouter) Terminate(name string, query *common.SystemQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.Terminate(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+
+func (dr *DeviceRouter) SysInform(name string, query *common.SystemQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.SysInform(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+
+func (dr *DeviceRouter) SysStart(name string, query *common.SystemConfig) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.SysStart(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+
+func (dr *DeviceRouter) SysStop(name string, query *common.SystemQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.SysStop(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+
+func (dr *DeviceRouter) SysRestart(name string, query *common.SystemConfig) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.SysRestart(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+
+// Implementation of common.DeviceManager
+
+func (dr *DeviceRouter) Cancel(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.Cancel(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) Reset(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.Reset(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) Status(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.Status(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) RunAction(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.RunAction(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) StopAction(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.StopAction(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+
+// Implementation of common.PrinterManager
+
+func (dr *DeviceRouter) InitPrinter(name string, query *common.PrinterSetup) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.InitPrinter(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) PrintText(name string, query *common.PrinterQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.PrintText(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+
+// Implementation of common.ReaderManager
+
+func (dr *DeviceRouter) EnterCard(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.EnterCard(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) EjectCard(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.EjectCard(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) CaptureCard(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.CaptureCard(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) ReadCard(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.ReadCard(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) ChipGetATR(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.ChipGetATR(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) ChipPowerOff(name string, query *common.DeviceQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.ChipPowerOff(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) ChipCommand(name string, query *common.ReaderChipQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.ChipCommand(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+
+// Implementation of common.ValidatorManager
+
+func (dr *DeviceRouter) InitValidator(name string, query *common.ValidatorQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.InitValidator(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) DoValidate(name string, query *common.ValidatorQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.DoValidate(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) NoteAccept(name string, query *common.ValidatorQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.NoteAccept(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) NoteReturn(name string, query *common.ValidatorQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.NoteReturn(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) StopValidate(name string, query *common.ValidatorQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.StopValidate(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) CheckValidator(name string, query *common.ValidatorQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.CheckValidator(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) ClearValidator(name string, query *common.ValidatorQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.ClearValidator(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+
+// Implementation of common.PinPadManager
+
+func (dr *DeviceRouter) ReadPIN(name string, query *common.ReaderPinQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.ReadPIN(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) LoadMasterKey(name string, query *common.ReaderPinQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.LoadMasterKey(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) LoadWorkKey(name string, query *common.ReaderPinQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.LoadWorkKey(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) TestMasterKey(name string, query *common.ReaderPinQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.TestMasterKey(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+func (dr *DeviceRouter) TestWorkKey(name string, query *common.ReaderPinQuery) error {
+	device := dr.getSystemDevice(name)
+	if device != nil {
+		return device.TestWorkKey(name, query)
+	}
+	return common.NewError(common.DevErrorNotInitialized, "")
+}
+
+/*
 // Implementation of common.ComplexCallback
 
 func (dr *DeviceRouter) GetSystemCallback() common.SystemCallback {
@@ -123,127 +383,4 @@ func (dr *DeviceRouter) GetValidatorCallback() common.ValidatorCallback {
 	return dr
 }
 
-// Implementation of common.SystemCallback
-
-func (dr *DeviceRouter) SystemReply(name string, reply *common.SystemReply) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.SystemReply(name, reply)
-	//}
-	return nil
-}
-func (dr *DeviceRouter) SystemHealth(name string, reply *common.SystemHealth) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.SystemHealth(name, reply)
-	//}
-	return nil
-}
-
-// Implementation of common.DeviceCallback
-func (dr *DeviceRouter) DeviceReply(name string, reply *common.DeviceReply) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.DeviceReply(name, reply)
-	//}
-	return nil
-}
-func (dr *DeviceRouter) ExecuteError(name string, reply *common.DeviceError) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.ExecuteError(name, reply)
-	//}
-	return nil
-}
-func (dr *DeviceRouter) StateChanged(name string, reply *common.DeviceState) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.StateChanged(name, reply)
-	//}
-	return nil
-}
-func (dr *DeviceRouter) ActionPrompt(name string, reply *common.DevicePrompt) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.ActionPrompt(name, reply)
-	//}
-	return nil
-}
-func (dr *DeviceRouter) ReaderReturn(name string, reply *common.DeviceInform) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.ReaderReturn(name, reply)
-	//}
-	return nil
-}
-
-// Implementation of common.PrinterCallback
-func (dr *DeviceRouter) PrinterProgress(name string, reply *common.PrinterProgress) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.PrinterProgress(name, reply)
-	//}
-	return nil
-}
-
-// Implementation of common.ReaderCallback
-func (dr *DeviceRouter) CardPosition(name string, reply *common.ReaderCardPos) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.CardPosition(name, reply)
-	//}
-	return nil
-}
-func (dr *DeviceRouter) CardDescription(name string, reply *common.ReaderCardInfo) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.CardDescription(name, reply)
-	//}
-	return nil
-}
-func (dr *DeviceRouter) ChipResponse(name string, reply *common.ReaderChipReply) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.ChipResponse(name, reply)
-	//}
-	return nil
-}
-
-// Implementation of common.ValidatorCallback
-func (dr *DeviceRouter) NoteAccepted(name string, reply *common.ValidatorAccept) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.NoteAccepted(name, reply)
-	//}
-	return nil
-}
-func (dr *DeviceRouter) CashIsStored(name string, reply *common.ValidatorAccept) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.CashIsStored(name, reply)
-	//}
-	return nil
-}
-func (dr *DeviceRouter) CashReturned(name string, reply *common.ValidatorAccept) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.CashReturned(name, reply)
-	//}
-	return nil
-}
-func (dr *DeviceRouter) ValidatorStore(name string, reply *common.ValidatorStore) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.ValidatorStore(name, reply)
-	//}
-	return nil
-}
-
-// Implementation of common.ReaderCallback
-func (dr *DeviceRouter) PinPadReply(name string, reply *common.ReaderPinReply) error {
-	//handler := dr.getDeviceHandler(name)
-	//if handler != nil {
-	//	return handler.PinPadReply(name, reply)
-	//}
-	return nil
-}
+*/

@@ -1,5 +1,6 @@
 package driver
 
+/*
 import (
 	"encoding/json"
 	"errors"
@@ -349,3 +350,4 @@ func (sd *SystemDevice) encodeReply(scope duplex.PacketScope, cmd string, reply 
 	}
 	return err
 }
+*/

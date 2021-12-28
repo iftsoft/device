@@ -6,9 +6,10 @@ import (
 )
 
 type CommonConfig struct {
-	Model   string `yaml:"model"`
-	Version string `yaml:"version"`
-	Timeout int32  `yaml:"timeout"`
+	Model    string `yaml:"model"`
+	Version  string `yaml:"version"`
+	Timeout  int32  `yaml:"timeout"`
+	AutoLoad bool   `yaml:"auto_load"`
 }
 
 func (cfg *CommonConfig) String() string {
@@ -16,8 +17,8 @@ func (cfg *CommonConfig) String() string {
 		return ""
 	}
 	str := fmt.Sprintf("\n\tCommon config: "+
-		"Model = %s, Version = %s, Timeout = %d.",
-		cfg.Model, cfg.Version, cfg.Timeout)
+		"Model = %s, Version = %s, Timeout = %d, AutoLoad = %t.",
+		cfg.Model, cfg.Version, cfg.Timeout, cfg.AutoLoad)
 	return str
 }
 func GetDefaultCommonConfig() *CommonConfig {

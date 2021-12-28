@@ -12,19 +12,12 @@ import (
 
 type SystemDevice struct {
 	devName string
-	//greeting *common.GreetingInfo
 	state   common.EnumSystemState
 	error   common.EnumSystemError
 	driver  driver.DeviceDriver
 	storage dbase.DBaseLinker
-	//callback common.ComplexCallback
 	manager common.ManagerSet
 	system  common.SystemCallback
-	//device    common.DeviceManager
-	//printer   common.PrinterManager
-	//reader    common.ReaderManager
-	//validator common.ValidatorManager
-	//pinpad    common.PinPadManager
 	config  *config.DeviceConfig
 	log     *core.LogAgent
 	done    chan struct{}
@@ -55,12 +48,12 @@ func (sd *SystemDevice) InitDevice(drv driver.DeviceDriver, ctx *driver.Context)
 }
 
 func (sd *SystemDevice) StartDeviceLoop() {
-	sd.log.Info("Starting system device")
+	sd.log.Info("Starting system device %s", sd.devName)
 	go sd.deviceLoop(&sd.wg)
 }
 
 func (sd *SystemDevice) StopDeviceLoop() {
-	sd.log.Info("Stopping system device")
+	sd.log.Info("Stopping system device %s", sd.devName)
 	close(sd.done)
 	sd.wg.Wait()
 }
@@ -68,16 +61,16 @@ func (sd *SystemDevice) StopDeviceLoop() {
 func (sd *SystemDevice) deviceLoop(wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
-	sd.log.Debug("System device loop is started")
-	defer sd.log.Debug("System device loop is stopped")
+	sd.log.Debug("System device %s loop is started", sd.devName)
+	defer sd.log.Debug("System device %s loop is stopped", sd.devName)
 
 	sd.state = common.SysStateUndefined
-	//if sd.config.Common.AutoLoad {
-	//	err := sd.driver.StartDevice(nil)
-	//	if err == nil {
-	//		sd.state = common.SysStateRunning
-	//	}
-	//}
+	if sd.config.Common.AutoLoad {
+		err := sd.driver.StartDevice(nil)
+		if err == nil {
+			sd.state = common.SysStateRunning
+		}
+	}
 	defer func() {
 		err := sd.driver.StopDevice()
 		if err == nil {
@@ -125,6 +118,27 @@ func (sd *SystemDevice) sendDeviceMetrics(tm time.Time) {
 		err = sd.system.SystemHealth(sd.devName, health)
 	}
 }
+
+//// Implementation of common.ComplexManager
+//
+//func (sd *SystemDevice) GetSystemManager() common.SystemManager {
+//	return sd
+//}
+//func (sd *SystemDevice) GetDeviceManager() common.DeviceManager {
+//	return sd
+//}
+//func (sd *SystemDevice) GetPrinterManager() common.PrinterManager {
+//	return sd
+//}
+//func (sd *SystemDevice) GetReaderManager() common.ReaderManager {
+//	return sd
+//}
+//func (sd *SystemDevice) GetPinPadManager() common.PinPadManager {
+//	return sd
+//}
+//func (sd *SystemDevice) GetValidatorManager() common.ValidatorManager {
+//	return sd
+//}
 
 // Implementation of common.SystemManager
 
@@ -226,6 +240,177 @@ func (sd *SystemDevice) SysRestart(name string, query *common.SystemConfig) erro
 		_ = sd.system.SystemReply(sd.devName, reply)
 	}
 	return err
+}
+
+// Implementation of common.DeviceManager
+
+func (sd *SystemDevice) Cancel(name string, query *common.DeviceQuery) error {
+	if sd.manager.Device != nil {
+		return sd.manager.Device.Cancel(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) Reset(name string, query *common.DeviceQuery) error {
+	if sd.manager.Device != nil {
+		return sd.manager.Device.Reset(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) Status(name string, query *common.DeviceQuery) error {
+	if sd.manager.Device != nil {
+		return sd.manager.Device.Status(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) RunAction(name string, query *common.DeviceQuery) error {
+	if sd.manager.Device != nil {
+		return sd.manager.Device.RunAction(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) StopAction(name string, query *common.DeviceQuery) error {
+	if sd.manager.Device != nil {
+		return sd.manager.Device.StopAction(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+
+// Implementation of common.PrinterManager
+
+func (sd *SystemDevice) InitPrinter(name string, query *common.PrinterSetup) error {
+	if sd.manager.Printer != nil {
+		return sd.manager.Printer.InitPrinter(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) PrintText(name string, query *common.PrinterQuery) error {
+	if sd.manager.Printer != nil {
+		return sd.manager.Printer.PrintText(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+
+// Implementation of common.ReaderManager
+
+func (sd *SystemDevice) EnterCard(name string, query *common.DeviceQuery) error {
+	if sd.manager.Reader != nil {
+		return sd.manager.Reader.EnterCard(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) EjectCard(name string, query *common.DeviceQuery) error {
+	if sd.manager.Reader != nil {
+		return sd.manager.Reader.EjectCard(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) CaptureCard(name string, query *common.DeviceQuery) error {
+	if sd.manager.Reader != nil {
+		return sd.manager.Reader.CaptureCard(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) ReadCard(name string, query *common.DeviceQuery) error {
+	if sd.manager.Reader != nil {
+		return sd.manager.Reader.ReadCard(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) ChipGetATR(name string, query *common.DeviceQuery) error {
+	if sd.manager.Reader != nil {
+		return sd.manager.Reader.ChipGetATR(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) ChipPowerOff(name string, query *common.DeviceQuery) error {
+	if sd.manager.Reader != nil {
+		return sd.manager.Reader.ChipPowerOff(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) ChipCommand(name string, query *common.ReaderChipQuery) error {
+	if sd.manager.Reader != nil {
+		return sd.manager.Reader.ChipCommand(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+
+// Implementation of common.ValidatorManager
+
+func (sd *SystemDevice) InitValidator(name string, query *common.ValidatorQuery) error {
+	if sd.manager.Validator != nil {
+		return sd.manager.Validator.InitValidator(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) DoValidate(name string, query *common.ValidatorQuery) error {
+	if sd.manager.Validator != nil {
+		return sd.manager.Validator.DoValidate(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) NoteAccept(name string, query *common.ValidatorQuery) error {
+	if sd.manager.Validator != nil {
+		return sd.manager.Validator.NoteAccept(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) NoteReturn(name string, query *common.ValidatorQuery) error {
+	if sd.manager.Validator != nil {
+		return sd.manager.Validator.NoteReturn(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) StopValidate(name string, query *common.ValidatorQuery) error {
+	if sd.manager.Validator != nil {
+		return sd.manager.Validator.StopValidate(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) CheckValidator(name string, query *common.ValidatorQuery) error {
+	if sd.manager.Validator != nil {
+		return sd.manager.Validator.CheckValidator(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) ClearValidator(name string, query *common.ValidatorQuery) error {
+	if sd.manager.Validator != nil {
+		return sd.manager.Validator.ClearValidator(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+
+// Implementation of common.PinPadManager
+
+func (sd *SystemDevice) ReadPIN(name string, query *common.ReaderPinQuery) error {
+	if sd.manager.PinPad != nil {
+		return sd.manager.PinPad.ReadPIN(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) LoadMasterKey(name string, query *common.ReaderPinQuery) error {
+	if sd.manager.PinPad != nil {
+		return sd.manager.PinPad.LoadMasterKey(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) LoadWorkKey(name string, query *common.ReaderPinQuery) error {
+	if sd.manager.PinPad != nil {
+		return sd.manager.PinPad.LoadWorkKey(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) TestMasterKey(name string, query *common.ReaderPinQuery) error {
+	if sd.manager.PinPad != nil {
+		return sd.manager.PinPad.TestMasterKey(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
+}
+func (sd *SystemDevice) TestWorkKey(name string, query *common.ReaderPinQuery) error {
+	if sd.manager.PinPad != nil {
+		return sd.manager.PinPad.TestWorkKey(name, query)
+	}
+	return common.NewError(common.DevErrorNotImplemented, "")
 }
 
 /*
