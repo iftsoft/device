@@ -17,9 +17,10 @@ type SystemDevice struct {
 	driver  driver.DeviceDriver
 	storage dbase.DBaseLinker
 	manager common.ManagerSet
-	system  common.SystemCallback
+	channel CallbackChannel
 	config  *config.DeviceConfig
 	log     *core.LogAgent
+	query   chan common.Packet
 	done    chan struct{}
 	wg      sync.WaitGroup
 	checkTm time.Time
@@ -31,8 +32,8 @@ func NewSystemDevice(name string) *SystemDevice {
 		state:   common.SysStateUndefined,
 		error:   common.SysErrSuccess,
 		driver:  nil,
-		system:  nil,
 		log:     core.GetLogAgent(core.LogLevelTrace, name),
+		query:   make(chan common.Packet, 8),
 		done:    make(chan struct{}),
 	}
 	return &sd
@@ -42,9 +43,19 @@ func (sd *SystemDevice) InitDevice(drv driver.DeviceDriver, ctx *driver.Context)
 	sd.driver = drv
 	sd.config = ctx.Config
 	sd.storage = ctx.Storage
-	sd.system = ctx.Complex.GetSystemCallback()
 	manager := drv.InitDevice(ctx)
 	sd.manager.InitManagers(manager)
+	sd.manager.System = sd
+}
+
+func (sd *SystemDevice) RunCommand(command, devName string, query interface{}) error {
+	packet := common.Packet{
+		Command: command,
+		DevName: devName,
+		Content: query,
+	}
+	sd.query <- packet
+	return nil
 }
 
 func (sd *SystemDevice) StartDeviceLoop() {
@@ -86,6 +97,8 @@ func (sd *SystemDevice) deviceLoop(wg *sync.WaitGroup) {
 		select {
 		case <-sd.done:
 			return
+		case pack := <-sd.query:
+			_ = sd.manager.RunCommand(pack)
 		case tm := <-tick.C:
 			sd.onTimerTick(tm)
 		}
@@ -114,9 +127,7 @@ func (sd *SystemDevice) sendDeviceMetrics(tm time.Time) {
 	if err != nil {
 		health.Error = common.SysErrDeviceFail
 	}
-	if sd.system != nil {
-		err = sd.system.SystemHealth(sd.devName, health)
-	}
+	err = sd.channel.SystemHealth(sd.devName, health)
 }
 
 //// Implementation of common.ComplexManager
@@ -155,9 +166,7 @@ func (sd *SystemDevice) Terminate(name string, query *common.SystemQuery) error 
 		reply.Message = err.Error()
 	}
 	//core.SendQuitSignal(100)
-	if sd.system != nil {
-		_ = sd.system.SystemReply(sd.devName, reply)
-	}
+	_ = sd.channel.SystemReply(sd.devName, reply)
 	return err
 }
 
@@ -165,9 +174,7 @@ func (sd *SystemDevice) SysInform(name string, query *common.SystemQuery) error 
 	reply := &common.SystemReply{}
 	reply.Command = common.CmdSystemInform
 	reply.State = sd.state
-	if sd.system != nil {
-		_ = sd.system.SystemReply(sd.devName, reply)
-	}
+	_ = sd.channel.SystemReply(sd.devName, reply)
 	return nil
 }
 
@@ -188,9 +195,7 @@ func (sd *SystemDevice) SysStart(name string, query *common.SystemConfig) error 
 	if err != nil {
 		reply.Message = err.Error()
 	}
-	if sd.system != nil {
-		_ = sd.system.SystemReply(sd.devName, reply)
-	}
+	_ = sd.channel.SystemReply(sd.devName, reply)
 	return err
 }
 
@@ -209,9 +214,7 @@ func (sd *SystemDevice) SysStop(name string, query *common.SystemQuery) error {
 	if err != nil {
 		reply.Message = err.Error()
 	}
-	if sd.system != nil {
-		_ = sd.system.SystemReply(sd.devName, reply)
-	}
+	_ = sd.channel.SystemReply(sd.devName, reply)
 	return err
 }
 
@@ -236,12 +239,11 @@ func (sd *SystemDevice) SysRestart(name string, query *common.SystemConfig) erro
 	if err != nil {
 		reply.Message = err.Error()
 	}
-	if sd.system != nil {
-		_ = sd.system.SystemReply(sd.devName, reply)
-	}
+	_ = sd.channel.SystemReply(sd.devName, reply)
 	return err
 }
 
+/*
 // Implementation of common.DeviceManager
 
 func (sd *SystemDevice) Cancel(name string, query *common.DeviceQuery) error {
@@ -412,3 +414,4 @@ func (sd *SystemDevice) TestWorkKey(name string, query *common.ReaderPinQuery) e
 	}
 	return common.NewError(common.DevErrorNotImplemented, "")
 }
+*/
