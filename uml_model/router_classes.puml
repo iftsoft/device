@@ -1,0 +1,54 @@
+@startuml
+
+package common <<Frame>> {
+    interface SystemManager
+    interface ComplexCallback
+    interface ComplexManager
+    class ManagerSet
+    class CallbackSet
+}
+
+package driver <<Frame>> {
+    interface DeviceDriver {
+        InitDevice(context *Context) common.ComplexManager
+        StartDevice(query *common.SystemConfig) error
+        StopDevice() error
+        DeviceTimer(unix int64) error
+        CheckDevice(metrics *common.SystemMetrics) error
+    }
+}
+
+class CallbackChannel {
+}
+
+class SystemDevice {
+	driver DeviceDriver
+	manager ManagerSet
+	channel CallbackChannel
+}
+
+class DeviceRouter {
+	callback  ComplexCallback
+	deviceMap map[string]*SystemDevice
+}
+
+class Multiplexer {
+	router  DeviceRouter
+	clients map[string]CallbackSet
+}
+
+DeviceDriver <-- SystemDevice : driver
+SystemManager <|-- SystemDevice
+ManagerSet <-- SystemDevice : manager
+CallbackChannel <- SystemDevice : channel
+ComplexCallback <|-- CallbackChannel
+
+SystemDevice "*" <- DeviceRouter : deviceMap
+ComplexCallback <-- DeviceRouter : callback
+ComplexManager <|-- DeviceRouter
+
+ComplexCallback <|-- Multiplexer
+DeviceRouter <- Multiplexer : router
+CallbackSet "*" <-- Multiplexer : clients
+
+@enduml

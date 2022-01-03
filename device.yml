@@ -13,8 +13,30 @@ logger:
 devices:
   - dev_name: cashcode
     common:
-      model: cashcode
-      version: 0.1.0
+      model: Validator
+      version: default
+      timeout: 30
+      auto_load: False
+    linker:
+      link_type: 1
+      timeout: 250
+      serial:
+        # port_name: /dev/ttyUSB2
+        port_name: COM1
+        baud_rate: 9600
+        data_bits: 8
+        stop_bits: 0
+        parity: 1
+      hidusb:
+    printer:
+    reader:
+    validator:
+    dispenser:
+    vendor:
+  - dev_name: common
+    common:
+      model: LoopBack
+      version: default
       timeout: 30
       auto_load: False
     linker:

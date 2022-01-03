@@ -30,11 +30,11 @@ func (dr *DeviceRouter) cleanupRouter() {
 		obj.StopDeviceLoop()
 		delete(dr.deviceMap, name)
 	}
-	dr.storage.Close()
+	_ = dr.storage.Close()
 }
 
 func (dr *DeviceRouter) startupRouter() {
-	dr.storage.Open()
+	_ = dr.storage.Open()
 	for _, cfg := range dr.config.Devices {
 		obj, err := dr.createSystemDevice(cfg)
 		if err == nil {
@@ -60,18 +60,13 @@ func (dr *DeviceRouter) createSystemDevice(cfg *config.DeviceConfig) (*SystemDev
 	if cfg.DevName == "" {
 		return nil, errors.New("device name is not set in device config")
 	}
-	ctx := &driver.Context{
-		DevName: cfg.DevName,
-		Complex: dr.callback,
-		Storage: dr.storage,
-		Config:  cfg,
-	}
+
 	drv := driver.GetDeviceDriver(cfg.Common.Model)
 	if drv == nil {
 		return nil, errors.New("device model is not supported")
 	}
 	obj := NewSystemDevice(cfg.DevName)
-	obj.InitDevice(drv, ctx)
+	obj.InitDevice(drv, cfg, dr.storage, dr.callback)
 
 	return obj, nil
 }

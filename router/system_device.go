@@ -39,10 +39,16 @@ func NewSystemDevice(name string) *SystemDevice {
 	return &sd
 }
 
-func (sd *SystemDevice) InitDevice(drv driver.DeviceDriver, ctx *driver.Context) {
+func (sd *SystemDevice) InitDevice(drv driver.DeviceDriver, cfg *config.DeviceConfig, db dbase.DBaseLinker, cb common.ComplexCallback) {
 	sd.driver = drv
-	sd.config = ctx.Config
-	sd.storage = ctx.Storage
+	sd.config = cfg
+	sd.storage = db
+	ctx := &driver.Context{
+		DevName: cfg.DevName,
+		Complex: cb,
+		Storage: db,
+		Config:  cfg,
+	}
 	manager := drv.InitDevice(ctx)
 	sd.manager.InitManagers(manager)
 	sd.manager.System = sd

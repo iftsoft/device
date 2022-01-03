@@ -1,0 +1,160 @@
+@startuml
+
+page 1x2
+
+together {
+    interface SystemCallback {
+        SystemReply(name string, reply *SystemReply) error
+        SystemHealth(name string, reply *SystemHealth) error
+    }
+
+    interface DeviceCallback {
+        DeviceReply(name string, reply *DeviceReply) error
+        ExecuteError(name string, value *DeviceError) error
+        StateChanged(name string, value *DeviceState) error
+        ActionPrompt(name string, value *DevicePrompt) error
+        ReaderReturn(name string, value *DeviceInform) error
+    }
+
+    interface PrinterCallback {
+        PrinterProgress(name string, reply *PrinterProgress) error
+    }
+
+    interface ReaderCallback {
+        CardPosition(name string, value *ReaderCardPos) error
+        CardDescription(name string, value *ReaderCardInfo) error
+        ChipResponse(name string, reply *ReaderChipReply) error
+    }
+
+    interface ValidatorCallback {
+        NoteAccepted(name string, value *ValidatorAccept) error
+        CashIsStored(name string, value *ValidatorAccept) error
+        CashReturned(name string, value *ValidatorAccept) error
+        ValidatorStore(name string, reply *ValidatorStore) error
+    }
+
+    interface PinPadCallback {
+        PinPadReply(name string, reply *ReaderPinReply) error
+    }
+
+    class CallbackSet {
+        System    SystemCallback
+        Device    DeviceCallback
+        Printer   PrinterCallback
+        Reader    ReaderCallback
+        PinPad    PinPadCallback
+        Validator ValidatorCallback
+    }
+
+    interface ComplexCallback {
+        GetSystemCallback() SystemCallback
+        GetDeviceCallback() DeviceCallback
+        GetPrinterCallback() PrinterCallback
+        GetReaderCallback() ReaderCallback
+        GetPinPadCallback() PinPadCallback
+        GetValidatorCallback() ValidatorCallback
+    }
+
+    SystemCallback <-- CallbackSet
+    DeviceCallback <-- CallbackSet
+    PrinterCallback <-- CallbackSet
+    ReaderCallback <-- CallbackSet
+    PinPadCallback <-- CallbackSet
+    ValidatorCallback <-- CallbackSet
+
+    SystemCallback <.. ComplexCallback
+    DeviceCallback <.. ComplexCallback
+    PrinterCallback <.. ComplexCallback
+    ReaderCallback <.. ComplexCallback
+    PinPadCallback <.. ComplexCallback
+    ValidatorCallback <.. ComplexCallback
+
+}
+
+together {
+    interface SystemManager {
+        Terminate(name string, query *SystemQuery) error
+        SysInform(name string, query *SystemQuery) error
+        SysStart(name string, query *SystemConfig) error
+        SysStop(name string, query *SystemQuery) error
+        SysRestart(name string, query *SystemConfig) error
+    }
+
+    interface DeviceManager {
+        Cancel(name string, query *DeviceQuery) error
+        Reset(name string, query *DeviceQuery) error
+        Status(name string, query *DeviceQuery) error
+        RunAction(name string, query *DeviceQuery) error
+        StopAction(name string, query *DeviceQuery) error
+    }
+
+    interface PrinterManager {
+        InitPrinter(name string, query *PrinterSetup) error
+        PrintText(name string, query *PrinterQuery) error
+    }
+
+    interface ReaderManager {
+        EnterCard(name string, query *DeviceQuery) error
+        EjectCard(name string, query *DeviceQuery) error
+        CaptureCard(name string, query *DeviceQuery) error
+        ReadCard(name string, query *DeviceQuery) error
+        ChipGetATR(name string, query *DeviceQuery) error
+        ChipPowerOff(name string, query *DeviceQuery) error
+        ChipCommand(name string, query *ReaderChipQuery) error
+    }
+
+    interface ValidatorManager {
+        InitValidator(name string, query *ValidatorQuery) error
+        DoValidate(name string, query *ValidatorQuery) error
+        NoteAccept(name string, query *ValidatorQuery) error
+        NoteReturn(name string, query *ValidatorQuery) error
+        StopValidate(name string, query *ValidatorQuery) error
+        CheckValidator(name string, query *ValidatorQuery) error
+        ClearValidator(name string, query *ValidatorQuery) error
+    }
+
+    interface PinPadManager {
+        ReadPIN(name string, query *ReaderPinQuery) error
+        LoadMasterKey(name string, query *ReaderPinQuery) error
+        LoadWorkKey(name string, query *ReaderPinQuery) error
+        TestMasterKey(name string, query *ReaderPinQuery) error
+        TestWorkKey(name string, query *ReaderPinQuery) error
+    }
+
+    class ManagerSet {
+        System    SystemManager
+        Device    DeviceManager
+        Printer   PrinterManager
+        Reader    ReaderManager
+        PinPad    PinPadManager
+        Validator ValidatorManager
+    }
+
+    interface ComplexManager {
+        GetSystemManager() SystemManager
+        GetDeviceManager() DeviceManager
+        GetPrinterManager() PrinterManager
+        GetReaderManager() ReaderManager
+        GetPinPadManager() PinPadManager
+        GetValidatorManager() ValidatorManager
+    }
+
+    SystemManager <-- ManagerSet
+    DeviceManager <-- ManagerSet
+    PrinterManager <-- ManagerSet
+    ReaderManager <-- ManagerSet
+    PinPadManager <-- ManagerSet
+    ValidatorManager <-- ManagerSet
+
+    SystemManager <.. ComplexManager
+    DeviceManager <.. ComplexManager
+    PrinterManager <.. ComplexManager
+    ReaderManager <.. ComplexManager
+    PinPadManager <.. ComplexManager
+    ValidatorManager <.. ComplexManager
+}
+
+SystemCallback -[hidden]--> SystemManager
+
+
+@enduml

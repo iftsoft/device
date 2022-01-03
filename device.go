@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
+	"github.com/iftsoft/device/driver/loopback"
+	"github.com/iftsoft/device/driver/validator"
 	"github.com/iftsoft/device/router"
 	"time"
 )
@@ -24,6 +26,8 @@ func main() {
 	log.Info(appCfg.String())
 
 	//err = linker.GetLinkerPorts(log)
+	err = loopback.RegisterDriver()
+	err = validator.RegisterDriver()
 
 	mux := router.NewMultiplexer(appCfg)
 	mux.Startup()
