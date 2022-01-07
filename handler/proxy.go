@@ -16,14 +16,13 @@ type HandlerProxy struct {
 	pinpadSrv    *proxy.PinPadServer
 }
 
-
 func (hp *HandlerProxy) initProxy() {
-	hp.systemSrv    = proxy.NewSystemServer()
-	hp.deviceSrv    = proxy.NewDeviceServer()
-	hp.printerSrv   = proxy.NewPrinterServer()
-	hp.readerSrv    = proxy.NewReaderServer()
+	hp.systemSrv = proxy.NewSystemServer()
+	hp.deviceSrv = proxy.NewDeviceServer()
+	hp.printerSrv = proxy.NewPrinterServer()
+	hp.readerSrv = proxy.NewReaderServer()
 	hp.validatorSrv = proxy.NewValidatorServer()
-	hp.pinpadSrv    = proxy.NewPinPadServer()
+	hp.pinpadSrv = proxy.NewPinPadServer()
 }
 
 func (hp *HandlerProxy) setupProxy(server duplex.ServerManager, hr *HandlerRouter) {
@@ -36,8 +35,6 @@ func (hp *HandlerProxy) setupProxy(server duplex.ServerManager, hr *HandlerRoute
 	hp.pinpadSrv.Init(server, hr, hr.log)
 }
 
-
-
 // Implementation of common.SystemManager
 func (hp *HandlerProxy) Terminate(name string, query *common.SystemQuery) error {
 	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemTerminate, query)
@@ -45,13 +42,13 @@ func (hp *HandlerProxy) Terminate(name string, query *common.SystemQuery) error 
 func (hp *HandlerProxy) SysInform(name string, query *common.SystemQuery) error {
 	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemInform, query)
 }
-func (hp *HandlerProxy) SysStart(name string, query *common.SystemConfig) error {
+func (hp *HandlerProxy) SysStart(name string, query *common.SystemQuery) error {
 	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemStart, query)
 }
 func (hp *HandlerProxy) SysStop(name string, query *common.SystemQuery) error {
 	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemStop, query)
 }
-func (hp *HandlerProxy) SysRestart(name string, query *common.SystemConfig) error {
+func (hp *HandlerProxy) SysRestart(name string, query *common.SystemQuery) error {
 	return hp.systemSrv.SendSystemCommand(name, common.CmdSystemRestart, query)
 }
 

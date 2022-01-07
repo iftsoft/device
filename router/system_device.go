@@ -22,7 +22,6 @@ type SystemDevice struct {
 	log     *core.LogAgent
 	query   chan common.Packet
 	done    chan struct{}
-	wg      sync.WaitGroup
 	checkTm time.Time
 }
 
@@ -34,18 +33,19 @@ func NewSystemDevice(name string) *SystemDevice {
 		driver:  nil,
 		log:     core.GetLogAgent(core.LogLevelTrace, name),
 		query:   make(chan common.Packet, 8),
-		done:    make(chan struct{}),
+		done:    make(chan struct{}, 1),
 	}
 	return &sd
 }
 
-func (sd *SystemDevice) InitDevice(drv driver.DeviceDriver, cfg *config.DeviceConfig, db dbase.DBaseLinker, cb common.ComplexCallback) {
+func (sd *SystemDevice) InitDevice(drv driver.DeviceDriver, cfg *config.DeviceConfig, db dbase.DBaseLinker, reply chan<- common.Packet) {
 	sd.driver = drv
 	sd.config = cfg
 	sd.storage = db
+	sd.channel.initChannel(reply)
 	ctx := &driver.Context{
 		DevName: cfg.DevName,
-		Complex: cb,
+		Complex: &sd.channel,
 		Storage: db,
 		Config:  cfg,
 	}
@@ -64,15 +64,14 @@ func (sd *SystemDevice) RunCommand(command, devName string, query interface{}) e
 	return nil
 }
 
-func (sd *SystemDevice) StartDeviceLoop() {
+func (sd *SystemDevice) StartDeviceLoop(wg *sync.WaitGroup) {
 	sd.log.Info("Starting system device %s", sd.devName)
-	go sd.deviceLoop(&sd.wg)
+	go sd.deviceLoop(wg)
 }
 
 func (sd *SystemDevice) StopDeviceLoop() {
 	sd.log.Info("Stopping system device %s", sd.devName)
 	close(sd.done)
-	sd.wg.Wait()
 }
 
 func (sd *SystemDevice) deviceLoop(wg *sync.WaitGroup) {
@@ -83,7 +82,7 @@ func (sd *SystemDevice) deviceLoop(wg *sync.WaitGroup) {
 
 	sd.state = common.SysStateUndefined
 	if sd.config.Common.AutoLoad {
-		err := sd.driver.StartDevice(nil)
+		err := sd.driver.StartDevice()
 		if err == nil {
 			sd.state = common.SysStateRunning
 		}
@@ -96,7 +95,7 @@ func (sd *SystemDevice) deviceLoop(wg *sync.WaitGroup) {
 	}()
 
 	sd.checkTm = time.Now()
-	tick := time.NewTicker(100 * time.Millisecond)
+	tick := time.NewTicker(1000 * time.Millisecond)
 	defer tick.Stop()
 
 	for {
@@ -136,45 +135,7 @@ func (sd *SystemDevice) sendDeviceMetrics(tm time.Time) {
 	err = sd.channel.SystemHealth(sd.devName, health)
 }
 
-//// Implementation of common.ComplexManager
-//
-//func (sd *SystemDevice) GetSystemManager() common.SystemManager {
-//	return sd
-//}
-//func (sd *SystemDevice) GetDeviceManager() common.DeviceManager {
-//	return sd
-//}
-//func (sd *SystemDevice) GetPrinterManager() common.PrinterManager {
-//	return sd
-//}
-//func (sd *SystemDevice) GetReaderManager() common.ReaderManager {
-//	return sd
-//}
-//func (sd *SystemDevice) GetPinPadManager() common.PinPadManager {
-//	return sd
-//}
-//func (sd *SystemDevice) GetValidatorManager() common.ValidatorManager {
-//	return sd
-//}
-
 // Implementation of common.SystemManager
-
-func (sd *SystemDevice) Terminate(name string, query *common.SystemQuery) error {
-	sd.state = common.SysStateUndefined
-	var err error
-	if sd.driver != nil {
-		err = sd.driver.StopDevice()
-	}
-	reply := &common.SystemReply{}
-	reply.Command = common.CmdSystemTerminate
-	reply.State = sd.state
-	if err != nil {
-		reply.Message = err.Error()
-	}
-	//core.SendQuitSignal(100)
-	_ = sd.channel.SystemReply(sd.devName, reply)
-	return err
-}
 
 func (sd *SystemDevice) SysInform(name string, query *common.SystemQuery) error {
 	reply := &common.SystemReply{}
@@ -184,11 +145,11 @@ func (sd *SystemDevice) SysInform(name string, query *common.SystemQuery) error 
 	return nil
 }
 
-func (sd *SystemDevice) SysStart(name string, query *common.SystemConfig) error {
+func (sd *SystemDevice) SysStart(name string, query *common.SystemQuery) error {
 	sd.state = common.SysStateUndefined
 	var err error
 	if sd.driver != nil {
-		err = sd.driver.StartDevice(query)
+		err = sd.driver.StartDevice()
 		if err == nil {
 			sd.state = common.SysStateRunning
 		} else {
@@ -224,7 +185,7 @@ func (sd *SystemDevice) SysStop(name string, query *common.SystemQuery) error {
 	return err
 }
 
-func (sd *SystemDevice) SysRestart(name string, query *common.SystemConfig) error {
+func (sd *SystemDevice) SysRestart(name string, query *common.SystemQuery) error {
 	sd.state = common.SysStateUndefined
 	var err error
 	if sd.driver != nil {
@@ -232,7 +193,7 @@ func (sd *SystemDevice) SysRestart(name string, query *common.SystemConfig) erro
 		if err == nil {
 			sd.state = common.SysStateStopped
 		}
-		err = sd.driver.StartDevice(query)
+		err = sd.driver.StartDevice()
 		if err == nil {
 			sd.state = common.SysStateRunning
 		} else {
@@ -248,6 +209,27 @@ func (sd *SystemDevice) SysRestart(name string, query *common.SystemConfig) erro
 	_ = sd.channel.SystemReply(sd.devName, reply)
 	return err
 }
+
+//// Implementation of common.ComplexManager
+//
+//func (sd *SystemDevice) GetSystemManager() common.SystemManager {
+//	return sd
+//}
+//func (sd *SystemDevice) GetDeviceManager() common.DeviceManager {
+//	return sd
+//}
+//func (sd *SystemDevice) GetPrinterManager() common.PrinterManager {
+//	return sd
+//}
+//func (sd *SystemDevice) GetReaderManager() common.ReaderManager {
+//	return sd
+//}
+//func (sd *SystemDevice) GetPinPadManager() common.PinPadManager {
+//	return sd
+//}
+//func (sd *SystemDevice) GetValidatorManager() common.ValidatorManager {
+//	return sd
+//}
 
 /*
 // Implementation of common.DeviceManager

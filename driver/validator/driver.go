@@ -49,15 +49,12 @@ func (vd *ValidatorDriver) InitDevice(context *driver.Context) common.ComplexMan
 	return vd
 }
 
-func (vd *ValidatorDriver) StartDevice(query *common.SystemConfig) error {
+func (vd *ValidatorDriver) StartDevice() error {
 	vd.Log.Debug("ValidatorDriver run cmd:%s", "StartDeviceLoop")
 	var err error
-	if vd.config != nil && query != nil {
-		vd.config.OverwriteConfig(query)
-	}
-	if vd.storage != nil {
-		err = vd.storage.Open()
-	}
+	//if vd.storage != nil {
+	//	err = vd.storage.Open()
+	//}
 	if err == nil {
 		err = vd.DevStartup()
 	}

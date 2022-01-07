@@ -76,15 +76,12 @@ func (dd *LoopbackDriver) InitDevice(context *driver.Context) common.ComplexMana
 	return dd
 }
 
-func (dd *LoopbackDriver) StartDevice(query *common.SystemConfig) error {
+func (dd *LoopbackDriver) StartDevice() error {
 	dd.log.Debug("LoopbackDriver run cmd:%s", "StartDeviceLoop")
-	if dd.config != nil && query != nil {
-		dd.config.OverwriteConfig(query)
-	}
 	err := dd.protocol.OpenLink()
-	if err == nil && dd.storage != nil {
-		err = dd.storage.Open()
-	}
+	//if err == nil && dd.storage != nil {
+	//	err = dd.storage.Open()
+	//}
 	return err
 }
 func (dd *LoopbackDriver) DeviceTimer(unix int64) error {

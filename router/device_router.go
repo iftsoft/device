@@ -7,51 +7,69 @@ import (
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/dbase"
 	"github.com/iftsoft/device/driver"
+	"sync"
 )
 
 type DeviceRouter struct {
-	callback  common.ComplexCallback
+	callback  common.CallbackSet
 	config    *config.AppConfig
 	storage   *dbase.DBaseStore
 	log       *core.LogAgent
+	reply     chan common.Packet
 	deviceMap map[string]*SystemDevice
+	wg        sync.WaitGroup
+	done      chan struct{}
 }
 
 func (dr *DeviceRouter) initRouter(log *core.LogAgent, config *config.AppConfig, callback common.ComplexCallback) {
 	dr.log = log
 	dr.config = config
-	dr.callback = callback
+	dr.callback.InitCallbacks(callback)
+	dr.done = make(chan struct{}, 1)
+	dr.reply = make(chan common.Packet, 64)
 	dr.deviceMap = make(map[string]*SystemDevice)
 	dr.storage = dbase.GetNewDBaseStore(config.Storage)
 }
 
-func (dr *DeviceRouter) cleanupRouter() {
-	for name, obj := range dr.deviceMap {
-		obj.StopDeviceLoop()
-		delete(dr.deviceMap, name)
-	}
-	_ = dr.storage.Close()
-}
-
 func (dr *DeviceRouter) startupRouter() {
+	dr.log.Info("Starting device router")
+	go dr.routerLoop(&dr.wg)
 	_ = dr.storage.Open()
 	for _, cfg := range dr.config.Devices {
 		obj, err := dr.createSystemDevice(cfg)
 		if err == nil {
-			obj.StartDeviceLoop()
+			obj.StartDeviceLoop(&dr.wg)
 			dr.deviceMap[cfg.DevName] = obj
 		}
 	}
 }
 
-//func (dr *DeviceRouter) getDeviceConfig(name string) *config.DeviceConfig {
-//	for _, cfg := range dr.config.Devices {
-//		if cfg.DevName == name {
-//			return cfg
-//		}
-//	}
-//	return nil
-//}
+func (dr *DeviceRouter) cleanupRouter() {
+	dr.log.Info("Stopping device router")
+	for name, obj := range dr.deviceMap {
+		obj.StopDeviceLoop()
+		delete(dr.deviceMap, name)
+	}
+	close(dr.done)
+	dr.wg.Wait()
+	_ = dr.storage.Close()
+}
+
+func (dr *DeviceRouter) routerLoop(wg *sync.WaitGroup) {
+	wg.Add(1)
+	defer wg.Done()
+	dr.log.Debug("Device router loop is started")
+	defer dr.log.Debug("Device router loop is stopped")
+
+	for {
+		select {
+		case <-dr.done:
+			return
+		case pack := <-dr.reply:
+			_ = dr.callback.RunCommand(pack)
+		}
+	}
+}
 
 func (dr *DeviceRouter) createSystemDevice(cfg *config.DeviceConfig) (*SystemDevice, error) {
 	if cfg == nil {
@@ -66,7 +84,7 @@ func (dr *DeviceRouter) createSystemDevice(cfg *config.DeviceConfig) (*SystemDev
 		return nil, errors.New("device model is not supported")
 	}
 	obj := NewSystemDevice(cfg.DevName)
-	obj.InitDevice(drv, cfg, dr.storage, dr.callback)
+	obj.InitDevice(drv, cfg, dr.storage, dr.reply)
 
 	return obj, nil
 }
@@ -116,13 +134,13 @@ func (dr *DeviceRouter) GetValidatorManager() common.ValidatorManager {
 
 // Implementation of common.SystemManager
 
-func (dr *DeviceRouter) Terminate(name string, query *common.SystemQuery) error {
-	device := dr.getSystemDevice(name)
-	if device != nil {
-		return device.RunCommand(common.CmdSystemTerminate, name, query)
-	}
-	return common.NewError(common.DevErrorNotInitialized, "")
-}
+//func (dr *DeviceRouter) Terminate(name string, query *common.SystemQuery) error {
+//	device := dr.getSystemDevice(name)
+//	if device != nil {
+//		return device.RunCommand(common.CmdSystemTerminate, name, query)
+//	}
+//	return common.NewError(common.DevErrorNotInitialized, "")
+//}
 
 func (dr *DeviceRouter) SysInform(name string, query *common.SystemQuery) error {
 	device := dr.getSystemDevice(name)
@@ -132,7 +150,7 @@ func (dr *DeviceRouter) SysInform(name string, query *common.SystemQuery) error 
 	return common.NewError(common.DevErrorNotInitialized, "")
 }
 
-func (dr *DeviceRouter) SysStart(name string, query *common.SystemConfig) error {
+func (dr *DeviceRouter) SysStart(name string, query *common.SystemQuery) error {
 	device := dr.getSystemDevice(name)
 	if device != nil {
 		return device.RunCommand(common.CmdSystemStart, name, query)
@@ -148,7 +166,7 @@ func (dr *DeviceRouter) SysStop(name string, query *common.SystemQuery) error {
 	return common.NewError(common.DevErrorNotInitialized, "")
 }
 
-func (dr *DeviceRouter) SysRestart(name string, query *common.SystemConfig) error {
+func (dr *DeviceRouter) SysRestart(name string, query *common.SystemQuery) error {
 	device := dr.getSystemDevice(name)
 	if device != nil {
 		return device.RunCommand(common.CmdSystemRestart, name, query)

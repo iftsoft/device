@@ -4,13 +4,13 @@ type EnumSystemError int16
 type EnumSystemState int16
 
 const (
-	CmdSystemReply     = "SystemReply"
-	CmdSystemHealth    = "SystemHealth"
-	CmdSystemTerminate = "Terminate"
-	CmdSystemInform    = "SysInform"
-	CmdSystemStart     = "SysStart"
-	CmdSystemStop      = "SysStop"
-	CmdSystemRestart   = "SysRestart"
+	CmdSystemReply  = "SystemReply"
+	CmdSystemHealth = "SystemHealth"
+	//	CmdSystemTerminate = "Terminate"
+	CmdSystemInform  = "SysInform"
+	CmdSystemStart   = "SysStart"
+	CmdSystemStop    = "SysStop"
+	CmdSystemRestart = "SysRestart"
 )
 
 // System state codes
@@ -59,12 +59,12 @@ func (e EnumSystemState) String() string {
 type SystemQuery struct {
 }
 
-type SystemConfig struct {
-	LinkType  uint16 `json:"link_type"`  // 0-none, 1-COM, 2-USB
-	PortName  string `json:"port_name"`  // Serial port name
-	VendorID  uint16 `json:"vendor_id"`  // Device Vendor ID
-	ProductID uint16 `json:"product_id"` // Device Product ID
-}
+//type SystemConfig struct {
+//	LinkType  uint16 `json:"link_type"`  // 0-none, 1-COM, 2-USB
+//	PortName  string `json:"port_name"`  // Serial port name
+//	VendorID  uint16 `json:"vendor_id"`  // Device Vendor ID
+//	ProductID uint16 `json:"product_id"` // Device Product ID
+//}
 
 type SystemReply struct {
 	Command string          `json:"command"`
@@ -118,9 +118,8 @@ type SystemCallback interface {
 }
 
 type SystemManager interface {
-	Terminate(name string, query *SystemQuery) error
 	SysInform(name string, query *SystemQuery) error
-	SysStart(name string, query *SystemConfig) error
+	SysStart(name string, query *SystemQuery) error
 	SysStop(name string, query *SystemQuery) error
-	SysRestart(name string, query *SystemConfig) error
+	SysRestart(name string, query *SystemQuery) error
 }

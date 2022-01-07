@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/iftsoft/device/common"
 	"github.com/iftsoft/device/config"
 	"github.com/iftsoft/device/core"
 	"github.com/iftsoft/device/driver/loopback"
@@ -31,6 +32,12 @@ func main() {
 
 	mux := router.NewMultiplexer(appCfg)
 	mux.Startup()
+	time.Sleep(time.Second)
+	client1 := mux.AttachClient("client 1", nil)
+	if client1 != nil {
+		dev := client1.GetDeviceManager()
+		_ = dev.Status("cashcode", &common.DeviceQuery{})
+	}
 	//srv := duplex.NewDuplexServer(appCfg.Duplex, log)
 	//hnd := handler.NewHandlerManager(appCfg.Handlers)
 	////hnd.RegisterReflexFactory(plugin.GetValidatorCheckerFactory())

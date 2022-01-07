@@ -198,7 +198,7 @@ func (set *ManagerSet) RunCommand(packet Packet) error {
 		}
 	case CmdSystemStart:
 		if set.System != nil {
-			if query, ok := packet.Content.(*SystemConfig); ok {
+			if query, ok := packet.Content.(*SystemQuery); ok {
 				return set.System.SysStart(packet.DevName, query)
 			}
 		}
@@ -210,7 +210,7 @@ func (set *ManagerSet) RunCommand(packet Packet) error {
 		}
 	case CmdSystemRestart:
 		if set.System != nil {
-			if query, ok := packet.Content.(*SystemConfig); ok {
+			if query, ok := packet.Content.(*SystemQuery); ok {
 				return set.System.SysRestart(packet.DevName, query)
 			}
 		}
